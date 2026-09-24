@@ -1,5 +1,14 @@
 import axios from "axios";
-import type { Fundamentals, HistoryPoint, NewsItem, Quote, Ticker, WatchlistEntry } from "./types";
+import type {
+  CompareRow,
+  Fundamentals,
+  HistoryPoint,
+  NewsItem,
+  PortfolioFields,
+  Quote,
+  Ticker,
+  WatchlistEntry,
+} from "./types";
 
 // FastAPI backend hosted on Render — reachable from anywhere, no laptop needed.
 export const API_BASE_URL = "https://stockapp-ghmx.onrender.com";
@@ -30,4 +39,14 @@ export const api = {
   addToWatchlist: (symbol: string) => client.post(`/watchlist/${encodeURIComponent(symbol)}`),
 
   removeFromWatchlist: (symbol: string) => client.delete(`/watchlist/${encodeURIComponent(symbol)}`),
+
+  updateWatchlistItem: (symbol: string, fields: Partial<PortfolioFields>) =>
+    client
+      .patch<WatchlistEntry>(`/watchlist/${encodeURIComponent(symbol)}`, fields)
+      .then((r) => r.data),
+
+  compare: (symbols: string[]) =>
+    client
+      .get<CompareRow[]>("/stocks/compare", { params: { symbols: symbols.join(",") } })
+      .then((r) => r.data),
 };

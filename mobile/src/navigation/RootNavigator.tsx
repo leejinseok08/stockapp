@@ -3,7 +3,9 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 import { Text } from "react-native";
+import CompareScreen from "../screens/CompareScreen";
 import NewsScreen from "../screens/NewsScreen";
+import PortfolioScreen from "../screens/PortfolioScreen";
 import StockDetailScreen from "../screens/StockDetailScreen";
 import WatchlistScreen from "../screens/WatchlistScreen";
 import { colors } from "../theme";
@@ -53,6 +55,8 @@ export default function RootNavigator() {
           component={StockDetailScreen}
           options={({ route }) => ({ title: route.params.symbol })}
         />
+        <Stack.Screen name="Portfolio" component={PortfolioScreen} options={{ title: "포트폴리오" }} />
+        <Stack.Screen name="Compare" component={CompareScreen} options={{ title: "종목 비교" }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

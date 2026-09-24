@@ -15,7 +15,15 @@ export type Quote = {
   volume: number | null;
 };
 
-export type WatchlistEntry = Quote & Partial<Ticker>;
+export type PortfolioFields = {
+  buyPrice: number | null;
+  quantity: number | null;
+  note: string | null;
+};
+
+export type WatchlistEntry = Quote & Partial<Ticker> & PortfolioFields;
+
+export type CompareRow = Quote & Partial<Ticker> & { trailingPE: number | null };
 
 export type HistoryPoint = {
   t: number;
@@ -71,6 +79,8 @@ export type NewsItem = {
 export type RootStackParamList = {
   Tabs: undefined;
   StockDetail: { symbol: string; name?: string };
+  Portfolio: undefined;
+  Compare: undefined;
 };
 
 export type TabParamList = {

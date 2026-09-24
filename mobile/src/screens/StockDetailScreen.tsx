@@ -1,11 +1,28 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { api } from "../api";
 import { RadarChart } from "../components/RadarChart";
 import { colors } from "../theme";
-import type { Fundamentals, HistoryPoint, RootStackParamList } from "../types";
+import type { Fundamentals, HistoryPoint, RootStackParamList, WatchlistEntry } from "../types";
+
+function sma(values: number[], window: number): (number | null)[] {
+  return values.map((_, i) => {
+    if (i < window - 1) return null;
+    const slice = values.slice(i - window + 1, i + 1);
+    return slice.reduce((sum, v) => sum + v, 0) / window;
+  });
+}
 
 type Props = NativeStackScreenProps<RootStackParamList, "StockDetail">;
 
@@ -38,6 +55,12 @@ export default function StockDetailScreen({ route }: Props) {
   const [fundamentals, setFundamentals] = useState<Fundamentals | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [buyPriceText, setBuyPriceText] = useState("");
+  const [quantityText, setQuantityText] = useState("");
+  const [noteText, setNoteText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
   useEffect(() => {
     setLoading(true);
     Promise.all([api.history(symbol, range), api.fundamentals(symbol)])
@@ -49,16 +72,63 @@ export default function StockDetailScreen({ route }: Props) {
       .finally(() => setLoading(false));
   }, [symbol, range]);
 
+  useEffect(() => {
+    api
+      .watchlist()
+      .then((list) => {
+        const entry = list.find((w) => w.symbol === symbol);
+        setBuyPriceText(entry?.buyPrice != null ? String(entry.buyPrice) : "");
+        setQuantityText(entry?.quantity != null ? String(entry.quantity) : "");
+        setNoteText(entry?.note ?? "");
+      })
+      .catch((e) => console.warn("watchlist entry load failed", e));
+  }, [symbol]);
+
+  const savePosition = async () => {
+    setSaving(true);
+    try {
+      const buyPrice = buyPriceText.trim() ? parseFloat(buyPriceText) : null;
+      const quantity = quantityText.trim() ? parseFloat(quantityText) : null;
+      await api.updateWatchlistItem(symbol, {
+        buyPrice: Number.isFinite(buyPrice) ? buyPrice : null,
+        quantity: Number.isFinite(quantity) ? quantity : null,
+        note: noteText.trim() || null,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (e) {
+      console.warn("save position failed", e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const latestPrice = history.length ? history[history.length - 1].close : null;
+  const buyPriceNum = parseFloat(buyPriceText);
+  const quantityNum = parseFloat(quantityText);
+  const hasPosition = Number.isFinite(buyPriceNum) && Number.isFinite(quantityNum) && buyPriceNum > 0;
+  const plPercent = hasPosition && latestPrice != null ? ((latestPrice - buyPriceNum) / buyPriceNum) * 100 : null;
+
   const chartData = useMemo(() => {
     const points = history.filter((p) => p.close != null);
     const step = Math.max(1, Math.floor(points.length / 6));
     const labels = points.map((p, i) =>
       i % step === 0 ? new Date(p.t).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }) : ""
     );
-    return {
-      labels,
-      datasets: [{ data: points.map((p) => p.close as number) }],
-    };
+    const closes = points.map((p) => p.close as number);
+    const datasets: { data: number[]; color: (opacity: number) => string; strokeWidth?: number }[] = [
+      { data: closes, color: () => colors.accent, strokeWidth: 2 },
+    ];
+    if (closes.length >= 20) {
+      const smaValues = sma(closes, 20);
+      const firstValid = smaValues.find((v) => v != null) ?? closes[0] ?? 0;
+      datasets.push({
+        data: smaValues.map((v) => v ?? firstValid),
+        color: () => colors.textMuted,
+        strokeWidth: 1,
+      });
+    }
+    return { labels, datasets, hasSma: closes.length >= 20 };
   }, [history]);
 
   const screenWidth = Dimensions.get("window").width;
@@ -96,25 +166,80 @@ export default function StockDetailScreen({ route }: Props) {
       ) : (
         <>
           {chartData.datasets[0].data.length > 1 && (
-            <LineChart
-              data={chartData}
-              width={screenWidth - 16}
-              height={220}
-              withDots={false}
-              withInnerLines={false}
-              chartConfig={{
-                backgroundColor: colors.surface,
-                backgroundGradientFrom: colors.surface,
-                backgroundGradientTo: colors.surface,
-                decimalPlaces: 2,
-                color: () => colors.accent,
-                labelColor: () => colors.textMuted,
-                propsForBackgroundLines: { stroke: colors.border },
-              }}
-              bezier
-              style={{ marginHorizontal: 8, borderRadius: 12 }}
-            />
+            <>
+              <LineChart
+                data={chartData}
+                width={screenWidth - 16}
+                height={220}
+                withDots={false}
+                withInnerLines={false}
+                chartConfig={{
+                  backgroundColor: colors.surface,
+                  backgroundGradientFrom: colors.surface,
+                  backgroundGradientTo: colors.surface,
+                  decimalPlaces: 2,
+                  color: () => colors.accent,
+                  labelColor: () => colors.textMuted,
+                  propsForBackgroundLines: { stroke: colors.border },
+                }}
+                bezier
+                style={{ marginHorizontal: 8, borderRadius: 12 }}
+              />
+              {chartData.hasSma && (
+                <View style={styles.legendRow}>
+                  <View style={[styles.legendDot, { backgroundColor: colors.accent }]} />
+                  <Text style={styles.legendText}>가격</Text>
+                  <View style={[styles.legendDot, { backgroundColor: colors.textMuted, marginLeft: 12 }]} />
+                  <Text style={styles.legendText}>20일 이동평균</Text>
+                </View>
+              )}
+            </>
           )}
+
+          <Section title="내 포지션 · 메모">
+            <View style={styles.positionRow}>
+              <View style={styles.positionField}>
+                <Text style={styles.fieldLabel}>매수가</Text>
+                <TextInput
+                  style={styles.input}
+                  value={buyPriceText}
+                  onChangeText={setBuyPriceText}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  placeholderTextColor={colors.textMuted}
+                />
+              </View>
+              <View style={styles.positionField}>
+                <Text style={styles.fieldLabel}>수량</Text>
+                <TextInput
+                  style={styles.input}
+                  value={quantityText}
+                  onChangeText={setQuantityText}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  placeholderTextColor={colors.textMuted}
+                />
+              </View>
+            </View>
+            {plPercent != null && (
+              <Text style={[styles.plPreview, { color: plPercent >= 0 ? colors.up : colors.down }]}>
+                평가 수익률 {plPercent >= 0 ? "+" : ""}
+                {plPercent.toFixed(2)}%
+              </Text>
+            )}
+            <Text style={styles.fieldLabel}>메모</Text>
+            <TextInput
+              style={[styles.input, styles.noteInput]}
+              value={noteText}
+              onChangeText={setNoteText}
+              placeholder="이 종목에 대한 메모를 남겨보세요"
+              placeholderTextColor={colors.textMuted}
+              multiline
+            />
+            <Pressable style={styles.saveBtn} onPress={savePosition} disabled={saving}>
+              <Text style={styles.saveBtnText}>{saving ? "저장 중..." : saved ? "저장됨 ✓" : "저장"}</Text>
+            </Pressable>
+          </Section>
 
           <Section title="펀더멘털 스코어">
             <View style={styles.radarWrap}>
@@ -237,6 +362,30 @@ const styles = StyleSheet.create({
   rangeText: { color: colors.textMuted, fontSize: 12, fontWeight: "600" },
   rangeTextActive: { color: "#fff" },
   section: { paddingHorizontal: 16, marginTop: 20 },
+  legendRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginTop: 4 },
+  legendDot: { width: 8, height: 8, borderRadius: 4, marginRight: 4 },
+  legendText: { color: colors.textMuted, fontSize: 11 },
+  positionRow: { flexDirection: "row", gap: 10 },
+  positionField: { flex: 1 },
+  fieldLabel: { color: colors.textMuted, fontSize: 11, marginBottom: 4, marginTop: 8 },
+  input: {
+    backgroundColor: colors.surface,
+    color: colors.text,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+  },
+  noteInput: { minHeight: 60, textAlignVertical: "top" },
+  plPreview: { fontSize: 13, fontWeight: "700", marginTop: 10 },
+  saveBtn: {
+    backgroundColor: colors.accent,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  saveBtnText: { color: "#fff", fontWeight: "700", fontSize: 13 },
   radarWrap: { alignItems: "center", paddingVertical: 8 },
   scoreNote: { color: colors.textMuted, fontSize: 11, textAlign: "center", marginTop: 4 },
   sectionTitle: { color: colors.text, fontSize: 16, fontWeight: "700", marginBottom: 10 },

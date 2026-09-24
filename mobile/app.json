@@ -1,23 +1,31 @@
 {
   "expo": {
-    "name": "AllAboutSemi",
-    "slug": "allaboutsemi",
+    "name": "StockApp",
+    "slug": "stockapp",
     "version": "0.1.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
     "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
       "backgroundColor": "#0B0F14"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.allaboutsemi.app"
+      "bundleIdentifier": "com.stockapp.app"
     },
     "android": {
-      "package": "com.allaboutsemi.app"
+      "package": "com.stockapp.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B0F14"
+      }
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
     }
   }
 }

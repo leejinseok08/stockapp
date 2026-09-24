@@ -49,8 +49,10 @@ Expo Go 앱(또는 시뮬레이터)으로 QR코드를 스캔해 실행합니다.
 | GET | `/stocks/{symbol}/history?range=1mo` | 가격 히스토리 (1d/5d/1mo/6mo/1y/5y) |
 | GET | `/stocks/{symbol}/fundamentals` | 재무비율 + 손익/재무상태/현금흐름표 |
 | GET | `/stocks/{symbol}/news` | 종목 관련 뉴스 |
+| GET | `/stocks/compare?symbols=NVDA,AMD` | 비교용 시세 + PER |
 | GET | `/watchlist` | 관심종목 목록 (+ 현재가) |
 | POST | `/watchlist/{symbol}` | 관심종목 추가 |
+| PATCH | `/watchlist/{symbol}` | 매수가·수량·메모 수정 (`buyPrice`, `quantity`, `note`) |
 | DELETE | `/watchlist/{symbol}` | 관심종목 삭제 |
 
 ## 참고 사항

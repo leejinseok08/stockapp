@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from ..db import WatchlistItem, get_session
@@ -8,14 +9,21 @@ from ..tickers import UNIVERSE_BY_SYMBOL
 router = APIRouter(prefix="/watchlist", tags=["watchlist"])
 
 
+def _serialize(item: WatchlistItem, quote: dict | None) -> dict:
+    return {
+        **(quote or {"symbol": item.symbol}),
+        **UNIVERSE_BY_SYMBOL.get(item.symbol, {}),
+        "buyPrice": item.buy_price,
+        "quantity": item.quantity,
+        "note": item.note,
+    }
+
+
 @router.get("")
 def list_watchlist(session: Session = Depends(get_session)):
-    symbols = [w.symbol for w in session.exec(select(WatchlistItem)).all()]
-    quotes = {q["symbol"]: q for q in get_quotes(symbols)} if symbols else {}
-    return [
-        {**quotes.get(s, {"symbol": s}), **UNIVERSE_BY_SYMBOL.get(s, {})}
-        for s in symbols
-    ]
+    items = session.exec(select(WatchlistItem)).all()
+    quotes = {q["symbol"]: q for q in get_quotes([i.symbol for i in items])} if items else {}
+    return [_serialize(i, quotes.get(i.symbol)) for i in items]
 
 
 @router.post("/{symbol}")
@@ -26,6 +34,31 @@ def add_to_watchlist(symbol: str, session: Session = Depends(get_session)):
         session.add(WatchlistItem(symbol=symbol))
         session.commit()
     return {"symbol": symbol, "added": True}
+
+
+class WatchlistItemUpdate(BaseModel):
+    buyPrice: float | None = None
+    quantity: float | None = None
+    note: str | None = None
+
+
+@router.patch("/{symbol}")
+def update_watchlist_item(symbol: str, body: WatchlistItemUpdate, session: Session = Depends(get_session)):
+    symbol = symbol.upper()
+    existing = session.exec(select(WatchlistItem).where(WatchlistItem.symbol == symbol)).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="not in watchlist")
+    fields = body.model_dump(exclude_unset=True)
+    if "buyPrice" in fields:
+        existing.buy_price = fields["buyPrice"]
+    if "quantity" in fields:
+        existing.quantity = fields["quantity"]
+    if "note" in fields:
+        existing.note = fields["note"]
+    session.add(existing)
+    session.commit()
+    session.refresh(existing)
+    return _serialize(existing, None)
 
 
 @router.delete("/{symbol}")

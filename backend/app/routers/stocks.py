@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
-from ..services.market import HISTORY_RANGES, get_fundamentals, get_history, get_news, get_quote, get_quotes
-from ..tickers import UNIVERSE
+from ..services.market import HISTORY_RANGES, get_compare_rows, get_fundamentals, get_history, get_news, get_quote, get_quotes
+from ..tickers import UNIVERSE, UNIVERSE_BY_SYMBOL
 
 router = APIRouter(prefix="/stocks", tags=["stocks"])
 
@@ -15,6 +15,14 @@ def universe():
 def quotes(symbols: str):
     """Comma-separated symbols, e.g. ?symbols=NVDA,AMD,005930.KS"""
     return get_quotes([s.strip().upper() for s in symbols.split(",") if s.strip()])
+
+
+@router.get("/compare")
+def compare(symbols: str):
+    """Comma-separated symbols; returns quote + trailing PE for sorting/comparison."""
+    syms = [s.strip().upper() for s in symbols.split(",") if s.strip()]
+    rows = get_compare_rows(syms)
+    return [{**row, **UNIVERSE_BY_SYMBOL.get(row["symbol"], {})} for row in rows]
 
 
 @router.get("/{symbol}/quote")

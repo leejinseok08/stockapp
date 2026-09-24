@@ -50,6 +50,25 @@ def get_quotes(symbols: list[str]) -> list[dict]:
     return [get_quote(s) for s in symbols]
 
 
+def _get_trailing_pe(symbol: str) -> float | None:
+    def fetch():
+        return _num(yf.Ticker(symbol).info.get("trailingPE"))
+
+    return _cached(f"pe:{symbol}", 6 * 3600, fetch)
+
+
+def get_compare_rows(symbols: list[str]) -> list[dict]:
+    rows = []
+    for symbol in symbols:
+        quote = get_quote(symbol)
+        try:
+            pe = _get_trailing_pe(symbol)
+        except Exception:
+            pe = None  # yfinance .info is flaky; one bad symbol shouldn't sink the whole table
+        rows.append({**quote, "trailingPE": pe})
+    return rows
+
+
 HISTORY_RANGES = {
     "1d": ("1d", "5m"),
     "5d": ("5d", "30m"),
