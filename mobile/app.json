@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "AllAboutSemi",
+    "slug": "allaboutsemi",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#0B0F14"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.allaboutsemi.app"
+    },
+    "android": {
+      "package": "com.allaboutsemi.app"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
