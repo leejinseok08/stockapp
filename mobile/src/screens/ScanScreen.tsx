@@ -116,7 +116,10 @@ function ScanItem({ row, onPress }: { row: ScanRow; onPress: () => void }) {
         </Text>
       )}
       {!!rel?.verdict && <Text style={styles.verdict}>{rel.verdict}</Text>}
-      {row.ocfNegativeTtm && <Text style={styles.warn}>최근 4분기 영업현금흐름 합계 적자 · TIP 9 기준 제외 대상</Text>}
+      {row.score != null && row.scoreCoverage < 0.8 && (
+        <Text style={styles.line}>데이터가 빠져 점수 항목의 {Math.round(row.scoreCoverage * 100)}%만 반영됐어요</Text>
+      )}
+      {row.ocfNegativeTtm &&<Text style={styles.warn}>최근 4분기 영업현금흐름 합계 적자 · TIP 9 기준 제외 대상</Text>}
     </Pressable>
   );
 }

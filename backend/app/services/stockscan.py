@@ -133,21 +133,51 @@ def financial_change(income: pd.DataFrame, cashflow: pd.DataFrame) -> dict:
             "ocfNegativeTtm": bool(ocf and ocf["ttm"] is not None and ocf["ttm"] < 0)}
 
 
+def _latest_equity(balance: pd.DataFrame) -> float | None:
+    if balance is None or balance.empty:
+        return None
+    for row in ("Stockholders Equity", "Common Stock Equity"):
+        if row in balance.index:
+            s = balance.loc[row].sort_index(ascending=False).dropna()
+            if len(s):
+                return _num(s.iloc[0])
+    return None
+
+
+def ratios_from_statements(cap: float | None, fc: dict, equity: float | None) -> dict:
+    """ROE, PBR and PSR from the quarterly statements plus market cap.
+
+    Yahoo's `info` often comes back without these on cloud servers, so the score would quietly
+    lose 45% of its weight in production; computing them keeps local and deployed scores equal.
+    Assumes the statements are in the listing currency (true for the big-tech group)."""
+    ni = (fc["lines"].get("netIncome") or {}).get("ttm")
+    rev = (fc["lines"].get("revenue") or {}).get("ttm")
+    pos_equity = equity if equity and equity > 0 else None
+    return {
+        "roe": ni / pos_equity if ni is not None and pos_equity else None,
+        "pbr": cap / pos_equity if cap and pos_equity else None,
+        "psr": cap / rev if cap and rev and rev > 0 else None,
+    }
+
+
 def _stock_facts(symbol: str) -> dict:
     def fetch():
         t = yf.Ticker(symbol)
-        info = t.info
+        try:
+            info = t.info or {}
+        except Exception as e:
+            log.warning("info %s failed: %s", symbol, e)
+            info = {}
         fc = financial_change(t.quarterly_income_stmt, t.quarterly_cashflow)
+        cap = _num(t.fast_info.get("marketCap")) or _num(info.get("marketCap"))
+        computed = ratios_from_statements(cap, fc, _latest_equity(t.quarterly_balance_sheet))
         op_ttm = (fc["lines"].get("operatingIncome") or {}).get("ttm")
-        cap = _num(info.get("marketCap"))
         return {
             "symbol": symbol,
             "name": info.get("shortName") or info.get("longName"),
             "currency": info.get("financialCurrency") or info.get("currency"),
-            "roe": _num(info.get("returnOnEquity")),
+            **computed,
             "peg": _num(info.get("trailingPegRatio") or info.get("pegRatio")),
-            "pbr": _num(info.get("priceToBook")),
-            "psr": _num(info.get("priceToSalesTrailing12Months")),
             # TIP 30: market cap / operating income (lower = cheaper per unit of operating profit).
             "capToOpIncome": cap / op_ttm if cap and op_ttm and op_ttm > 0 else None,
             **fc,

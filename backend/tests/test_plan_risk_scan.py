@@ -118,3 +118,12 @@ def test_group_score_is_percentile_weighted_and_skips_bad_multiples():
     assert by["A"]["score"] > by["C"]["score"] > by["B"]["score"]
     assert by["C"]["percentiles"]["peg"] is None  # negative PEG isn't "cheap"
     assert by["A"]["scoreCoverage"] == pytest.approx(0.4 + 0.15 + 0.15)
+
+
+def test_ratios_computed_from_statements_when_info_is_empty():
+    fc = {"lines": {"netIncome": {"ttm": 20.0}, "revenue": {"ttm": 200.0}}}
+    r = stockscan.ratios_from_statements(1000.0, fc, 100.0)
+    assert r == {"roe": pytest.approx(0.2), "pbr": pytest.approx(10.0), "psr": pytest.approx(5.0)}
+    # Negative equity or missing cap: no ratio rather than a misleading one.
+    assert stockscan.ratios_from_statements(1000.0, fc, -5.0)["pbr"] is None
+    assert stockscan.ratios_from_statements(None, fc, 100.0)["psr"] is None
