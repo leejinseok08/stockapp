@@ -22,7 +22,7 @@ export function fmtMoney(v: number | null | undefined, currency?: string | null)
   const a = Math.abs(v);
   if (currency === "KRW") {
     if (a >= 1e12) return `${sign}${(a / 1e12).toFixed(2)}조`;
-    if (a >= 1e8) return `${sign}${(a / 1e8).toFixed(1)}억`;
+    if (a >= 1e8) return `${sign}${Math.round(a / 1e8).toLocaleString("en-US")}억`;
     if (a >= 1e4) return `${sign}${(a / 1e4).toFixed(0)}만`;
     return `${sign}${a.toLocaleString("en-US", { maximumFractionDigits: 0 })}원`;
   }

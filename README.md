@@ -62,6 +62,23 @@ EXPO_PUBLIC_API_URL=http://192.168.0.10:8000 npm start
 | POST | `/watchlist/{symbol}` | 관심종목 추가 |
 | PATCH | `/watchlist/{symbol}` | 매수가·수량·메모 수정 (`buyPrice`, `quantity`, `note`) |
 | DELETE | `/watchlist/{symbol}` | 관심종목 삭제 |
+| GET | `/market/overview` | 지수·수급·통화 강세 요약 |
+| POST | `/market/collect` | 오늘 수치를 DB에 저장 (여러 번 호출해도 안전) |
+| GET | `/market/export.csv` | 저장된 전체 기록 CSV (`date, series, value`) |
+
+## 서버 환경변수 (Render)
+
+| 이름 | 용도 |
+| --- | --- |
+| `DATABASE_URL` | Postgres 연결 문자열. 없으면 SQLite를 쓰는데, Render는 배포할 때마다 파일을 지우므로 데이터가 사라집니다. |
+| `KRX_ID`, `KRX_PW` | 한국거래소 데이터 사이트(data.krx.co.kr) 계정. 수급 데이터에 필요합니다. |
+| `PYTHON_VERSION` | `3.11.9` |
+
+## 매일 자동 수집 + 구글 드라이브 저장
+
+[`tools/drive_export.gs`](tools/drive_export.gs)를 [Google Apps Script](https://script.google.com)에 붙여넣고,
+프로젝트 설정에서 시간대를 `Asia/Seoul`로 바꾼 뒤 `setup`을 한 번 실행합니다.
+매일 16:30(한국장 마감 후)과 07:00(미국장 마감 후)에 수집을 실행하고, 드라이브의 `StockApp Data/market_snapshots.csv`를 갱신합니다.
 
 ## 참고 사항
 

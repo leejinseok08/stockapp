@@ -3,6 +3,7 @@ import type {
   CompareRow,
   Fundamentals,
   HistoryPoint,
+  MarketOverview,
   NewsItem,
   PortfolioFields,
   Quote,
@@ -44,6 +45,10 @@ export const api = {
     client
       .patch<WatchlistEntry>(`/watchlist/${encodeURIComponent(symbol)}`, fields)
       .then((r) => r.data),
+
+  marketOverview: () =>
+    // First call after the free server sleeps also fetches ~10 series, so allow extra time.
+    client.get<MarketOverview>("/market/overview", { timeout: 45000 }).then((r) => r.data),
 
   compare: (symbols: string[]) =>
     client
