@@ -1,9 +1,8 @@
 import axios from "axios";
 import type { Fundamentals, HistoryPoint, NewsItem, Quote, Ticker, WatchlistEntry } from "./types";
 
-// Point this at your FastAPI backend. Use your machine's LAN IP when testing
-// on a physical device via Expo Go (localhost won't resolve from the phone).
-export const API_BASE_URL = "http://localhost:8000";
+// FastAPI backend hosted on Render — reachable from anywhere, no laptop needed.
+export const API_BASE_URL = "https://stockapp-ghmx.onrender.com";
 
 const client = axios.create({ baseURL: API_BASE_URL, timeout: 10000 });
 
