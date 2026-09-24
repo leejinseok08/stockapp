@@ -63,6 +63,7 @@ EXPO_PUBLIC_API_URL=http://192.168.0.10:8000 npm start
 | PATCH | `/watchlist/{symbol}` | 매수가·수량·메모 수정 (`buyPrice`, `quantity`, `note`) |
 | DELETE | `/watchlist/{symbol}` | 관심종목 삭제 |
 | GET | `/market/overview` | 지수·수급·통화 강세 요약 |
+| GET | `/market/signals` | 대상별 매수 신호 점수(0~100)와 근거, 적립 배수 |
 | POST | `/market/collect` | 오늘 수치를 DB에 저장 (여러 번 호출해도 안전) |
 | GET | `/market/export.csv` | 저장된 전체 기록 CSV (`date, series, value`) |
 

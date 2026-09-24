@@ -122,6 +122,37 @@ export type MarketFlows = {
   daily: ({ date: string } & InvestorFlows)[];
 };
 
+export type SignalComponent = {
+  key: string;
+  label: string;
+  score: number;
+  raw: number;
+  reason: string;
+  weight: number;
+};
+
+export type SignalTarget = {
+  id: string;
+  symbol: string;
+  name: string;
+  etfExample: string;
+  region: "US" | "KR";
+  asOf: string | null;
+  score: number | null;
+  action: string | null;
+  multiplier: number | null;
+  components: SignalComponent[];
+  missing: string[];
+  fxHint: string | null;
+};
+
+export type Signals = {
+  targets: SignalTarget[];
+  bands: { min: number; action: string; multiplier: number }[];
+  generatedAt: string;
+  backtested: boolean;
+};
+
 export type MarketOverview = {
   indices: IndexStat[];
   fx: {

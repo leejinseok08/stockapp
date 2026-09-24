@@ -3,11 +3,13 @@ import { ActivityIndicator, Dimensions, RefreshControl, ScrollView, StyleSheet, 
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { FlowBars } from "../components/FlowBars";
+import { SignalRow } from "../components/SignalRow";
 import { fmtMoney, fmtNum, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
-import type { InvestorFlows, MarketFlows, MarketOverview } from "../types";
+import type { InvestorFlows, MarketFlows, MarketOverview, Signals } from "../types";
 
 const CACHE_KEY = "market-overview";
+const SIGNALS_CACHE_KEY = "market-signals";
 const INVESTORS: { key: keyof InvestorFlows; label: string }[] = [
   { key: "foreign", label: "외국인" },
   { key: "institution", label: "기관" },
@@ -16,11 +18,25 @@ const INVESTORS: { key: keyof InvestorFlows; label: string }[] = [
 
 export default function MarketScreen() {
   const [data, setData] = useState<MarketOverview | null>(null);
+  const [signals, setSignals] = useState<Signals | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [staleMinutes, setStaleMinutes] = useState<number | null>(null);
 
+  const loadSignals = useCallback(async () => {
+    try {
+      const sg = await api.marketSignals();
+      setSignals(sg);
+      writeCache(SIGNALS_CACHE_KEY, sg);
+    } catch (e) {
+      console.warn("signals failed, falling back to cache", e);
+      const cached = await readCache<Signals>(SIGNALS_CACHE_KEY);
+      if (cached) setSignals(cached.data);
+    }
+  }, []);
+
   const load = useCallback(async () => {
+    loadSignals();
     try {
       const ov = await api.marketOverview();
       setData(ov);
@@ -34,7 +50,7 @@ export default function MarketScreen() {
         setStaleMinutes(minutesAgo(cached.savedAt));
       }
     }
-  }, []);
+  }, [loadSignals]);
 
   useEffect(() => {
     load().finally(() => setLoading(false));
@@ -78,6 +94,29 @@ export default function MarketScreen() {
           {staleMinutes != null ? `오프라인 · ${staleMinutes}분 전 데이터` : `${data.generatedAt.slice(5, 16).replace("T", " ")} 기준`}
         </Text>
       </View>
+
+      <Section title="이번 달 매수 신호">
+        {signals ? (
+          <>
+            {signals.targets.map((t) => (
+              <SignalRow key={t.id} target={t} />
+            ))}
+            <Text style={styles.signalNote}>
+              {signals.bands
+                .map((b, i, all) => {
+                  const range =
+                    i === 0 ? `${b.min}점 이상` : b.min === 0 ? `${all[i - 1].min}점 미만` : `${b.min}~${all[i - 1].min - 1}점`;
+                  return `${range} ${b.action} ×${b.multiplier.toFixed(1)}`;
+                })
+                .join(" · ")}
+              {"\n"}기본 적립액에 배수를 곱하는 방식이에요.{" "}
+              {signals.backtested ? "" : "아직 백테스트 전이라 참고용 점수입니다."}
+            </Text>
+          </>
+        ) : (
+          <Text style={styles.note}>신호를 계산하는 중이에요…</Text>
+        )}
+      </Section>
 
       <Section title="지수">
         <View style={styles.headRow}>
@@ -242,5 +281,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.hairline,
   },
+  signalNote: { ...type.caption, color: colors.textMuted, marginTop: space.md, lineHeight: 17 },
   footnote: { ...type.caption, color: colors.textMuted, paddingHorizontal: space.lg, marginTop: space.xl, lineHeight: 17 },
 });

@@ -7,6 +7,7 @@ import type {
   NewsItem,
   PortfolioFields,
   Quote,
+  Signals,
   Ticker,
   WatchlistEntry,
 } from "./types";
@@ -49,6 +50,8 @@ export const api = {
   marketOverview: () =>
     // First call after the free server sleeps also fetches ~10 series, so allow extra time.
     client.get<MarketOverview>("/market/overview", { timeout: 45000 }).then((r) => r.data),
+
+  marketSignals: () => client.get<Signals>("/market/signals", { timeout: 45000 }).then((r) => r.data),
 
   compare: (symbols: string[]) =>
     client

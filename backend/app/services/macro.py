@@ -113,7 +113,8 @@ def krx_configured() -> bool:
     return bool(os.getenv("KRX_ID") and os.getenv("KRX_PW"))
 
 
-def _flow_frame(market: str, days: int = 45) -> pd.DataFrame:
+def _flow_frame(market: str, days: int = 400) -> pd.DataFrame:
+    # A year+ of history so signals can rank today's flows against the past, not just show them.
     from pykrx import stock  # heavy import; only when flows are requested
 
     def fetch():

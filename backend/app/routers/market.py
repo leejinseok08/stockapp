@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 
 from ..db import IS_SQLITE, MarketSnapshot, engine, get_session
 from ..services.macro import get_overview, snapshot_rows
+from ..services.signals import get_signals, signal_rows
 
 log = logging.getLogger("stockapp.market")
 router = APIRouter(prefix="/market", tags=["market"])
@@ -20,9 +21,14 @@ def overview():
     return get_overview()
 
 
+@router.get("/signals")
+def signals():
+    return get_signals()
+
+
 def collect_snapshot(session: Session) -> int:
     """Upsert today's numbers; safe to call repeatedly (same date+series just overwrites)."""
-    rows = snapshot_rows(get_overview())
+    rows = snapshot_rows(get_overview()) + signal_rows(get_signals())
     if not rows:
         return 0
     insert = sqlite_insert if IS_SQLITE else pg_insert
@@ -62,6 +68,12 @@ def startup_collect() -> None:
             ok_idx, len(ov["indices"]), ok_fx, len(ov["fx"]["currencies"]),
             flows["available"], flows.get("reason"),
         )
+        for t in get_signals()["targets"]:
+            log.info(
+                "signal %s: score=%s action=%s inputs=%s missing=%s",
+                t["id"], t["score"], t["action"],
+                {c["key"]: c["score"] for c in t["components"]}, t["missing"],
+            )
         with Session(engine) as session:
             log.info("startup snapshot stored: %d rows", collect_snapshot(session))
     except Exception:

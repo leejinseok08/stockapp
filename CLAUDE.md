@@ -30,10 +30,8 @@ Without `EXPO_PUBLIC_API_URL` the app uses the deployed backend https://stockapp
 ISA can only hold KRW-listed products (e.g. TIGER 미국S&P500), so signals map to domestic ETFs and USD/KRW matters (hedged vs unhedged).
 Strategy frame: signal-weighted monthly DCA (0.5x–1.5x of the base amount), benchmarked against plain DCA.
 1. ✅ Phase 1: market tab (indices, flows, FX), daily snapshots in DB, CSV export.
-2. Phase 2: rule-based 0–100 signal score per market with the reasons shown.
+2. ✅ Phase 2: `app/services/signals.py` — rule-based 0–100 score per target (S&P500, NDX, SOX, KOSPI), components + weights + reasons shown in the app, 0.5x/1.0x/1.5x DCA multiplier, hedge hint from USD/KRW. Daily scores stored as `signal:<id>` rows. Tests: `cd backend; pytest`.
 3. Phase 3: backtest (vectorbt) vs plain DCA incl. costs; alerts only for signals that beat it.
 
-## Open setup items (owner)
-- Production DB: set `DATABASE_URL` (Neon/Supabase Postgres) on Render; until then Render's SQLite is wiped every deploy.
-- `KRX_ID` / `KRX_PW` on Render for investor-flow data.
-- Paste `tools/drive_export.gs` into script.google.com, time zone Asia/Seoul, run `setup`.
+## Production setup (done)
+Render has `DATABASE_URL` (Neon), `KRX_ID`/`KRX_PW`, `PYTHON_VERSION`. Apps Script `stockapp` runs daily at 07:00/16:30 KST and writes `StockApp Data/market_snapshots.csv` in Drive.
