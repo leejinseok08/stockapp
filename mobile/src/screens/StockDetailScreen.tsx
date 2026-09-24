@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { api } from "../api";
+import { RadarChart } from "../components/RadarChart";
 import { colors } from "../theme";
 import type { Fundamentals, HistoryPoint, RootStackParamList } from "../types";
 
@@ -115,6 +116,22 @@ export default function StockDetailScreen({ route }: Props) {
             />
           )}
 
+          <Section title="펀더멘털 스코어">
+            <View style={styles.radarWrap}>
+              <RadarChart
+                axes={[
+                  { label: "밸류에이션", value: fundamentals?.scores.valuation ?? null },
+                  { label: "수익성", value: fundamentals?.scores.profitability ?? null },
+                  { label: "재무건전성", value: fundamentals?.scores.health ?? null },
+                  { label: "성장성", value: fundamentals?.scores.growth ?? null },
+                ]}
+              />
+            </View>
+            <Text style={styles.scoreNote}>
+              업계 평균 대비가 아닌 절대 기준의 참고용 점수입니다.
+            </Text>
+          </Section>
+
           <Section title="주요 지표">
             <Grid
               rows={[
@@ -220,6 +237,8 @@ const styles = StyleSheet.create({
   rangeText: { color: colors.textMuted, fontSize: 12, fontWeight: "600" },
   rangeTextActive: { color: "#fff" },
   section: { paddingHorizontal: 16, marginTop: 20 },
+  radarWrap: { alignItems: "center", paddingVertical: 8 },
+  scoreNote: { color: colors.textMuted, fontSize: 11, textAlign: "center", marginTop: 4 },
   sectionTitle: { color: colors.text, fontSize: 16, fontWeight: "700", marginBottom: 10 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   gridItem: {

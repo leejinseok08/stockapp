@@ -94,30 +94,77 @@ def _statement(df: pd.DataFrame, rows: list[str]) -> list[dict]:
     return out
 
 
+def _clamp(v: float, lo: float = 0, hi: float = 100) -> float:
+    return max(lo, min(hi, v))
+
+
+def _avg(scores: list[float | None]) -> float | None:
+    present = [s for s in scores if s is not None]
+    return sum(present) / len(present) if present else None
+
+
+def _compute_scores(ratios: dict) -> dict:
+    """Simple heuristic 0-100 scores per category, Simply Wall St style.
+
+    Not industry-relative (no peer comparison data available) — just maps
+    each ratio onto a reasonable absolute scale so the radar chart has
+    something meaningful to show.
+    """
+    pe = ratios["trailingPE"]
+    pb = ratios["priceToBook"]
+    valuation = _avg([
+        _clamp(100 - (pe - 5) * 2.5) if pe is not None and pe > 0 else None,
+        _clamp(100 - (pb - 0.5) * 10) if pb is not None and pb > 0 else None,
+    ])
+
+    profitability = _avg([
+        _clamp(ratios["profitMargins"] * 250) if ratios["profitMargins"] is not None else None,
+        _clamp(ratios["operatingMargins"] * 250) if ratios["operatingMargins"] is not None else None,
+        _clamp(ratios["returnOnEquity"] * 250) if ratios["returnOnEquity"] is not None else None,
+    ])
+
+    de = ratios["debtToEquity"]
+    health = _clamp(100 - de * 0.5) if de is not None else None
+
+    growth = _avg([
+        _clamp(50 + ratios["revenueGrowth"] * 150) if ratios["revenueGrowth"] is not None else None,
+        _clamp(50 + ratios["earningsGrowth"] * 150) if ratios["earningsGrowth"] is not None else None,
+    ])
+
+    return {
+        "valuation": valuation,
+        "profitability": profitability,
+        "health": health,
+        "growth": growth,
+    }
+
+
 def get_fundamentals(symbol: str) -> dict:
     def fetch():
         t = yf.Ticker(symbol)
         info = t.info
+        ratios = {
+            "trailingPE": _num(info.get("trailingPE")),
+            "forwardPE": _num(info.get("forwardPE")),
+            "priceToBook": _num(info.get("priceToBook")),
+            "returnOnEquity": _num(info.get("returnOnEquity")),
+            "profitMargins": _num(info.get("profitMargins")),
+            "operatingMargins": _num(info.get("operatingMargins")),
+            "revenueGrowth": _num(info.get("revenueGrowth")),
+            "earningsGrowth": _num(info.get("earningsGrowth")),
+            "debtToEquity": _num(info.get("debtToEquity")),
+            "dividendYield": _num(info.get("dividendYield")),
+            "fiftyTwoWeekHigh": _num(info.get("fiftyTwoWeekHigh")),
+            "fiftyTwoWeekLow": _num(info.get("fiftyTwoWeekLow")),
+        }
         return {
             "symbol": symbol,
             "name": info.get("longName") or info.get("shortName"),
             "sector": info.get("sector"),
             "industry": info.get("industry"),
             "summary": info.get("longBusinessSummary"),
-            "ratios": {
-                "trailingPE": _num(info.get("trailingPE")),
-                "forwardPE": _num(info.get("forwardPE")),
-                "priceToBook": _num(info.get("priceToBook")),
-                "returnOnEquity": _num(info.get("returnOnEquity")),
-                "profitMargins": _num(info.get("profitMargins")),
-                "operatingMargins": _num(info.get("operatingMargins")),
-                "revenueGrowth": _num(info.get("revenueGrowth")),
-                "earningsGrowth": _num(info.get("earningsGrowth")),
-                "debtToEquity": _num(info.get("debtToEquity")),
-                "dividendYield": _num(info.get("dividendYield")),
-                "fiftyTwoWeekHigh": _num(info.get("fiftyTwoWeekHigh")),
-                "fiftyTwoWeekLow": _num(info.get("fiftyTwoWeekLow")),
-            },
+            "ratios": ratios,
+            "scores": _compute_scores(ratios),
             "income": _statement(t.income_stmt, _STATEMENT_ROWS["income"]),
             "balance": _statement(t.balance_sheet, _STATEMENT_ROWS["balance"]),
             "cashflow": _statement(t.cashflow, _STATEMENT_ROWS["cashflow"]),

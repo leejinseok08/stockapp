@@ -27,12 +27,20 @@ export type StatementRow = {
   values: Record<string, number | null>;
 };
 
+export type FundamentalScores = {
+  valuation: number | null;
+  profitability: number | null;
+  health: number | null;
+  growth: number | null;
+};
+
 export type Fundamentals = {
   symbol: string;
   name: string | null;
   sector: string | null;
   industry: string | null;
   summary: string | null;
+  scores: FundamentalScores;
   ratios: {
     trailingPE: number | null;
     forwardPE: number | null;
