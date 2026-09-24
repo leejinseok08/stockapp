@@ -3,13 +3,30 @@ import { ActivityIndicator, Dimensions, RefreshControl, ScrollView, StyleSheet, 
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { FlowBars } from "../components/FlowBars";
+import { PlanSection } from "../components/PlanSection";
+import { RiskSection } from "../components/RiskSection";
 import { SignalRow } from "../components/SignalRow";
 import { fmtMoney, fmtNum, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
-import type { InvestorFlows, MarketFlows, MarketOverview, Signals } from "../types";
+import type { InvestorFlows, MarketFlows, MarketOverview, Plan, RiskGauge, Signals } from "../types";
 
 const CACHE_KEY = "market-overview";
 const SIGNALS_CACHE_KEY = "market-signals";
+const PLAN_CACHE_KEY = "market-plan";
+const RISK_CACHE_KEY = "market-risk";
+
+// Fetch one section; on failure fall back to the last copy saved on the device.
+async function fetchOrCache<T>(fetcher: () => Promise<T>, key: string, set: (v: T) => void) {
+  try {
+    const v = await fetcher();
+    set(v);
+    writeCache(key, v);
+  } catch (e) {
+    console.warn(`${key} failed, falling back to cache`, e);
+    const cached = await readCache<T>(key);
+    if (cached) set(cached.data);
+  }
+}
 const INVESTORS: { key: keyof InvestorFlows; label: string }[] = [
   { key: "foreign", label: "외국인" },
   { key: "institution", label: "기관" },
@@ -19,24 +36,20 @@ const INVESTORS: { key: keyof InvestorFlows; label: string }[] = [
 export default function MarketScreen() {
   const [data, setData] = useState<MarketOverview | null>(null);
   const [signals, setSignals] = useState<Signals | null>(null);
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [risk, setRisk] = useState<RiskGauge | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [staleMinutes, setStaleMinutes] = useState<number | null>(null);
 
-  const loadSignals = useCallback(async () => {
-    try {
-      const sg = await api.marketSignals();
-      setSignals(sg);
-      writeCache(SIGNALS_CACHE_KEY, sg);
-    } catch (e) {
-      console.warn("signals failed, falling back to cache", e);
-      const cached = await readCache<Signals>(SIGNALS_CACHE_KEY);
-      if (cached) setSignals(cached.data);
-    }
+  const loadSections = useCallback(() => {
+    fetchOrCache(api.marketSignals, SIGNALS_CACHE_KEY, setSignals);
+    fetchOrCache(api.plan, PLAN_CACHE_KEY, setPlan);
+    fetchOrCache(api.risk, RISK_CACHE_KEY, setRisk);
   }, []);
 
   const load = useCallback(async () => {
-    loadSignals();
+    loadSections();
     try {
       const ov = await api.marketOverview();
       setData(ov);
@@ -50,7 +63,7 @@ export default function MarketScreen() {
         setStaleMinutes(minutesAgo(cached.savedAt));
       }
     }
-  }, [loadSignals]);
+  }, [loadSections]);
 
   useEffect(() => {
     load().finally(() => setLoading(false));
@@ -95,7 +108,15 @@ export default function MarketScreen() {
         </Text>
       </View>
 
-      <Section title="이번 달 매수 신호">
+      <Section title={`이번 달 적립 · ${plan?.account ?? "ISA"}`}>
+        {plan ? <PlanSection plan={plan} /> : <Text style={styles.note}>적립 계획을 불러오는 중이에요…</Text>}
+      </Section>
+
+      <Section title={risk ? `위험 경고 · ${risk.lit}/${risk.total} 점등 · ${risk.level}` : "위험 경고"}>
+        {risk ? <RiskSection risk={risk} /> : <Text style={styles.note}>지표를 불러오는 중이에요…</Text>}
+      </Section>
+
+      <Section title="시장 온도 · 참고">
         {signals ? (
           <>
             {signals.targets.map((t) => (
@@ -106,15 +127,15 @@ export default function MarketScreen() {
                 .map((b, i, all) => {
                   const range =
                     i === 0 ? `${b.min}점 이상` : b.min === 0 ? `${all[i - 1].min}점 미만` : `${b.min}~${all[i - 1].min - 1}점`;
-                  return `${range} ${b.action} ×${b.multiplier.toFixed(1)}`;
+                  return `${range} ${b.action}`;
                 })
                 .join(" · ")}
-              {"\n"}기본 적립액에 배수를 곱하는 방식이에요.{" "}
-              {signals.backtested ? "" : "아직 백테스트 전이라 참고용 점수입니다."}
+              {"\n"}지금 시장이 어디쯤인지 보여주는 점수예요. 백테스트상 이 점수로 금액을 늘리고 줄이면 정액 적립보다
+              불리해서, 매수 금액은 바꾸지 않습니다.
             </Text>
           </>
         ) : (
-          <Text style={styles.note}>신호를 계산하는 중이에요…</Text>
+          <Text style={styles.note}>점수를 계산하는 중이에요…</Text>
         )}
       </Section>
 
@@ -195,7 +216,8 @@ export default function MarketScreen() {
       </Section>
 
       <Text style={styles.footnote}>
-        출처: Yahoo Finance(지수·환율), 한국거래소(수급). 일봉 종가 기준이며 투자 권유가 아닙니다.
+        출처: Yahoo Finance(지수·환율·ETF), FRED(신용 스프레드·금리차), 한국거래소(수급). 일봉 종가 기준이며 투자
+        권유가 아닙니다.
       </Text>
     </ScrollView>
   );

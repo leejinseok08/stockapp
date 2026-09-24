@@ -34,17 +34,18 @@ def target(result, tid):
 
 
 def base_closes(index_series, vix, krw):
-    return {"^GSPC": index_series, "^NDX": index_series, "^SOX": index_series, "^KS11": index_series,
+    return {"^GSPC": index_series, "^NDX": index_series, "SMH": index_series, "^KS11": index_series,
             "^VIX": vix, "KRW=X": krw}
 
 
-def test_overheated_market_scores_low_and_buys_less(monkeypatch):
+def test_overheated_market_scores_low(monkeypatch):
     # Steady rally to a fresh high, calm VIX at its yearly low, won at its weakest (USD/KRW high).
     rally = ramp(100, 140)
     install(monkeypatch, base_closes(rally, ramp(30, 12), ramp(1300, 1450)))
     sp = target(signals.get_signals(), "sp500")
     assert sp["score"] < 40
-    assert (sp["action"], sp["multiplier"]) == ("절제 매수", 0.5)
+    assert sp["action"] == "과열 구간"
+    assert "multiplier" not in sp  # context only; the plan buys a fixed amount
     assert "환헤지" in sp["fxHint"]
 
 
@@ -54,7 +55,7 @@ def test_selloff_with_fear_and_strong_won_scores_high(monkeypatch):
     install(monkeypatch, base_closes(selloff, ramp(12, 40), ramp(1450, 1300)))
     sp = target(signals.get_signals(), "sp500")
     assert sp["score"] >= 70
-    assert (sp["action"], sp["multiplier"]) == ("적극 매수", 1.5)
+    assert sp["action"] == "조정·공포 구간"
     assert "환노출" in sp["fxHint"]
 
 
@@ -84,5 +85,5 @@ def test_missing_flows_are_reweighted_not_zeroed(monkeypatch):
 def test_signal_rows_for_snapshot(monkeypatch):
     install(monkeypatch, base_closes(ramp(100, 120), ramp(15, 20), ramp(1350, 1400)), krx=False)
     rows = signals.signal_rows(signals.get_signals())
-    assert {s for _, s, _ in rows} == {"signal:sp500", "signal:ndx", "signal:sox", "signal:kospi"}
+    assert {s for _, s, _ in rows} == {"signal:sp500", "signal:ndx", "signal:semis", "signal:kospi"}
     assert all(d == "2026-09-24" for d, _, _ in rows)

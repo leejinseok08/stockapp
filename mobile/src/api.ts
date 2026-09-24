@@ -5,8 +5,12 @@ import type {
   HistoryPoint,
   MarketOverview,
   NewsItem,
+  Plan,
   PortfolioFields,
   Quote,
+  Relative,
+  RiskGauge,
+  Scan,
   Signals,
   Ticker,
   WatchlistEntry,
@@ -52,6 +56,19 @@ export const api = {
     client.get<MarketOverview>("/market/overview", { timeout: 45000 }).then((r) => r.data),
 
   marketSignals: () => client.get<Signals>("/market/signals", { timeout: 45000 }).then((r) => r.data),
+
+  plan: () => client.get<Plan>("/market/plan", { timeout: 45000 }).then((r) => r.data),
+
+  risk: () => client.get<RiskGauge>("/market/risk", { timeout: 45000 }).then((r) => r.data),
+
+  // Nine companies' statements on a cold server take a while.
+  scan: (symbols?: string[]) =>
+    client
+      .get<Scan>("/stocks/scan", { params: symbols ? { symbols: symbols.join(",") } : {}, timeout: 90000 })
+      .then((r) => r.data),
+
+  relative: (symbol: string) =>
+    client.get<Relative>(`/stocks/${encodeURIComponent(symbol)}/relative`, { timeout: 45000 }).then((r) => r.data),
 
   compare: (symbols: string[]) =>
     client

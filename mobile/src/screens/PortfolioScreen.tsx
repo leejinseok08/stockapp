@@ -1,18 +1,31 @@
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { api } from "../api";
+import { readCache, writeCache } from "../cache";
+import { IsaSection } from "../components/IsaSection";
 import { fmtMoney, fmtNum, fmtPrice, fmtTrendPct } from "../format";
 import { colors, space, trendColor, trendGlyph, type } from "../theme";
-import type { RootStackParamList, WatchlistEntry } from "../types";
+import type { Plan, RootStackParamList, WatchlistEntry } from "../types";
 
 export default function PortfolioScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [items, setItems] = useState<WatchlistEntry[]>([]);
+  const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    api
+      .plan()
+      .then((p) => {
+        setPlan(p);
+        writeCache("market-plan", p);
+      })
+      .catch(async () => {
+        const cached = await readCache<Plan>("market-plan");
+        if (cached) setPlan(cached.data);
+      });
     try {
       const data = await api.watchlist();
       setItems(data.filter((i) => i.buyPrice != null && i.quantity != null && i.buyPrice > 0 && i.quantity > 0));
@@ -46,7 +59,7 @@ export default function PortfolioScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: space.xxl * 2 }}>
       {Array.from(totals.entries()).map(([cur, t], idx) => {
         const pl = t.value - t.cost;
         const plPct = t.cost > 0 ? (pl / t.cost) * 100 : null;
@@ -77,24 +90,22 @@ export default function PortfolioScreen() {
       })}
 
       {items.length === 0 ? (
-        <View style={styles.center}>
+        <View style={styles.emptyBox}>
           <Text style={styles.empty}>
             보유 종목이 없어요.{"\n"}종목 상세 화면에서 매수가·수량을 입력하면{"\n"}여기에 표시됩니다.
           </Text>
         </View>
       ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(i) => i.symbol}
-          contentContainerStyle={{ paddingBottom: space.xl }}
-          ListHeaderComponent={<Text style={styles.listHeader}>보유 종목</Text>}
-          renderItem={({ item }) => {
+        <>
+          <Text style={styles.listHeader}>보유 종목</Text>
+          {items.map((item) => {
             const cost = item.buyPrice! * item.quantity!;
             const value = (item.price ?? item.buyPrice!) * item.quantity!;
             const pl = value - cost;
             const plPct = cost > 0 ? (pl / cost) * 100 : null;
             return (
               <Pressable
+                key={item.symbol}
                 style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
                 onPress={() => navigation.navigate("StockDetail", { symbol: item.symbol, name: item.name })}
                 accessibilityRole="button"
@@ -112,16 +123,22 @@ export default function PortfolioScreen() {
                 </View>
               </Pressable>
             );
-          }}
-        />
+          })}
+        </>
       )}
-    </View>
+
+      <View style={styles.isa}>
+        <IsaSection holdings={items} plan={plan} />
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: space.xl },
+  emptyBox: { alignItems: "center", paddingVertical: space.xxl, paddingHorizontal: space.xl },
+  isa: { paddingHorizontal: space.lg, marginTop: space.xxl },
   empty: { ...type.body, color: colors.textMuted, textAlign: "center", lineHeight: 22 },
   summary: {
     marginHorizontal: space.lg,

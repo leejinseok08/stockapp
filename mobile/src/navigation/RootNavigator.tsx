@@ -7,6 +7,7 @@ import CompareScreen from "../screens/CompareScreen";
 import MarketScreen from "../screens/MarketScreen";
 import NewsScreen from "../screens/NewsScreen";
 import PortfolioScreen from "../screens/PortfolioScreen";
+import ScanScreen from "../screens/ScanScreen";
 import StockDetailScreen from "../screens/StockDetailScreen";
 import WatchlistScreen from "../screens/WatchlistScreen";
 import { colors, fonts } from "../theme";
@@ -74,6 +75,7 @@ export default function RootNavigator() {
         />
         <Stack.Screen name="Portfolio" component={PortfolioScreen} options={{ title: "포트폴리오" }} />
         <Stack.Screen name="Compare" component={CompareScreen} options={{ title: "종목 비교" }} />
+        <Stack.Screen name="Scan" component={ScanScreen} options={{ title: "빅테크 점검" }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

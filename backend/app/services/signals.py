@@ -1,8 +1,9 @@
-"""Rule-based buy-timing score (0-100) for each ISA target, with every input shown.
+"""Market temperature (0-100) for each ISA target, with every input shown.
 
-Higher score = conditions historically friendlier to buying more this month. The score scales the
-monthly DCA amount (0.5x / 1.0x / 1.5x) rather than switching buying on/off, because ISA's yearly
-limit can't be carried over. Not yet backtested: treat as a reference, not a rule.
+Higher score = cheaper / more fearful conditions. It used to scale the monthly DCA amount
+(0.5x/1.0x/1.5x), but the phase-3 backtest (docs/signal-research.md) found that scaling lost ~16% of
+final value to plain DCA on the owner's plan, so it is now context only and the plan (plan.py) buys a
+fixed amount every month.
 """
 
 import logging
@@ -14,11 +15,13 @@ from .market import _cached
 
 log = logging.getLogger("stockapp.signals")
 
+# The first three are the owner's ISA plan; KOSPI is kept as a reference reading only.
+# KODEX 미국반도체 tracks MVIS US Listed Semiconductor 25, the same index as VanEck SMH.
 TARGETS = [
-    {"id": "sp500", "symbol": "^GSPC", "name": "미국 S&P500", "etfExample": "TIGER·KODEX 미국S&P500", "region": "US"},
-    {"id": "ndx", "symbol": "^NDX", "name": "미국 나스닥100", "etfExample": "TIGER·KODEX 미국나스닥100", "region": "US"},
-    {"id": "sox", "symbol": "^SOX", "name": "미국 반도체", "etfExample": "TIGER 미국필라델피아반도체나스닥", "region": "US"},
-    {"id": "kospi", "symbol": "^KS11", "name": "코스피", "etfExample": "KODEX 200", "region": "KR"},
+    {"id": "sp500", "symbol": "^GSPC", "name": "미국 S&P500", "etfExample": "TIGER·KODEX 미국S&P500", "region": "US", "reference": False},
+    {"id": "ndx", "symbol": "^NDX", "name": "미국 나스닥100", "etfExample": "TIGER·KODEX 미국나스닥100", "region": "US", "reference": False},
+    {"id": "semis", "symbol": "SMH", "name": "미국 반도체", "etfExample": "KODEX 미국반도체 (MVIS 반도체 25)", "region": "US", "reference": False},
+    {"id": "kospi", "symbol": "^KS11", "name": "코스피", "etfExample": "KODEX 200 · 참고용", "region": "KR", "reference": True},
 ]
 
 WEIGHTS = {
@@ -26,10 +29,10 @@ WEIGHTS = {
     "KR": {"position": 0.30, "overheat": 0.20, "pullback": 0.15, "flows": 0.35},
 }
 
-BANDS = [  # (min score, action, DCA multiplier)
-    (70, "적극 매수", 1.5),
-    (40, "기본 매수", 1.0),
-    (0, "절제 매수", 0.5),
+BANDS = [  # (min score, reading) -- a description of the market, not a buy instruction
+    (70, "조정·공포 구간"),
+    (40, "보통"),
+    (0, "과열 구간"),
 ]
 
 
@@ -72,8 +75,7 @@ def _price_components(stats: dict) -> list[dict]:
     return comps
 
 
-def _fear_component() -> dict | None:
-    vix = _daily_closes("^VIX")
+def _fear_component(vix: pd.Series) -> dict | None:
     if vix.empty:
         return None
     now = float(vix.iloc[-1])
@@ -81,8 +83,8 @@ def _fear_component() -> dict | None:
     return _component("fear", "VIX 공포지수", pct, round(now, 2), f"VIX {now:.1f}, 1년 중 상위 {100 - pct:.0f}%. 공포가 클수록 가점")
 
 
-def _fx_component() -> tuple[dict | None, str | None]:
-    stats = _trend_stats(_daily_closes("KRW=X"))
+def _fx_component(krw: pd.Series) -> tuple[dict | None, str | None]:
+    stats = _trend_stats(krw)
     r52 = stats.get("range52w")
     if r52 is None:
         return None, None
@@ -115,8 +117,8 @@ def _flows_component() -> dict | None:
     )
 
 
-def _score(target: dict, extras: dict) -> dict:
-    stats = _trend_stats(_daily_closes(target["symbol"]))
+def score_target(target: dict, stats: dict, extras: dict) -> dict:
+    """Pure scoring step, shared by the live endpoint and the backtest."""
     comps = _price_components(stats)
     hint = None
     if target["region"] == "US":
@@ -139,11 +141,14 @@ def _score(target: dict, extras: dict) -> dict:
         "asOf": stats.get("asOf"),
         "score": round(score, 1) if score is not None else None,
         "action": band[1] if band else None,
-        "multiplier": band[2] if band else None,
         "components": used,
         "missing": sorted(set(weights) - {c["key"] for c in used}),
         "fxHint": hint,
     }
+
+
+def _score(target: dict, extras: dict) -> dict:
+    return score_target(target, _trend_stats(_daily_closes(target["symbol"])), extras)
 
 
 def get_signals() -> dict:
@@ -155,8 +160,14 @@ def get_signals() -> dict:
                 log.warning("signal input %s failed: %s", fn.__name__, e)
                 return None
 
-        fx = safe(_fx_component) or (None, None)
-        extras = {"fear": safe(_fear_component), "fx": fx[0], "fx_hint": fx[1], "flows": safe(_flows_component)}
+        def fear():
+            return _fear_component(_daily_closes("^VIX"))
+
+        def fx_():
+            return _fx_component(_daily_closes("KRW=X"))
+
+        fx = safe(fx_) or (None, None)
+        extras = {"fear": safe(fear), "fx": fx[0], "fx_hint": fx[1], "flows": safe(_flows_component)}
         targets = []
         for t in TARGETS:
             try:
@@ -165,9 +176,8 @@ def get_signals() -> dict:
                 log.warning("signal %s failed: %s", t["id"], e)
         return {
             "targets": targets,
-            "bands": [{"min": b[0], "action": b[1], "multiplier": b[2]} for b in BANDS],
+            "bands": [{"min": b[0], "action": b[1]} for b in BANDS],
             "generatedAt": pd.Timestamp.now(tz=KST).isoformat(timespec="minutes"),
-            "backtested": False,
         }
 
     return _cached("signals", 600, build)

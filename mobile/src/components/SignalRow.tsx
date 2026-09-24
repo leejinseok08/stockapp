@@ -24,20 +24,15 @@ export function SignalRow({ target }: { target: SignalTarget }) {
         onPress={() => setOpen((o) => !o)}
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
-        accessibilityLabel={`${target.name} ${score ?? "정보 없음"}점, ${target.action ?? ""} ${
-          target.multiplier != null ? `${target.multiplier}배` : ""
-        }. 눌러서 근거 보기`}
+        accessibilityLabel={`${target.name} 시장 온도 ${score ?? "정보 없음"}점, ${target.action ?? ""}. 눌러서 근거 보기`}
       >
         <View style={styles.left}>
-          <Text style={styles.name}>{target.name}</Text>
+          <Text style={[styles.name, target.reference && styles.muted]}>{target.name}</Text>
           <Text style={styles.etf}>{target.etfExample}</Text>
         </View>
         <View style={styles.right}>
-          <Text style={styles.score}>{score ?? "-"}</Text>
-          <Text style={styles.action}>
-            {target.action ?? "-"}
-            {target.multiplier != null && <Text style={styles.mult}> ×{target.multiplier.toFixed(1)}</Text>}
-          </Text>
+          <Text style={[styles.score, target.reference && styles.muted]}>{score ?? "-"}</Text>
+          <Text style={styles.action}>{target.action ?? "-"}</Text>
         </View>
         <Feather name={open ? "chevron-up" : "chevron-down"} size={16} color={colors.textMuted} style={styles.chevron} />
       </Pressable>
@@ -79,7 +74,7 @@ const styles = StyleSheet.create({
   right: { alignItems: "flex-end" },
   score: { ...type.display, fontSize: 24, color: colors.text },
   action: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.textMuted },
-  mult: { fontFamily: fonts.monoMedium, color: colors.text },
+  muted: { color: colors.textMuted },
   chevron: { marginLeft: space.sm },
   detail: { paddingBottom: space.md },
   comp: { paddingVertical: space.xs + 2 },

@@ -15,7 +15,14 @@ import { PriceChart } from "../components/PriceChart";
 import { RadarChart } from "../components/RadarChart";
 import { fmtMoney, fmtNum, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, type } from "../theme";
-import type { Fundamentals, HistoryPoint, Quote, RootStackParamList } from "../types";
+import type { FinancialLineKey, Fundamentals, HistoryPoint, Quote, Relative, RootStackParamList, ScanRow } from "../types";
+
+const LINE_LABELS: [FinancialLineKey, string][] = [
+  ["revenue", "매출"],
+  ["operatingIncome", "영업이익"],
+  ["netIncome", "순이익"],
+  ["operatingCashFlow", "영업현금흐름"],
+];
 
 type Props = NativeStackScreenProps<RootStackParamList, "StockDetail">;
 
@@ -55,6 +62,25 @@ export default function StockDetailScreen({ route }: Props) {
   const [noteText, setNoteText] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [relative, setRelative] = useState<Relative | null>(null);
+  const [fin, setFin] = useState<{ row: ScanRow; inGroup: boolean } | null>(null);
+
+  useEffect(() => {
+    api
+      .relative(symbol)
+      .then(setRelative)
+      .catch((e) => console.warn("relative strength load failed", e));
+    // Scores are percentiles within the big-tech group; outside it only the growth rates mean anything.
+    api
+      .scan()
+      .then(async (group) => {
+        const inGroup = group.rows.find((r) => r.symbol === symbol);
+        if (inGroup) return setFin({ row: inGroup, inGroup: true });
+        const single = await api.scan([symbol]);
+        if (single.rows[0]) setFin({ row: single.rows[0], inGroup: false });
+      })
+      .catch((e) => console.warn("financial change load failed", e));
+  }, [symbol]);
 
   useEffect(() => {
     setLoading(true);
@@ -113,7 +139,8 @@ export default function StockDetailScreen({ route }: Props) {
 
   // The live quote is the single source for "current price", so P/L matches the list screens.
   const currentPrice = quote?.price ?? chart.last ?? null;
-  const currency = quote?.currency ?? null;
+  // Stocks not on the watchlist have no quote here; their statements' currency is the listing's.
+  const currency = quote?.currency ?? fundamentals?.financialCurrency ?? null;
 
   const buyPriceNum = parseFloat(buyPriceText);
   const quantityNum = parseFloat(quantityText);
@@ -219,6 +246,60 @@ export default function StockDetailScreen({ route }: Props) {
               <Text style={styles.saveBtnText}>{saving ? "저장 중…" : saved ? "저장됨" : "저장"}</Text>
             </Pressable>
           </Section>
+
+          {relative && relative.series.length > 1 && (
+            <Section title={`지수 대비 상대강도 · ${relative.benchmarkName}`}>
+              <PriceChart
+                times={relative.series.map((p) => p.t)}
+                closes={relative.series.map((p) => p.ratio)}
+                ma={relative.series.map((p) => p.ma)}
+                width={screenWidth - space.lg * 2}
+              />
+              <Text style={styles.maLabel}>━ {relative.maWindow}일 평균 · 1년 전 = 100 · 선이 오르면 지수보다 강함</Text>
+              {!!relative.verdict && <Text style={styles.verdict}>{relative.verdict}</Text>}
+              <Ledger
+                rows={[
+                  [
+                    "현재",
+                    relative.aboveMa == null
+                      ? "-"
+                      : `비율이 ${relative.maWindow}일 평균 ${relative.aboveMa ? "위" : "아래"}${relative.since ? ` (${relative.since}~)` : ""}`,
+                  ],
+                  ["초과 수익률 1개월", `${fmtTrendPct(relative.excess1m, 1)}p`],
+                  ["초과 수익률 3개월", `${fmtTrendPct(relative.excess3m, 1)}p`],
+                  ["초과 수익률 6개월", `${fmtTrendPct(relative.excess6m, 1)}p`],
+                ]}
+              />
+              <Text style={styles.note}>
+                투자총론 4편: 시장이 내릴 때 지수보다 더 빠지는 종목은 회복탄력성을 잃고 있을 가능성이 높아요. 지수보다 덜
+                빠졌다면 손절하지 않는 게 원칙이에요.
+              </Text>
+            </Section>
+          )}
+
+          {fin && (
+            <Section title={`재무 변화율 · ${fin.row.quarter ?? "-"} 분기`}>
+              <Ledger
+                rows={[
+                  ...LINE_LABELS.map(([key, label]): [string, string] => {
+                    const l = fin.row.lines[key];
+                    return [`${label} 전분기비 · 전년비`, `${fmtTrendPct(l?.qoq, 1)} · ${fmtTrendPct(l?.yoy, 1)}`];
+                  }),
+                  ["시가총액 / 영업이익(4분기)", fmtNum(fin.row.capToOpIncome, 1)],
+                  ...(fin.inGroup
+                    ? ([["빅테크 9개 중 재무 점수", fin.row.score != null ? String(Math.round(fin.row.score)) : "-"]] as [string, string][])
+                    : []),
+                ]}
+              />
+              {fin.row.ocfNegativeTtm && (
+                <Text style={styles.verdict}>최근 4분기 영업현금흐름 합계가 적자예요 (TIP 9: 걸러야 할 회사).</Text>
+              )}
+              <Text style={styles.note}>
+                절대값보다 변화율을 봐요(TIP 30). 시가총액/영업이익은 낮을수록 영업이익 대비 싸다는 뜻이고, 추세가 줄어드는지가
+                중요해요.
+              </Text>
+            </Section>
+          )}
 
           <Section title="펀더멘털 스코어">
             <View style={styles.radarWrap}>
@@ -385,6 +466,7 @@ const styles = StyleSheet.create({
   rangeUnderline: { height: 2, alignSelf: "stretch", backgroundColor: colors.accent, marginTop: 4 },
   chartWrap: { paddingHorizontal: space.lg, marginTop: space.sm },
   maLabel: { ...type.num, fontSize: 11, color: colors.accent, marginTop: space.xs },
+  verdict: { ...type.body, fontSize: 13, color: colors.text, marginTop: space.md, marginBottom: space.xs },
   section: { paddingHorizontal: space.lg, marginTop: space.xxl },
   sectionTitle: { ...type.section, marginBottom: space.md },
   positionRow: { flexDirection: "row", gap: space.md },

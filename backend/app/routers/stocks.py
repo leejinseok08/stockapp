@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 
 from ..services.market import HISTORY_RANGES, get_compare_rows, get_fundamentals, get_history, get_news, get_quote, get_quotes
-from ..tickers import UNIVERSE, UNIVERSE_BY_SYMBOL
+from ..services.stockscan import get_relative, get_scan
+from ..tickers import BIGTECH, UNIVERSE, UNIVERSE_BY_SYMBOL
 
 router = APIRouter(prefix="/stocks", tags=["stocks"])
 
@@ -23,6 +24,21 @@ def compare(symbols: str):
     syms = [s.strip().upper() for s in symbols.split(",") if s.strip()]
     rows = get_compare_rows(syms)
     return [{**row, **UNIVERSE_BY_SYMBOL.get(row["symbol"], {})} for row in rows]
+
+
+@router.get("/scan")
+def scan(symbols: str | None = None):
+    """Relative strength + financial change score for a peer group (default: Magnificent 7 + 삼성전자 + SK하이닉스)."""
+    syms = [s.strip().upper() for s in symbols.split(",") if s.strip()] if symbols else BIGTECH
+    result = get_scan(syms)
+    for row in result["rows"]:
+        row.update({k: v for k, v in UNIVERSE_BY_SYMBOL.get(row["symbol"], {}).items() if k != "symbol"})
+    return result
+
+
+@router.get("/{symbol}/relative")
+def relative(symbol: str):
+    return get_relative(symbol.upper())
 
 
 @router.get("/{symbol}/quote")

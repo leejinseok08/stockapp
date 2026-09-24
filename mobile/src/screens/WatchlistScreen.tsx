@@ -121,6 +121,7 @@ export default function WatchlistScreen() {
         <View style={styles.headerActions}>
           <HeaderIcon icon="briefcase" label="포트폴리오" onPress={() => navigation.navigate("Portfolio")} />
           <HeaderIcon icon="bar-chart-2" label="종목 비교" onPress={() => navigation.navigate("Compare")} />
+          <HeaderIcon icon="layers" label="빅테크 점검" onPress={() => navigation.navigate("Scan")} />
           <HeaderIcon icon="plus" label="종목 추가" onPress={() => setPickerOpen(true)} accent />
         </View>
       </View>

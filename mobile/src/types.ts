@@ -82,6 +82,7 @@ export type RootStackParamList = {
   StockDetail: { symbol: string; name?: string };
   Portfolio: undefined;
   Compare: undefined;
+  Scan: undefined;
 };
 
 export type TabParamList = {
@@ -131,16 +132,17 @@ export type SignalComponent = {
   weight: number;
 };
 
+// Market temperature: context only, not a buy multiplier (see docs/signal-research.md).
 export type SignalTarget = {
   id: string;
   symbol: string;
   name: string;
   etfExample: string;
   region: "US" | "KR";
+  reference: boolean;
   asOf: string | null;
   score: number | null;
   action: string | null;
-  multiplier: number | null;
   components: SignalComponent[];
   missing: string[];
   fxHint: string | null;
@@ -148,10 +150,114 @@ export type SignalTarget = {
 
 export type Signals = {
   targets: SignalTarget[];
-  bands: { min: number; action: string; multiplier: number }[];
+  bands: { min: number; action: string }[];
   generatedAt: string;
-  backtested: boolean;
 };
+
+export type DayGuide = {
+  etfSymbol: string;
+  etfName: string;
+  asOf: string;
+  lastReturn: number;
+  usualMove: number | null;
+  threshold: number | null;
+  buyNextSession: boolean;
+  firedThisMonth: string[];
+};
+
+export type PlanSleeve = {
+  id: string;
+  name: string;
+  weight: number;
+  etfs: { symbol: string; name: string }[];
+  guide: DayGuide | null;
+};
+
+export type BacktestSummary = {
+  period: string;
+  weights: Record<string, number>;
+  costOneWay: number;
+  plainXirr: number;
+  plainWorstVsPrincipal: number;
+  plainMdd: number;
+  scaledSignalVsPlain: number;
+  dipDayVsPlain: number;
+  hindsightBestDayVsPlain: number;
+  rebalanceByNewMoneyVsPlain?: number;
+  gridSettingsTried: number;
+  gridSettingsBeatingPlain: number;
+  generatedAt: string;
+};
+
+export type Plan = {
+  account: string;
+  sleeves: PlanSleeve[];
+  rule: { z: number; lookback: number; text: string };
+  backtest: BacktestSummary | null;
+  generatedAt: string;
+};
+
+export type RiskItem = {
+  key: string;
+  label: string;
+  value: number;
+  unit: string;
+  lit: boolean;
+  rule: string;
+  reason: string;
+  asOf: string;
+  source: string;
+};
+
+export type RiskGauge = {
+  lit: number;
+  total: number;
+  level: string;
+  items: RiskItem[];
+  failed: string[];
+  generatedAt: string;
+};
+
+export type RelativeSummary = {
+  symbol: string;
+  benchmark: string;
+  benchmarkName: string;
+  maWindow: number;
+  aboveMa: boolean | null;
+  since: string | null;
+  excess1m: number | null;
+  excess3m: number | null;
+  excess6m: number | null;
+  stock3m: number | null;
+  bench3m: number | null;
+  verdict: string | null;
+};
+
+export type Relative = RelativeSummary & { series: { t: number; ratio: number; ma: number | null }[] };
+
+export type FinancialLine = { latest: number | null; qoq: number | null; yoy: number | null; ttm: number | null };
+
+export type FinancialLineKey = "revenue" | "operatingIncome" | "netIncome" | "operatingCashFlow";
+
+export type ScanRow = {
+  symbol: string;
+  name?: string;
+  category?: string;
+  currency?: string | null;
+  quarter: string | null;
+  lines: Partial<Record<FinancialLineKey, FinancialLine | null>>;
+  ocfNegativeTtm: boolean;
+  roe?: number | null;
+  peg?: number | null;
+  pbr?: number | null;
+  psr?: number | null;
+  capToOpIncome?: number | null;
+  score: number | null;
+  scoreCoverage: number;
+  relative: RelativeSummary | null;
+};
+
+export type Scan = { rows: ScanRow[] };
 
 export type MarketOverview = {
   indices: IndexStat[];
