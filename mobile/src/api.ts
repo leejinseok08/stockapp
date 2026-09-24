@@ -11,7 +11,7 @@ import type {
 } from "./types";
 
 // FastAPI backend hosted on Render — reachable from anywhere, no laptop needed.
-export const API_BASE_URL = "https://stockapp-ghmx.onrender.com";
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://stockapp-ghmx.onrender.com";
 
 const client = axios.create({ baseURL: API_BASE_URL, timeout: 10000 });
 

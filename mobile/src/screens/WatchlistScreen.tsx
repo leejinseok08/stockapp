@@ -1,3 +1,4 @@
+import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -15,10 +16,34 @@ import {
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { StockRow } from "../components/StockRow";
-import { colors } from "../theme";
+import { colors, fonts, space, type } from "../theme";
 import type { RootStackParamList, Ticker, WatchlistEntry } from "../types";
 
 const POLL_MS = 20000;
+
+function HeaderIcon({
+  icon,
+  label,
+  onPress,
+  accent,
+}: {
+  icon: React.ComponentProps<typeof Feather>["name"];
+  label: string;
+  onPress: () => void;
+  accent?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={10}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [styles.iconBtn, accent && styles.iconBtnAccent, pressed && { opacity: 0.6 }]}
+    >
+      <Feather name={icon} size={18} color={accent ? colors.onAccent : colors.text} />
+    </Pressable>
+  );
+}
 const CACHE_KEY = "watchlist";
 
 export default function WatchlistScreen() {
@@ -94,30 +119,22 @@ export default function WatchlistScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>관심종목</Text>
         <View style={styles.headerActions}>
-          <Pressable style={styles.iconBtn} onPress={() => navigation.navigate("Portfolio")}>
-            <Text style={styles.iconBtnText}>포트폴리오</Text>
-          </Pressable>
-          <Pressable style={styles.iconBtn} onPress={() => navigation.navigate("Compare")}>
-            <Text style={styles.iconBtnText}>비교</Text>
-          </Pressable>
+          <HeaderIcon icon="briefcase" label="포트폴리오" onPress={() => navigation.navigate("Portfolio")} />
+          <HeaderIcon icon="bar-chart-2" label="종목 비교" onPress={() => navigation.navigate("Compare")} />
+          <HeaderIcon icon="plus" label="종목 추가" onPress={() => setPickerOpen(true)} accent />
         </View>
       </View>
 
       {staleMinutes != null && (
         <View style={styles.staleBanner}>
+          <Feather name="wifi-off" size={12} color={colors.accent} />
           <Text style={styles.staleBannerText}>오프라인 · {staleMinutes}분 전 데이터</Text>
         </View>
       )}
 
-      <View style={styles.addRow}>
-        <Pressable style={styles.addBtn} onPress={() => setPickerOpen(true)}>
-          <Text style={styles.addBtnText}>+ 종목 추가</Text>
-        </Pressable>
-      </View>
-
       {items.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.empty}>아직 추가된 종목이 없어요.{"\n"}상단의 '+ 종목 추가'로 시작해보세요.</Text>
+          <Text style={styles.empty}>아직 추가된 종목이 없어요.{"\n"}오른쪽 위 + 버튼으로 시작해보세요.</Text>
         </View>
       ) : (
         <FlatList
@@ -137,7 +154,12 @@ export default function WatchlistScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.title}>종목 선택</Text>
-            <Pressable onPress={() => setPickerOpen(false)}>
+            <Pressable
+              onPress={() => setPickerOpen(false)}
+              accessibilityRole="button"
+              accessibilityLabel="닫기"
+              hitSlop={12}
+            >
               <Text style={styles.closeText}>닫기</Text>
             </Pressable>
           </View>
@@ -155,14 +177,18 @@ export default function WatchlistScreen() {
                 <Pressable
                   style={styles.pickerRow}
                   onPress={() => (watched ? removeSymbol(item.symbol) : addSymbol(item.symbol))}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.name} ${watched ? "관심종목에서 제거" : "관심종목에 추가"}`}
                 >
                   <View>
                     <Text style={styles.symbol}>{item.symbol}</Text>
                     <Text style={styles.name}>{item.name}</Text>
                   </View>
-                  <Text style={[styles.toggle, watched && styles.toggleActive]}>
-                    {watched ? "제거" : "추가"}
-                  </Text>
+                  <Feather
+                    name={watched ? "check-circle" : "plus-circle"}
+                    size={20}
+                    color={watched ? colors.accent : colors.textMuted}
+                  />
                 </Pressable>
               );
             }}
@@ -176,69 +202,64 @@ export default function WatchlistScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  empty: { color: colors.textMuted, textAlign: "center", lineHeight: 22 },
+  empty: { ...type.body, color: colors.textMuted, textAlign: "center", lineHeight: 22 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: space.lg,
+    paddingTop: space.sm,
+    paddingBottom: space.md,
   },
-  headerActions: { flexDirection: "row", gap: 8 },
-  title: { color: colors.text, fontSize: 22, fontWeight: "700" },
+  headerActions: { flexDirection: "row", gap: space.sm },
+  title: { ...type.title, color: colors.text },
   iconBtn: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
   },
-  iconBtnText: { color: colors.text, fontWeight: "600", fontSize: 12 },
+  iconBtnAccent: { backgroundColor: colors.accent, borderColor: colors.accent },
   staleBanner: {
-    marginHorizontal: 16,
-    marginBottom: 8,
-    backgroundColor: "#3A2E12",
-    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space.sm,
+    marginHorizontal: space.lg,
+    marginBottom: space.sm,
+    backgroundColor: colors.accentSoft,
+    borderRadius: 6,
     paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: space.md,
   },
-  staleBannerText: { color: "#E8B84B", fontSize: 12, fontWeight: "600" },
-  addRow: { paddingHorizontal: 16, marginBottom: 8 },
-  addBtn: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignSelf: "flex-start",
-  },
-  addBtnText: { color: "#fff", fontWeight: "600", fontSize: 13 },
+  staleBannerText: { fontFamily: fonts.sansMedium, color: colors.accent, fontSize: 12 },
   modalContainer: { flex: 1, backgroundColor: colors.background, paddingTop: 60 },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    paddingHorizontal: space.lg,
+    marginBottom: space.sm,
   },
-  closeText: { color: colors.accent, fontSize: 16, fontWeight: "600" },
+  closeText: { fontFamily: fonts.sansMedium, color: colors.accent, fontSize: 15 },
   sectionHeader: {
     backgroundColor: colors.background,
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 6,
+    paddingHorizontal: space.lg,
+    paddingTop: space.xl,
+    paddingBottom: space.xs,
   },
-  sectionHeaderText: { color: colors.accent, fontSize: 12, fontWeight: "700" },
+  sectionHeaderText: { ...type.section },
   pickerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingVertical: space.md,
+    paddingHorizontal: space.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.hairline,
   },
-  symbol: { color: colors.text, fontSize: 16, fontWeight: "600" },
-  name: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  toggle: { color: colors.accent, fontWeight: "600" },
-  toggleActive: { color: colors.down },
+  symbol: { ...type.numStrong, color: colors.text, fontSize: 15 },
+  name: { ...type.caption, color: colors.textMuted, marginTop: 2 },
 });

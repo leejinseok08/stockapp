@@ -3,16 +3,16 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { api } from "../api";
-import { fmtBig, fmtNum, fmtPct } from "../format";
-import { colors } from "../theme";
+import { fmtMoney, fmtNum, fmtTrendPct } from "../format";
+import { colors, fonts, space, trendColor, type } from "../theme";
 import type { CompareRow, RootStackParamList } from "../types";
 
-type SortKey = "changePercent" | "trailingPE" | "marketCap";
+type SortKey = "changePercent" | "trailingPE" | "marketCapUsd";
 
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+const COLUMNS: { key: SortKey; label: string }[] = [
   { key: "changePercent", label: "등락률" },
   { key: "trailingPE", label: "PER" },
-  { key: "marketCap", label: "시가총액" },
+  { key: "marketCapUsd", label: "시가총액" },
 ];
 
 export default function CompareScreen() {
@@ -65,89 +65,94 @@ export default function CompareScreen() {
     );
   }
 
+  if (rows.length === 0) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.empty}>관심종목을 추가하면{"\n"}여기서 비교할 수 있어요.</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.sortRow}>
-        {SORT_OPTIONS.map((opt) => {
-          const active = sortKey === opt.key;
+      <View style={styles.headRow}>
+        <Text style={[styles.headCell, styles.nameCol, { textAlign: "left" }]}>종목</Text>
+        {COLUMNS.map((col) => {
+          const active = sortKey === col.key;
           return (
-            <Pressable key={opt.key} style={[styles.sortBtn, active && styles.sortBtnActive]} onPress={() => toggleSort(opt.key)}>
-              <Text style={[styles.sortBtnText, active && styles.sortBtnTextActive]}>
-                {opt.label} {active ? (descending ? "▼" : "▲") : ""}
+            <Pressable
+              key={col.key}
+              style={styles.valueCol}
+              onPress={() => toggleSort(col.key)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`${col.label} 기준 정렬`}
+              accessibilityState={{ selected: active }}
+            >
+              <Text style={[styles.headCell, active && styles.headCellActive]}>
+                {col.label}
+                {active ? (descending ? " ↓" : " ↑") : ""}
               </Text>
             </Pressable>
           );
         })}
       </View>
 
-      {rows.length === 0 ? (
-        <View style={styles.center}>
-          <Text style={styles.empty}>관심종목을 추가하면{"\n"}여기서 비교할 수 있어요.</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={sorted}
-          keyExtractor={(r) => r.symbol}
-          renderItem={({ item }) => {
-            const up = (item.change ?? 0) >= 0;
-            return (
-              <Pressable
-                style={styles.row}
-                onPress={() => navigation.navigate("StockDetail", { symbol: item.symbol, name: item.name })}
-              >
-                <View style={styles.left}>
-                  <Text style={styles.symbol}>{item.symbol}</Text>
-                  {!!item.category && <Text style={styles.category}>{item.category}</Text>}
-                </View>
-                <View style={styles.col}>
-                  <Text style={styles.colLabel}>등락률</Text>
-                  <Text style={[styles.colValue, { color: up ? colors.up : colors.down }]}>
-                    {fmtPct(item.changePercent)}
-                  </Text>
-                </View>
-                <View style={styles.col}>
-                  <Text style={styles.colLabel}>PER</Text>
-                  <Text style={styles.colValue}>{fmtNum(item.trailingPE)}</Text>
-                </View>
-                <View style={styles.col}>
-                  <Text style={styles.colLabel}>시총</Text>
-                  <Text style={styles.colValue}>{fmtBig(item.marketCap)}</Text>
-                </View>
-              </Pressable>
-            );
-          }}
-        />
-      )}
+      <FlatList
+        data={sorted}
+        ListFooterComponent={
+          <Text style={styles.footnote}>시가총액은 각 상장 통화로 표시하고, 정렬은 달러 환산 기준입니다.</Text>
+        }
+        keyExtractor={(r) => r.symbol}
+        renderItem={({ item }) => (
+          <Pressable
+            style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
+            onPress={() => navigation.navigate("StockDetail", { symbol: item.symbol, name: item.name })}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.name ?? item.symbol}, 등락률 ${fmtTrendPct(item.changePercent)}, PER ${fmtNum(item.trailingPE)}, 시가총액 ${fmtMoney(item.marketCap, item.currency)}`}
+          >
+            <View style={styles.nameCol}>
+              <Text style={styles.symbol}>{item.symbol}</Text>
+              {!!item.category && <Text style={styles.category}>{item.category}</Text>}
+            </View>
+            <Text style={[styles.cell, styles.valueCol, { color: trendColor(item.changePercent) }]}>
+              {fmtTrendPct(item.changePercent)}
+            </Text>
+            <Text style={[styles.cell, styles.valueCol]}>{fmtNum(item.trailingPE, 1)}</Text>
+            <Text style={[styles.cell, styles.valueCol]}>{fmtMoney(item.marketCap, item.currency)}</Text>
+          </Pressable>
+        )}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  empty: { color: colors.textMuted, textAlign: "center", lineHeight: 22 },
-  sortRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 12 },
-  sortBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: space.xl, backgroundColor: colors.background },
+  empty: { ...type.body, color: colors.textMuted, textAlign: "center", lineHeight: 22 },
+  headRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: space.lg,
+    paddingVertical: space.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.hairline,
   },
-  sortBtnActive: { backgroundColor: colors.accent },
-  sortBtnText: { color: colors.textMuted, fontSize: 12, fontWeight: "600" },
-  sortBtnTextActive: { color: "#fff" },
+  headCell: { fontFamily: fonts.sansMedium, fontSize: 11, color: colors.textMuted, textAlign: "right" },
+  headCellActive: { color: colors.accent },
+  nameCol: { width: 96 },
+  valueCol: { flex: 1, alignItems: "flex-end" },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingVertical: space.md,
+    paddingHorizontal: space.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.hairline,
   },
-  left: { width: 90 },
-  symbol: { color: colors.text, fontSize: 14, fontWeight: "700" },
-  category: { color: colors.textMuted, fontSize: 10, marginTop: 2 },
-  col: { flex: 1, alignItems: "flex-end" },
-  colLabel: { color: colors.textMuted, fontSize: 9 },
-  colValue: { color: colors.text, fontSize: 13, fontWeight: "600", marginTop: 2 },
+  symbol: { ...type.numStrong, color: colors.text, fontSize: 14 },
+  category: { fontFamily: fonts.sans, color: colors.textMuted, fontSize: 10, marginTop: 2 },
+  cell: { ...type.num, color: colors.text, fontSize: 13, textAlign: "right" },
+  footnote: { ...type.caption, color: colors.textMuted, padding: space.lg },
 });

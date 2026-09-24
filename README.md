@@ -30,10 +30,18 @@ npm install
 npm start
 ```
 
-Expo Go 앱(또는 시뮬레이터)으로 QR코드를 스캔해 실행합니다.
+Expo Go 앱(또는 시뮬레이터)으로 QR코드를 스캔해 실행합니다. 기본으로 Render에 배포된 백엔드를 사용합니다.
 
-**중요:** 실제 기기(Expo Go)에서 테스트할 때는 `localhost`가 폰에서 백엔드를 가리키지 않습니다.
-`mobile/src/api.ts`의 `API_BASE_URL`을 개발 머신의 LAN IP(예: `http://192.168.0.10:8000`)로 바꿔주세요.
+**브라우저로 미리보기:** 폰 없이 `npm run web`으로 노트북 브라우저에서 바로 볼 수 있습니다.
+
+**다른 백엔드 사용:** 로컬 백엔드를 쓰려면 환경변수로 주소를 지정합니다.
+실기기에서는 `localhost` 대신 개발 머신의 LAN IP를 써야 합니다.
+
+```bash
+EXPO_PUBLIC_API_URL=http://192.168.0.10:8000 npm start
+```
+
+**디자인:** UI를 바꿀 때는 [`mobile/DESIGN.md`](mobile/DESIGN.md)의 규칙을 따릅니다.
 
 ## 기본 제공 종목 유니버스
 

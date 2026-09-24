@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Linking, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { api } from "../api";
-import { colors } from "../theme";
+import { colors, fonts, space, type } from "../theme";
 import type { NewsItem } from "../types";
 
 function timeAgo(published: number | string | null) {
@@ -68,15 +68,17 @@ export default function NewsScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
           renderItem={({ item }) => (
             <Pressable
-              style={styles.card}
+              style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
               onPress={() => item.url && Linking.openURL(item.url)}
+              accessibilityRole="link"
+              accessibilityLabel={`${item.symbol} 뉴스: ${item.title}`}
             >
-              <View style={styles.cardHeader}>
-                <Text style={styles.badge}>{item.symbol}</Text>
-                <Text style={styles.time}>{timeAgo(item.published)}</Text>
-              </View>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              {!!item.publisher && <Text style={styles.publisher}>{item.publisher}</Text>}
+              <Text style={styles.rowTitle}>{item.title}</Text>
+              <Text style={styles.meta}>
+                <Text style={styles.symbol}>{item.symbol}</Text>
+                {item.publisher ? `  ·  ${item.publisher}` : ""}
+                {timeAgo(item.published) ? `  ·  ${timeAgo(item.published)}` : ""}
+              </Text>
             </Pressable>
           )}
         />
@@ -87,27 +89,16 @@ export default function NewsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  empty: { color: colors.textMuted, textAlign: "center", lineHeight: 22 },
-  title: { color: colors.text, fontSize: 22, fontWeight: "700", padding: 16, paddingBottom: 8 },
-  card: {
-    backgroundColor: colors.surface,
-    marginHorizontal: 16,
-    marginBottom: 10,
-    borderRadius: 12,
-    padding: 12,
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: space.xl },
+  empty: { ...type.body, color: colors.textMuted, textAlign: "center", lineHeight: 22 },
+  title: { ...type.title, color: colors.text, paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.md },
+  row: {
+    paddingVertical: space.md + 2,
+    paddingHorizontal: space.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.hairline,
   },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
-  badge: {
-    color: colors.accent,
-    fontSize: 11,
-    fontWeight: "700",
-    backgroundColor: "#1B2733",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  time: { color: colors.textMuted, fontSize: 11 },
-  cardTitle: { color: colors.text, fontSize: 14, fontWeight: "600", lineHeight: 20 },
-  publisher: { color: colors.textMuted, fontSize: 11, marginTop: 6 },
+  rowTitle: { ...type.body, fontFamily: fonts.sansMedium, color: colors.text, lineHeight: 21 },
+  meta: { ...type.caption, color: colors.textMuted, marginTop: space.xs + 2 },
+  symbol: { fontFamily: fonts.monoMedium, color: colors.accent },
 });

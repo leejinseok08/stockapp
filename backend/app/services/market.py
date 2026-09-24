@@ -57,6 +57,17 @@ def _get_trailing_pe(symbol: str) -> float | None:
     return _cached(f"pe:{symbol}", 6 * 3600, fetch)
 
 
+def units_per_usd(currency: str | None) -> float | None:
+    """How many units of `currency` one USD buys (e.g. KRW -> ~1390). Yahoo quotes this as `KRW=X`."""
+    if not currency or currency == "USD":
+        return 1.0
+
+    def fetch():
+        return _num(yf.Ticker(f"{currency}=X").fast_info.get("lastPrice"))
+
+    return _cached(f"fx:{currency}", 600, fetch)
+
+
 def get_compare_rows(symbols: list[str]) -> list[dict]:
     rows = []
     for symbol in symbols:
@@ -65,7 +76,14 @@ def get_compare_rows(symbols: list[str]) -> list[dict]:
             pe = _get_trailing_pe(symbol)
         except Exception:
             pe = None  # yfinance .info is flaky; one bad symbol shouldn't sink the whole table
-        rows.append({**quote, "trailingPE": pe})
+        try:
+            rate = units_per_usd(quote.get("currency"))
+        except Exception:
+            rate = None
+        cap = quote.get("marketCap")
+        # Caps come in each listing's own currency; normalize so KRW and USD rows sort on one scale.
+        cap_usd = cap / rate if cap is not None and rate else None
+        rows.append({**quote, "trailingPE": pe, "marketCapUsd": cap_usd})
     return rows
 
 
@@ -182,6 +200,7 @@ def get_fundamentals(symbol: str) -> dict:
             "sector": info.get("sector"),
             "industry": info.get("industry"),
             "summary": info.get("longBusinessSummary"),
+            "financialCurrency": info.get("financialCurrency") or info.get("currency"),
             "ratios": ratios,
             "scores": _compute_scores(ratios),
             "income": _statement(t.income_stmt, _STATEMENT_ROWS["income"]),

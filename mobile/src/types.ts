@@ -23,7 +23,7 @@ export type PortfolioFields = {
 
 export type WatchlistEntry = Quote & Partial<Ticker> & PortfolioFields;
 
-export type CompareRow = Quote & Partial<Ticker> & { trailingPE: number | null };
+export type CompareRow = Quote & Partial<Ticker> & { trailingPE: number | null; marketCapUsd: number | null };
 
 export type HistoryPoint = {
   t: number;
@@ -48,6 +48,7 @@ export type Fundamentals = {
   sector: string | null;
   industry: string | null;
   summary: string | null;
+  financialCurrency: string | null;
   scores: FundamentalScores;
   ratios: {
     trailingPE: number | null;

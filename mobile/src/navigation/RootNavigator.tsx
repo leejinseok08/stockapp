@@ -1,14 +1,14 @@
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { Text } from "react-native";
 import CompareScreen from "../screens/CompareScreen";
 import NewsScreen from "../screens/NewsScreen";
 import PortfolioScreen from "../screens/PortfolioScreen";
 import StockDetailScreen from "../screens/StockDetailScreen";
 import WatchlistScreen from "../screens/WatchlistScreen";
-import { colors } from "../theme";
+import { colors, fonts } from "../theme";
 import type { RootStackParamList, TabParamList } from "../types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -33,9 +33,10 @@ function Tabs() {
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
-        tabBarIcon: () => (
-          <Text>{route.name === "Watchlist" ? "📈" : "📰"}</Text>
+        tabBarStyle: { backgroundColor: colors.background, borderTopColor: colors.hairline },
+        tabBarLabelStyle: { fontFamily: fonts.sansMedium, fontSize: 11 },
+        tabBarIcon: ({ color, size }) => (
+          <Feather name={route.name === "Watchlist" ? "list" : "file-text"} color={color} size={size - 4} />
         ),
       })}
     >
@@ -48,7 +49,15 @@ function Tabs() {
 export default function RootNavigator() {
   return (
     <NavigationContainer theme={navTheme}>
-      <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text }}>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.background },
+          headerShadowVisible: false,
+          headerTintColor: colors.text,
+          headerTitleStyle: { fontFamily: fonts.sansBold, fontSize: 16 },
+          headerBackTitleVisible: false,
+        }}
+      >
         <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
         <Stack.Screen
           name="StockDetail"
