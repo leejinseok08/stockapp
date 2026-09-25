@@ -19,8 +19,10 @@ import pandas as pd
 from .stockscan import TREND, trend_frame
 
 
-def features(h: pd.DataFrame, index_close: pd.Series | None = None) -> pd.DataFrame:
-    """h: columns o, h, l, c, v (daily, adjusted). index_close: the home index for relative strength."""
+def features(h: pd.DataFrame, index_close: pd.Series | None = None, lite: bool = False) -> pd.DataFrame:
+    """h: columns o, h, l, c, v (daily, adjusted). index_close: the home index for relative strength.
+    lite skips the two slow columns (the trend rule's per-bar loop and the rolling RSI quantiles) for
+    the live scan on the free server; techniques that need them (trend, rsi_own) don't fire then."""
     f = h.copy()
     c, hi, lo, v = f["c"], f["h"], f["l"], f["v"]
     for n in (5, 10, 20, 25, 60, 120):
@@ -41,8 +43,11 @@ def features(h: pd.DataFrame, index_close: pd.Series | None = None) -> pd.DataFr
     d = c.diff()
     up, dn = d.clip(lower=0).ewm(alpha=1 / 14).mean(), (-d.clip(upper=0)).ewm(alpha=1 / 14).mean()
     f["rsi"] = 100 - 100 / (1 + up / dn)
-    f["rsi_lo"] = f["rsi"].rolling(250).quantile(0.2).shift(1)
-    f["rsi_hi"] = f["rsi"].rolling(250).quantile(0.8).shift(1)
+    if lite:
+        f["rsi_lo"] = f["rsi_hi"] = np.nan
+    else:
+        f["rsi_lo"] = f["rsi"].rolling(250).quantile(0.2).shift(1)
+        f["rsi_hi"] = f["rsi"].rolling(250).quantile(0.8).shift(1)
     macd = c.ewm(span=12, adjust=False).mean() - c.ewm(span=26, adjust=False).mean()
     f["macd"] = macd
     f["macdup"] = macd > macd.shift(5)
@@ -73,7 +78,7 @@ def features(h: pd.DataFrame, index_close: pd.Series | None = None) -> pd.DataFr
         + ((c >= f["hi250"]) | ((c > f["ma20"]) & (c < f["ma20"] * 1.03))).astype(int)
         + (f["rsi"] < 70).astype(int) + f["macdup"].astype(int)
     )
-    f["trend_hold"] = trend_frame(c, **TREND)["hold"]
+    f["trend_hold"] = False if lite else trend_frame(c, **TREND)["hold"]
     # Long bullish candle (fmkorea 3723039708): the most recent one in the last 5 bars, as a box.
     big = f["bull"] & (f["body"] >= 0.6) & ((hi - lo) >= 1.5 * f["atr"]) & (v >= 1.5 * f["vol20"])
     box_hi = pd.Series(np.where(big, hi, np.nan), index=f.index).ffill(limit=5).shift(1)

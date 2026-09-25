@@ -59,7 +59,7 @@ def _download(symbols: list[str]) -> dict[str, pd.DataFrame]:
     out = {}
     for k in range(0, len(symbols), 100):
         chunk = symbols[k:k + 100]
-        df = yf.download(chunk, period="2y", interval="1d", auto_adjust=True, group_by="ticker", threads=True, progress=False)
+        df = yf.download(chunk, period="18mo", interval="1d", auto_adjust=True, group_by="ticker", threads=True, progress=False)
         for s in chunk:
             try:
                 h = df[s][["Open", "High", "Low", "Close", "Volume"]].dropna()
@@ -80,13 +80,15 @@ def scan(market: str) -> dict:
     prices = _download([u["symbol"] for u in uni] + [INDEX[market]])
     idx = prices.get(INDEX[market], pd.DataFrame()).get("c")
     names = {u["symbol"]: u["name"] for u in uni}
+    lite = not any(t.key in ("rsi_own", "trend") for t in active)
     found: dict[str, list] = {t.key: [] for t in active}
     as_of = None
+    log.info("swing scan %s: %d prices downloaded", market, len(prices))
     for u in uni:
         h = prices.get(u["symbol"])
         if h is None:
             continue
-        b = Bars(features(h, idx))
+        b = Bars(features(h, idx, lite=lite))
         i = b.n - 1
         as_of = max(as_of or b.index[i], b.index[i])
         if b["value20"][i] < MIN_VALUE[market]:
