@@ -6,7 +6,6 @@ import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { RiskSection } from "../components/RiskSection";
 import { SignalBadge } from "../components/SignalBadge";
-import { SplitBuyCard } from "../components/SplitBuyCard";
 import { Avatar, Section } from "../components/ui";
 import { fmtMoney, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
@@ -114,8 +113,7 @@ export default function TodayScreen() {
         <Text style={[styles.note, styles.pad]}>데이터를 불러오지 못했어요. 아래로 당겨 다시 시도해보세요.</Text>
       ) : (
         <>
-          {data.splitBuy?.active && <SplitBuyCard data={data.splitBuy} />}
-          <Section first={!data.splitBuy?.active} title="신호 변경" desc="다음 거래일에 실행할 BUY · SELL">
+          <Section first eyebrow="개별 종목" title="신호 변경" desc="다음 거래일에 실행할 BUY · SELL">
             {data.changed.length === 0 ? (
               <Text style={styles.note}>오늘 바뀐 신호가 없어요.</Text>
             ) : (
@@ -131,14 +129,6 @@ export default function TodayScreen() {
             )}
           </Section>
 
-          {risk && (
-            <Section
-              title="위험 경고"
-              desc="시장 스트레스 지표 5개가 위험 구간에 들어갔는지"
-            >
-              <RiskSection risk={risk} />
-            </Section>
-          )}
 
           <Section title="실적 발표" desc="2주 안에 발표하는 종목">
             {data.earnings.length === 0 ? (
@@ -204,6 +194,16 @@ export default function TodayScreen() {
           })
         )}
       </Section>
+
+      {risk && (
+        <Section
+          eyebrow="ISA · 시장"
+          title="위험 경고"
+          desc="시장 스트레스 지표 5개가 위험 구간에 들어갔는지"
+        >
+          <RiskSection risk={risk} />
+        </Section>
+      )}
 
       <Text style={styles.footnote}>매매 신호와 의견은 규칙에 따른 참고 정보이며 투자 권유가 아닙니다.</Text>
     </ScrollView>

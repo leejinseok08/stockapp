@@ -73,17 +73,6 @@ def send(title: str, body: str, url: str = "/", only: str | None = None) -> int:
     return sent
 
 
-def split_message(split: dict | None) -> tuple[str, str, str] | None:
-    """One alert per buy day: (buy date, title, body). Sent the evening before and not again."""
-    buys = [i for i in (split or {}).get("items", []) if i.get("status") == "buy"]
-    if not buys:
-        return None
-    day = min(i["buyOn"] for i in buys)
-    when = "오늘" if all(i.get("buyToday") for i in buys) else f"{day[5:].replace('-', '/')}"
-    parts = [f"{i['sleeve']} {round(i['weight'] * 100)}%" + (" (월말)" if i["reason"] == "monthEnd" else "") for i in buys]
-    return (day, f"분할매수 · {when}", f"{' · '.join(parts)} — 이번 달 몫 매수")
-
-
 def daily_messages(today: dict, risk: dict | None) -> list[tuple[str, str, str]]:
     """(key, title, body) for what's worth an alert today."""
     out = []
@@ -101,22 +90,7 @@ def daily_messages(today: dict, risk: dict | None) -> list[tuple[str, str, str]]
 def run_daily(today: dict, risk: dict | None) -> dict:
     date = datetime.now(KST).strftime("%Y-%m-%d")
     msgs = daily_messages(today, risk)
-    split = split_message(today.get("splitBuy"))
-    if split:
-        buy_day, title, body = split
-        # Keyed by the buy day, so the evening heads-up and the morning run don't both send it.
-        with Session(engine) as s:
-            seen = s.exec(select(MarketSnapshot).where(MarketSnapshot.date == buy_day,
-                                                      MarketSnapshot.series == "push:split")).first()
-        if not seen:
-            n = send(title, body)
-            upsert_snapshots([(buy_day, "push:split", float(n))])
-            msgs_sent = [{"title": title, "body": body, "sent": n}]
-        else:
-            msgs_sent = []
-    else:
-        msgs_sent = []
-    done = list(msgs_sent)
+    done = []
     with Session(engine) as s:
         sent_before = {r.series for r in s.exec(select(MarketSnapshot).where(MarketSnapshot.date == date,
                                                                              MarketSnapshot.series.startswith("push:")))}

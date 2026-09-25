@@ -11,6 +11,7 @@ from sqlmodel import Session, select
 from ..db import IS_SQLITE, MarketSnapshot, engine, get_session
 from ..services.macro import get_overview, snapshot_rows
 from ..services.heatmap import get_heatmap
+from ..services.isa_plan import get_isa_plan
 from ..services.risk import get_risk, risk_rows
 from ..services.signals import get_signals, signal_rows
 
@@ -100,3 +101,9 @@ def startup_collect() -> None:
                  {r["symbol"]: ((r.get("trend") or {}).get("action"), (r.get("rating") or {}).get("rating")) for r in rows})
     except Exception:
         log.exception("startup data check failed")
+
+
+@router.get("/isa-plan")
+def isa_plan():
+    """This month's ISA buys per ETF under the owner's buy-day rule (계좌 tab only, no alerts)."""
+    return get_isa_plan()

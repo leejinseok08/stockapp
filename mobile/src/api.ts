@@ -1,6 +1,7 @@
 import axios from "axios";
 import type {
   Analysis,
+  IsaPlan,
   Disclosure,
   Dividends,
   Performance,
@@ -70,6 +71,8 @@ export const api = {
   marketSignals: () => client.get<Signals>("/market/signals", { timeout: 45000 }).then((r) => r.data),
 
   heatmap: () => client.get<HeatmapData>("/market/heatmap", { timeout: 60000 }).then((r) => r.data),
+
+  isaPlan: () => client.get<IsaPlan>("/market/isa-plan", { timeout: 60000 }).then((r) => r.data),
 
   risk: () => client.get<RiskGauge>("/market/risk", { timeout: 45000 }).then((r) => r.data),
 

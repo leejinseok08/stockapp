@@ -1,4 +1,4 @@
-"""분할매수: the owner's buy-day rule for the ISA plan, evaluated live.
+"""ISA 이번 달 매수: the owner's buy-day rule for the ISA plan, evaluated live.
 
 Each month's money is split by PORTFOLIO (S&P500 40 : 나스닥100 30 : 반도체 30) and each ETF is
 bought on its own day: the session after a close that fell at least 1.0x its usual daily move
@@ -6,7 +6,8 @@ bought on its own day: the session after a close that fell at least 1.0x its usu
 backtest.dip_day(1.0) run on the ETFs the owner actually buys. Backtest: -0.2% vs buying on the
 first trading day (docs/signal-research.md, 3차) - kept as the owner's preference, cost shown.
 
-The app shows a card only on a buy day; every other day there is nothing to show.
+Shown quietly in 계좌 > ISA (owner's choice 2026-09-25: no alerts and nothing on 오늘 for the ISA;
+분할매수 alerts are for individual stocks).
 Month-end fallback uses the second-to-last weekday so a single holiday at the very end of the
 month can't skip it (weekdays only; Korean holidays aren't modeled).
 """
@@ -74,7 +75,7 @@ def evaluate(closes: pd.Series, today: pd.Timestamp, hour: int = 12) -> dict:
     return {"status": "wait", **base}
 
 
-def get_split_buy() -> dict:
+def get_isa_plan() -> dict:
     def build():
         now = datetime.now(KST)
         today = pd.Timestamp(now.date())
@@ -95,4 +96,4 @@ def get_split_buy() -> dict:
             "generatedAt": datetime.now(KST).isoformat(timespec="minutes"),
         }
 
-    return _cached("splitbuy", 900, build)
+    return _cached("isaplan", 900, build)

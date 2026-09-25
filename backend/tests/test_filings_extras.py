@@ -85,8 +85,8 @@ def _closes(moves, end="2026-09-25"):
     return pd.Series(100 * np.cumprod([1.0] + [1 + m for m in base]), index=idx)
 
 
-def test_split_buy_dip_signals_next_session():
-    from app.services.splitbuy import evaluate
+def test_isa_plan_dip_signals_next_session():
+    from app.services.isa_plan import evaluate
 
     c = _closes([-0.03], end="2026-09-10")  # Thursday close fell 6x the usual move
     st = evaluate(c, pd.Timestamp("2026-09-10"), hour=17)
@@ -98,8 +98,8 @@ def test_split_buy_dip_signals_next_session():
     assert later["status"] == "done" and later["boughtOn"] == "2026-09-11"
 
 
-def test_split_buy_quiet_month_waits_then_buys_at_month_end():
-    from app.services.splitbuy import evaluate
+def test_isa_plan_quiet_month_waits_then_buys_at_month_end():
+    from app.services.isa_plan import evaluate
 
     quiet = evaluate(_closes([], end="2026-09-10"), pd.Timestamp("2026-09-10"), hour=17)
     assert quiet["status"] == "wait"
@@ -109,19 +109,9 @@ def test_split_buy_quiet_month_waits_then_buys_at_month_end():
     assert after["status"] == "done" and after["reason"] == "monthEnd"
 
 
-def test_split_buy_holiday_afternoon_moves_to_next_weekday():
-    from app.services.splitbuy import evaluate
+def test_isa_plan_holiday_afternoon_moves_to_next_weekday():
+    from app.services.isa_plan import evaluate
 
     c = _closes([-0.03], end="2026-09-23")  # 9/24~25 closed
     st = evaluate(c, pd.Timestamp("2026-09-25"), hour=17)
     assert st["buyOn"] == "2026-09-28" and not st["buyToday"]
-
-
-def test_split_push_message():
-    from app.services.push import split_message
-
-    assert split_message({"items": [{"status": "wait"}]}) is None
-    key, title, body = split_message({"items": [
-        {"status": "buy", "buyOn": "2026-09-11", "buyToday": False, "sleeve": "S&P500", "weight": 0.4, "reason": "dip"},
-        {"status": "done"}]})
-    assert key == "2026-09-11" and "09/11" in title and "S&P500 40%" in body

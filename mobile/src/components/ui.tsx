@@ -9,10 +9,13 @@ export function Section({
   desc,
   right,
   first,
+  eyebrow,
   children,
 }: {
   title: string;
   desc?: string;
+  // Group label above the first section of a zone (e.g. 오늘: "개별 종목", "ISA · 시장").
+  eyebrow?: string;
   right?: React.ReactNode;
   first?: boolean;
   children: React.ReactNode;
@@ -21,6 +24,7 @@ export function Section({
     <>
     {!first && <Band />}
     <View style={styles.section}>
+      {!!eyebrow && <Text style={styles.eyebrow}>{eyebrow}</Text>}
       <View style={styles.titleRow}>
         <Text style={styles.title}>{title}</Text>
         {right}
@@ -114,6 +118,7 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   title: { ...type.section },
   desc: { ...type.caption, color: colors.textMuted, marginTop: space.xs },
+  eyebrow: { fontFamily: fonts.sansBold, fontSize: 12, color: colors.accent, letterSpacing: 0.5, marginBottom: space.xs },
   band: { height: 10, backgroundColor: colors.band },
   pill: { borderRadius: radius.sm, paddingHorizontal: 8, paddingVertical: 4, alignSelf: "flex-end" },
   pillText: { fontFamily: fonts.sansBold, fontSize: 13, fontVariant: ["tabular-nums"] },

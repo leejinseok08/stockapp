@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { api } from "../api";
 import { readSetting, writeSetting } from "../cache";
 import { fmtMoney } from "../format";
 import { colors, fonts, space, type } from "../theme";
+import type { IsaPlan } from "../types";
+
+const mdd = (d?: string) => (d ? d.slice(5).replace("-", "/") : "");
 
 type IsaSettings = {
   joinDate: string; // YYYY-MM-DD
@@ -45,6 +49,11 @@ function maturity(joinDate: string): { date: string; days: number; elapsed: numb
 export function IsaSection({ gainKRW }: { gainKRW?: number | null }) {
   const [s, setS] = useState<IsaSettings>(DEFAULTS);
   const [editing, setEditing] = useState(false);
+  const [plan, setPlan] = useState<IsaPlan | null>(null);
+
+  useEffect(() => {
+    api.isaPlan().then(setPlan).catch(() => {});
+  }, []);
 
   useEffect(() => {
     readSetting<IsaSettings>(SETTINGS_KEY).then((v) => v && setS({ ...DEFAULTS, ...v }));
@@ -65,10 +74,35 @@ export function IsaSection({ gainKRW }: { gainKRW?: number | null }) {
   return (
     <View>
       <Text style={styles.sectionTitle}>ISA · KB증권 중개형 · 일반형</Text>
+      {plan && (
+        <View style={styles.row}>
+          <Text style={styles.label}>이번 달 매수</Text>
+          {plan.items.map((i) => {
+            const amt = num(s.monthly ?? "");
+            const state =
+              i.status === "done"
+                ? `${mdd(i.boughtOn)} 매수일 지남`
+                : i.status === "buy"
+                  ? `${i.buyToday ? "오늘" : mdd(i.buyOn)} 매수${i.reason === "monthEnd" ? " (월말)" : ""}`
+                  : i.status === "wait"
+                    ? "하락일 대기 · 없으면 월말"
+                    : "확인 안 됨";
+            return (
+              <View key={i.id} style={styles.planRow}>
+                <Text style={styles.planName}>
+                  {i.name} <Text style={styles.sub}>{Math.round(i.weight * 100)}%{amt ? ` · ${fmtMoney(amt * i.weight, "KRW")}` : ""}</Text>
+                </Text>
+                <Text style={[styles.planState, i.status === "buy" && styles.planBuy]}>{state}</Text>
+              </View>
+            );
+          })}
+          <Text style={styles.sub}>{plan.rule} · 과거 첫 거래일 매수 대비 −0.2% (선호 방식) · 알림 없음</Text>
+        </View>
+      )}
       <Row
         label="월 적립금"
         value={s.monthly && num(s.monthly) ? fmtMoney(num(s.monthly), "KRW") : "설정에서 입력"}
-        sub="분할매수 날 오늘 탭에 ETF별 금액으로 나눠 보여줘요 (40 : 30 : 30)"
+        sub="이번 달 매수 금액을 ETF별로 나눠 보여줘요 (40 : 30 : 30)"
       />
       <Row
         label="올해 납입"
@@ -172,6 +206,10 @@ const styles = StyleSheet.create({
   label: { ...type.body, fontSize: 13, color: colors.textMuted },
   value: { ...type.numStrong, fontSize: 13, color: colors.text, textAlign: "right" },
   valueText: { fontFamily: fonts.sansMedium },
+  planRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: space.sm, gap: space.sm },
+  planName: { ...type.body, fontSize: 13, color: colors.text, flexShrink: 1 },
+  planState: { ...type.caption, color: colors.textMuted },
+  planBuy: { color: colors.accent, fontFamily: fonts.sansBold },
   track: { height: 4, borderRadius: 2, backgroundColor: colors.hairline, marginTop: space.sm, overflow: "hidden" },
   fill: { height: 4, borderRadius: 2, backgroundColor: colors.text },
   sub: { ...type.caption, color: colors.textMuted, marginTop: space.xs, lineHeight: 16 },
