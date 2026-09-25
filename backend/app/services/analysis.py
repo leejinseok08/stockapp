@@ -13,12 +13,16 @@ Rule-based and data-driven only; it cannot interview management or read transcri
 
 import json
 import logging
+import time
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import yfinance as yf
 
+from ..db import latest_snapshots, upsert_snapshots
+from .macro import KST
 from .market import _cached, _num, get_quote
 from .stockscan import _closes_3y, get_relative, trend_signal
 
@@ -148,6 +152,11 @@ def build_note(price: float, eps: dict, eps_source: str, pes: list[dict], margin
     cyclical = is_cyclical(annual_eps if annual_eps is not None else [p["eps"] for p in pes])
     sc = scenarios(price, eps, pes, cyclical=cyclical, pbr=pbr, street=street)
     call, conviction = rating(sc)
+    # No street estimate: trailing EPS understates fast growers and overstates shrinking ones, so
+    # show the scenarios but don't turn them into a call.
+    withheld = not eps_source.startswith("컨센서스")
+    if withheld:
+        call, conviction = None, None
     fwd_pe = price / eps["avg"] if eps.get("avg") and eps["avg"] > 0 else None
     thesis, risks, catalysts = [], [], []
 
@@ -174,6 +183,8 @@ def build_note(price: float, eps: dict, eps_source: str, pes: list[dict], margin
         spread = (eps["high"] - eps["low"]) / eps["avg"]
         if spread > 0.5:
             risks.append(f"애널리스트 EPS 추정 범위가 넓음(평균 대비 {spread * 100:.0f}%) — 이익 전망의 불확실성이 큼")
+    if withheld:
+        risks.insert(0, "애널리스트 추정치를 받지 못해 최근 4분기 실적으로 계산 — 의견은 보류")
     if cyclical:
         note = "이익 변동이 큰 사이클 종목 — 이익 바닥 해의 PER은 빼고"
         note += " PBR 기준 목표가와 평균냄" if sc and sc["pbrRange"] else " 계산함"
@@ -202,13 +213,54 @@ def build_note(price: float, eps: dict, eps_source: str, pes: list[dict], margin
     }
 
 
-def _eps_inputs(t: yf.Ticker, q_income: pd.DataFrame, shares: float | None) -> tuple[dict, str]:
-    """Street's next-fiscal-year EPS range; if Yahoo won't serve estimates (it often won't to cloud
-    servers), fall back to trailing four quarters so the model still runs, and say so."""
-    est = _safe(lambda: t.earnings_estimate)
-    if est is not None and not est.empty and "+1y" in est.index and _num(est.loc["+1y", "avg"]):
+def _retry(fn, tries=2, wait=1.5):
+    for i in range(tries):
+        v = _safe(fn)
+        if v is not None and not (hasattr(v, "empty") and v.empty) and not (isinstance(v, dict) and not v):
+            return v
+        if i + 1 < tries:
+            time.sleep(wait)
+    return None
+
+
+def consensus(t, symbol: str) -> dict:
+    """Street EPS range for next fiscal year and analyst price targets.
+
+    Yahoo sometimes refuses these to cloud servers; on 2026-09-25 that silently switched every note
+    to trailing EPS and flipped ratings. So successful fetches are stored (MarketSnapshot rows
+    `est:<symbol>:*`) and the last stored values are used, with their date, when a fetch fails."""
+    today = datetime.now(KST).strftime("%Y-%m-%d")
+    eps = street = None
+    est = _retry(lambda: t.earnings_estimate)
+    if est is not None and "+1y" in est.index and _num(est.loc["+1y", "avg"]):
         row = est.loc["+1y"]
-        return {"low": _num(row.get("low")), "avg": _num(row.get("avg")), "high": _num(row.get("high"))}, "컨센서스 내년"
+        eps = {k: _num(row.get(k)) for k in ("low", "avg", "high")}
+    tg = _retry(lambda: t.analyst_price_targets)
+    if tg and _num(tg.get("median")):
+        street = {k: _num(tg.get(k)) for k in ("low", "median", "mean", "high")}
+    rows = [(today, f"est:{symbol}:eps_{k}", v) for k, v in (eps or {}).items() if v is not None]
+    rows += [(today, f"est:{symbol}:tgt_{k}", v) for k, v in (street or {}).items() if v is not None]
+    _safe(lambda: upsert_snapshots(rows))
+    eps_asof = today if eps else None
+    street_asof = today if street else None
+    if eps is None or street is None:
+        stored = _safe(lambda: latest_snapshots(f"est:{symbol}:")) or {}
+        key = f"est:{symbol}:"
+        if eps is None and key + "eps_avg" in stored:
+            eps = {k: stored.get(key + "eps_" + k, (None, None))[1] for k in ("low", "avg", "high")}
+            eps_asof = stored[key + "eps_avg"][0]
+        if street is None and key + "tgt_median" in stored:
+            street = {k: stored.get(key + "tgt_" + k, (None, None))[1] for k in ("low", "median", "mean", "high")}
+            street_asof = stored[key + "tgt_median"][0]
+    return {"eps": eps, "epsAsOf": eps_asof, "street": street, "streetAsOf": street_asof, "today": today}
+
+
+def _eps_inputs(cons: dict, q_income: pd.DataFrame, shares: float | None) -> tuple[dict, str]:
+    """Street's next-fiscal-year EPS range (live or last stored). Without it the model still shows
+    trailing-EPS scenarios, but the note withholds a rating (see build_note)."""
+    if cons.get("eps") and cons["eps"].get("avg"):
+        stale = cons["epsAsOf"] != cons["today"]
+        return cons["eps"], "컨센서스 내년" + (f" ({cons['epsAsOf']} 저장값)" if stale else "")
     if q_income is not None and "Diluted EPS" in q_income.index:
         s = q_income.loc["Diluted EPS"].sort_index(ascending=False).dropna()
         if len(s) >= 4:
@@ -270,13 +322,12 @@ def get_analysis(symbol: str) -> dict:
         # The live quote (Naver for Korean listings) so the note's upside matches the price on screen.
         live = _safe(lambda: get_quote(symbol)) or {}
         price = float(live.get("price") or closes.iloc[-1])
-        eps, source = _eps_inputs(t, q_income, shares)
+        cons = consensus(t, symbol)
+        eps, source = _eps_inputs(cons, q_income, shares)
         annual_eps_s = annual.loc["Diluted EPS"] if annual is not None and "Diluted EPS" in annual.index else pd.Series(dtype=float)
         pes = pe_history(annual_eps_s, long)
         pbr = _safe(lambda: _book_inputs(t, long, shares))
-        targets = _safe(lambda: t.analyst_price_targets) or {}
-        street = ({k: _num(targets.get(k)) for k in ("low", "median", "mean", "high")}
-                  if targets.get("median") else None)
+        street = cons["street"]
         cf = _safe(lambda: t.quarterly_cashflow)
         ocf_negative = False
         if cf is not None and "Operating Cash Flow" in cf.index:

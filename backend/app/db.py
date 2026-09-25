@@ -54,3 +54,31 @@ def init_db():
 def get_session():
     with Session(engine) as session:
         yield session
+
+
+def upsert_snapshots(rows: list[tuple[str, str, float]]) -> int:
+    """Insert or overwrite (date, series, value) rows."""
+    if not rows:
+        return 0
+    from sqlalchemy.dialects.postgresql import insert as pg_insert
+    from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+
+    insert = sqlite_insert if IS_SQLITE else pg_insert
+    stmt = insert(MarketSnapshot).values([{"date": d, "series": s, "value": v} for d, s, v in rows])
+    stmt = stmt.on_conflict_do_update(index_elements=["date", "series"], set_={"value": stmt.excluded.value})
+    with Session(engine) as session:
+        session.exec(stmt)
+        session.commit()
+    return len(rows)
+
+
+def latest_snapshots(prefix: str) -> dict[str, tuple[str, float]]:
+    """Most recent (date, value) for every series starting with `prefix`."""
+    from sqlmodel import select
+
+    out: dict[str, tuple[str, float]] = {}
+    with Session(engine) as session:
+        q = select(MarketSnapshot).where(MarketSnapshot.series.startswith(prefix)).order_by(MarketSnapshot.date.desc())
+        for r in session.exec(q):
+            out.setdefault(r.series, (r.date, r.value))
+    return out

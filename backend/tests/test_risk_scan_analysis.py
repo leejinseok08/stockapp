@@ -215,3 +215,30 @@ def test_today_summary_splits_new_and_recent_flips_and_upcoming_earnings():
     assert [i["symbol"] for i in out["recent"]] == ["B"]
     assert out["risk"]["litItems"] == ["시장 폭"]
     assert [e["symbol"] for e in out["earnings"]] == ["A"]
+
+
+def test_rating_is_withheld_without_street_estimates():
+    note = analysis.build_note(
+        price=100.0, eps={"low": None, "avg": 5.0, "high": None}, eps_source="최근 4분기",
+        pes=[{"year": "2023", "eps": 4.0, "pe": 30.0}, {"year": "2024", "eps": 5.0, "pe": 40.0}],
+        margins=None, street=None, next_earnings=None, trend=None, relative=None, ocf_negative=False, currency="USD")
+    assert note["rating"] is None and note["conviction"] is None
+    assert note["scenarios"] is not None  # scenarios still shown for reference
+    assert "보류" in note["risks"][0]
+
+
+def test_consensus_falls_back_to_last_stored_values(monkeypatch):
+    class T:
+        earnings_estimate = None
+        analyst_price_targets = {}
+
+    stored = {"est:X:eps_avg": ("2026-09-20", 10.0), "est:X:eps_low": ("2026-09-20", 8.0),
+              "est:X:eps_high": ("2026-09-20", 12.0), "est:X:tgt_median": ("2026-09-20", 150.0)}
+    monkeypatch.setattr(analysis, "latest_snapshots", lambda prefix: stored)
+    monkeypatch.setattr(analysis, "upsert_snapshots", lambda rows: 0)
+    monkeypatch.setattr(analysis.time, "sleep", lambda s: None)
+    c = analysis.consensus(T(), "X")
+    assert c["eps"] == {"low": 8.0, "avg": 10.0, "high": 12.0} and c["epsAsOf"] == "2026-09-20"
+    assert c["street"]["median"] == 150.0
+    eps, src = analysis._eps_inputs(c, None, None)
+    assert src.startswith("컨센서스") and "저장값" in src

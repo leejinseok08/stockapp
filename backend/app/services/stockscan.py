@@ -356,7 +356,8 @@ def get_scan(symbols: list[str]) -> dict:
                 row["relative"] = None
             return row
 
-        with ThreadPoolExecutor(max_workers=4) as pool:
+        # Two at a time: more parallel requests get throttled by Yahoo on the cloud server.
+        with ThreadPoolExecutor(max_workers=2) as pool:
             rows = list(pool.map(one, symbols))
         rows = score_group(rows)
         rows.sort(key=lambda r: (r["score"] is None, -(r["score"] or 0)))
