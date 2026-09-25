@@ -9,7 +9,9 @@
     <meta name="theme-color" content="#0B0D10" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- "black", not "black-translucent": translucent draws the page under the iOS status bar, which
+         hid the screen titles and left a gap under the tab bar in the installed app. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="StockApp" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -27,6 +29,14 @@
         display: flex;
         height: 100%;
         flex: 1;
+      }
+      /* Size to the visible screen (100% can come out short in an installed iOS web app). */
+      @supports (height: 100dvh) {
+        html,
+        body,
+        #root {
+          height: 100dvh;
+        }
       }
     </style>
   </head>

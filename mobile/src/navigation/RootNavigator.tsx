@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AccountScreen from "../screens/AccountScreen";
 import MarketScreen from "../screens/MarketScreen";
 import StockDetailScreen from "../screens/StockDetailScreen";
@@ -35,8 +36,12 @@ const navTheme = {
 };
 
 function Tabs() {
+  // Tab screens draw their own titles (no navigation header), so keep them below the status bar /
+  // notch here once instead of in every screen.
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
+      sceneContainerStyle={{ paddingTop: insets.top, backgroundColor: colors.background }}
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
