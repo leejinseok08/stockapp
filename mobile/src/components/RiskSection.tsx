@@ -51,7 +51,7 @@ export function RiskSection({ risk }: { risk: RiskGauge }) {
           </View>
           <Sparkline points={(i.history ?? []).map((p) => p.v)} zones={i.zones ?? []} width={spark} emphasis={i.lit} />
           <View style={styles.valueBox}>
-            <Text style={styles.value}>{fmtValue(i.value, i.unit)}</Text>
+            <Text style={[styles.value, !i.lit && styles.muted]}>{fmtValue(i.value, i.unit)}</Text>
             <Text style={[styles.state, i.lit && styles.lit]}>{i.lit ? "점등" : "정상"}</Text>
           </View>
         </View>
@@ -70,7 +70,9 @@ const styles = StyleSheet.create({
   scale: { ...type.caption, color: colors.textMuted, marginTop: 6 },
   row: { flexDirection: "row", alignItems: "center", paddingVertical: space.md, gap: space.md },
   label: { ...type.body, fontFamily: fonts.sansBold, color: colors.text },
-  dim: { fontFamily: fonts.sansMedium },
+  // Signals that aren't lit recede to gray so the lit ones stand out.
+  dim: { fontFamily: fonts.sansMedium, color: colors.textMuted },
+  muted: { color: colors.textMuted },
   what: { ...type.caption, color: colors.textMuted, marginTop: 2 },
   valueBox: { width: 62, alignItems: "flex-end" },
   value: { ...type.numStrong, fontSize: 14, color: colors.text },
