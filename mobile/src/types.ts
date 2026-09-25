@@ -23,8 +23,6 @@ export type PortfolioFields = {
 
 export type WatchlistEntry = Quote & Partial<Ticker> & PortfolioFields;
 
-export type CompareRow = Quote & Partial<Ticker> & { trailingPE: number | null; marketCapUsd: number | null };
-
 export type HistoryPoint = {
   t: number;
   close: number | null;
@@ -80,15 +78,13 @@ export type NewsItem = {
 export type RootStackParamList = {
   Tabs: undefined;
   StockDetail: { symbol: string; name?: string };
-  Portfolio: undefined;
-  Compare: undefined;
-  Scan: undefined;
 };
 
 export type TabParamList = {
-  Watchlist: undefined;
+  Today: undefined;
+  Stocks: undefined;
   Market: undefined;
-  News: undefined;
+  Account: undefined;
 };
 
 export type IndexStat = {
@@ -151,49 +147,6 @@ export type SignalTarget = {
 export type Signals = {
   targets: SignalTarget[];
   bands: { min: number; action: string }[];
-  generatedAt: string;
-};
-
-export type DayGuide = {
-  etfSymbol: string;
-  etfName: string;
-  asOf: string;
-  lastReturn: number;
-  usualMove: number | null;
-  threshold: number | null;
-  buyNextSession: boolean;
-  firedThisMonth: string[];
-};
-
-export type PlanSleeve = {
-  id: string;
-  name: string;
-  weight: number;
-  etfs: { symbol: string; name: string }[];
-  guide: DayGuide | null;
-};
-
-export type BacktestSummary = {
-  period: string;
-  weights: Record<string, number>;
-  costOneWay: number;
-  plainXirr: number;
-  plainWorstVsPrincipal: number;
-  plainMdd: number;
-  scaledSignalVsPlain: number;
-  dipDayVsPlain: number;
-  hindsightBestDayVsPlain: number;
-  rebalanceByNewMoneyVsPlain?: number;
-  gridSettingsTried: number;
-  gridSettingsBeatingPlain: number;
-  generatedAt: string;
-};
-
-export type Plan = {
-  account: string;
-  sleeves: PlanSleeve[];
-  rule: { z: number; lookback: number; text: string };
-  backtest: BacktestSummary | null;
   generatedAt: string;
 };
 
@@ -266,5 +219,97 @@ export type MarketOverview = {
     currencies: CurrencyStat[];
   };
   flows: { available: boolean; reason?: "krx_login_required" | "fetch_failed"; markets: MarketFlows[] };
+  generatedAt: string;
+};
+
+// ---- daily trend call, research note, list and today (docs/app-design.md) ----
+
+export type TrendAction = "BUY" | "SELL" | "HOLD" | "WAIT";
+
+export type TrendSignal = {
+  symbol?: string;
+  action: TrendAction;
+  position: "보유" | "현금";
+  since: string | null;
+  asOf: string;
+  close: number;
+  sma: number | null;
+  vsSma: number | null;
+  macdUp: boolean;
+  smaFalling: boolean;
+};
+
+export type TrendBacktest = {
+  rule: string;
+  period: string;
+  vsPlain: number;
+  mdd: number;
+  plainMdd: number;
+  worstVsPrincipal: number;
+  plainWorstVsPrincipal: number;
+  trades: number;
+  timeInMarket: number;
+};
+
+export type TrendChart = {
+  symbol: string;
+  maWindow: number;
+  points: { t: number; close: number; sma: number | null }[];
+  marks: { t: number; type: "BUY" | "SELL"; price: number }[];
+};
+
+export type Scenario = { price: number; upside: number };
+
+export type Analysis = {
+  symbol: string;
+  asOf: string;
+  rating: "매수" | "중립" | "매도" | null;
+  conviction: "높음" | "보통" | null;
+  price: number;
+  currency: string | null;
+  scenarios:
+    | ({ bear: Scenario; base: Scenario; bull: Scenario } & {
+        peRange: { min: number; median: number; max: number; years: number };
+        pbrRange: { min: number; median: number; max: number } | null;
+        method: string;
+        excludedYears: string[];
+        clampedToStreet: string[];
+      })
+    | null;
+  model: { eps: { low: number | null; avg: number | null; high: number | null }; epsSource: string; forwardPe: number | null; cyclical: boolean };
+  street: { low: number | null; median: number | null; mean: number | null; high: number | null; modelVsStreet?: number } | null;
+  thesis: string[];
+  catalysts: { date: string; text: string }[];
+  risks: string[];
+  trend: TrendSignal | null;
+  trendBacktest: TrendBacktest | null;
+};
+
+export type ListRow = ScanRow & {
+  group: boolean;
+  watched: boolean;
+  price: number | null;
+  changePercent: number | null;
+  quoteCurrency: string | null;
+  trend: TrendSignal | null;
+  rating: { rating: Analysis["rating"]; conviction: Analysis["conviction"]; baseUpside: number | null } | null;
+};
+
+export type TodayItem = {
+  symbol: string;
+  name: string | null;
+  action: TrendAction | null;
+  position: string | null;
+  since: string | null;
+  asOf: string | null;
+  rating: Analysis["rating"];
+};
+
+export type Today = {
+  changed: TodayItem[];
+  recent: TodayItem[];
+  risk: { lit: number; total: number; level: string; litItems: string[] } | null;
+  earnings: { symbol: string; name: string | null; date: string; text: string }[];
+  nextEarnings: { symbol: string; name: string | null; date: string; text: string } | null;
   generatedAt: string;
 };

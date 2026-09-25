@@ -1,11 +1,11 @@
 import axios from "axios";
 import type {
-  CompareRow,
+  Analysis,
   Fundamentals,
+  ListRow,
   HistoryPoint,
   MarketOverview,
   NewsItem,
-  Plan,
   PortfolioFields,
   Quote,
   Relative,
@@ -13,8 +13,14 @@ import type {
   Scan,
   Signals,
   Ticker,
+  Today,
+  TrendChart,
   WatchlistEntry,
 } from "./types";
+
+// Type-only, module-scoped: the installed @types/node narrows process.env and rejects this key.
+// Expo still inlines the literal `process.env.EXPO_PUBLIC_API_URL` at build time.
+declare const process: { env: { EXPO_PUBLIC_API_URL?: string } };
 
 // FastAPI backend hosted on Render — reachable from anywhere, no laptop needed.
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://stockapp-ghmx.onrender.com";
@@ -57,8 +63,6 @@ export const api = {
 
   marketSignals: () => client.get<Signals>("/market/signals", { timeout: 45000 }).then((r) => r.data),
 
-  plan: () => client.get<Plan>("/market/plan", { timeout: 45000 }).then((r) => r.data),
-
   risk: () => client.get<RiskGauge>("/market/risk", { timeout: 45000 }).then((r) => r.data),
 
   // Nine companies' statements on a cold server take a while.
@@ -67,11 +71,18 @@ export const api = {
       .get<Scan>("/stocks/scan", { params: symbols ? { symbols: symbols.join(",") } : {}, timeout: 90000 })
       .then((r) => r.data),
 
+  // Cold server: nine companies' statements and notes can take close to a minute the first time.
+  list: () => client.get<{ rows: ListRow[] }>("/stocks/list", { timeout: 120000 }).then((r) => r.data),
+
+  today: () => client.get<Today>("/today", { timeout: 120000 }).then((r) => r.data),
+
+  analysis: (symbol: string) =>
+    client.get<Analysis>(`/stocks/${encodeURIComponent(symbol)}/analysis`, { timeout: 90000 }).then((r) => r.data),
+
+  trendChart: (symbol: string) =>
+    client.get<TrendChart>(`/stocks/${encodeURIComponent(symbol)}/trend-chart`, { timeout: 45000 }).then((r) => r.data),
+
   relative: (symbol: string) =>
     client.get<Relative>(`/stocks/${encodeURIComponent(symbol)}/relative`, { timeout: 45000 }).then((r) => r.data),
 
-  compare: (symbols: string[]) =>
-    client
-      .get<CompareRow[]>("/stocks/compare", { params: { symbols: symbols.join(",") } })
-      .then((r) => r.data),
 };

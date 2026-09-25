@@ -10,7 +10,6 @@ from sqlmodel import Session, select
 
 from ..db import IS_SQLITE, MarketSnapshot, engine, get_session
 from ..services.macro import get_overview, snapshot_rows
-from ..services.plan import get_plan
 from ..services.risk import get_risk, risk_rows
 from ..services.signals import get_signals, signal_rows
 
@@ -26,11 +25,6 @@ def overview():
 @router.get("/signals")
 def signals():
     return get_signals()
-
-
-@router.get("/plan")
-def plan():
-    return get_plan()
 
 
 @router.get("/risk")
@@ -90,5 +84,12 @@ def startup_collect() -> None:
         log.info("risk gauge: %d/%d lit (%s), failed=%s", r["lit"], r["total"], r["level"], r["failed"])
         with Session(engine) as session:
             log.info("startup snapshot stored: %d rows", collect_snapshot(session))
+        # Warm the big-tech analysis so the first 오늘/종목 screen after a deploy isn't a minute-long wait.
+        from ..services.stockscan import get_scan
+        from ..tickers import BIGTECH
+
+        rows = get_scan(BIGTECH)["rows"]
+        log.info("warmed %d stock analyses: %s", len(rows),
+                 {r["symbol"]: ((r.get("trend") or {}).get("action"), (r.get("rating") or {}).get("rating")) for r in rows})
     except Exception:
         log.exception("startup data check failed")

@@ -3,20 +3,20 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import CompareScreen from "../screens/CompareScreen";
+import AccountScreen from "../screens/AccountScreen";
 import MarketScreen from "../screens/MarketScreen";
-import NewsScreen from "../screens/NewsScreen";
-import PortfolioScreen from "../screens/PortfolioScreen";
-import ScanScreen from "../screens/ScanScreen";
 import StockDetailScreen from "../screens/StockDetailScreen";
-import WatchlistScreen from "../screens/WatchlistScreen";
+import StocksScreen from "../screens/StocksScreen";
+import TodayScreen from "../screens/TodayScreen";
 import { colors, fonts } from "../theme";
 import type { RootStackParamList, TabParamList } from "../types";
 
+// Tabs per docs/app-design.md: 오늘 · 종목 · 시장 · 계좌. The stock report opens on top of them.
 const TAB_ICONS: Record<keyof TabParamList, React.ComponentProps<typeof Feather>["name"]> = {
-  Watchlist: "list",
+  Today: "sun",
+  Stocks: "list",
   Market: "activity",
-  News: "file-text",
+  Account: "briefcase",
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -43,14 +43,13 @@ function Tabs() {
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: { backgroundColor: colors.background, borderTopColor: colors.hairline },
         tabBarLabelStyle: { fontFamily: fonts.sansMedium, fontSize: 11 },
-        tabBarIcon: ({ color, size }) => (
-          <Feather name={TAB_ICONS[route.name]} color={color} size={size - 4} />
-        ),
+        tabBarIcon: ({ color, size }) => <Feather name={TAB_ICONS[route.name]} color={color} size={size - 4} />,
       })}
     >
-      <Tab.Screen name="Watchlist" component={WatchlistScreen} options={{ title: "관심종목" }} />
+      <Tab.Screen name="Today" component={TodayScreen} options={{ title: "오늘" }} />
+      <Tab.Screen name="Stocks" component={StocksScreen} options={{ title: "종목" }} />
       <Tab.Screen name="Market" component={MarketScreen} options={{ title: "시장" }} />
-      <Tab.Screen name="News" component={NewsScreen} options={{ title: "뉴스" }} />
+      <Tab.Screen name="Account" component={AccountScreen} options={{ title: "계좌" }} />
     </Tab.Navigator>
   );
 }
@@ -73,9 +72,6 @@ export default function RootNavigator() {
           component={StockDetailScreen}
           options={({ route }) => ({ title: route.params.symbol })}
         />
-        <Stack.Screen name="Portfolio" component={PortfolioScreen} options={{ title: "포트폴리오" }} />
-        <Stack.Screen name="Compare" component={CompareScreen} options={{ title: "종목 비교" }} />
-        <Stack.Screen name="Scan" component={ScanScreen} options={{ title: "빅테크 점검" }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

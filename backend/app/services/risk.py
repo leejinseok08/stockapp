@@ -1,6 +1,6 @@
 """Crash-warning gauge: how many of five well-known stress signals are lit right now.
 
-Display only: it never changes the plan (docs/signal-research.md section 4 -- warnings give no
+Display only: it never drives a buy/sell call (docs/signal-research.md section 4 -- warnings give no
 timing and false alarms are common; the answer to stress is sizing, not selling everything).
 """
 

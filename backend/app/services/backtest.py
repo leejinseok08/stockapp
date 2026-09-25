@@ -13,7 +13,7 @@ The owner's ISA plan is S&P500 40 : 나스닥100 30 : KODEX 미국반도체 30 (
 tracks MVIS US Listed Semiconductor 25, the same index as VanEck SMH, so the semis sleeve uses SMH
 for both signal and fills. Caveat: before Dec 2011 SMH was the Semiconductor HOLDRS basket.
 
-Run: python -m app.services.backtest [portfolio|optimize|dayrules|targets|summary]
+Run: python -m app.services.backtest [portfolio|optimize|dayrules|trend|trendjson|targets]
 Ideas being tested are written up in docs/signal-research.md.
 """
 
@@ -314,6 +314,81 @@ def compare_day_rules(periods=None, **kw) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+# ---- individual stocks: daily trend buy/sell -----------------------------------------------------
+
+# One-way costs outside the ISA: US stocks ~0.07% fee + FX spread already paid on deposit, so 0.1%;
+# KR stocks 0.015% fee + 0.15% transaction tax on sales + spread, so 0.25%.
+STOCK_COST = {"US": 0.001, "KR": 0.0025}
+
+
+def run_trend(closes: pd.Series, name: str, start=None, end=None, base=1_000_000.0, cost=0.001,
+              cash_rate=0.025, rule: dict | None = None) -> Result:
+    """Monthly contributions into one stock. With `rule` (stockscan.trend_frame params) the position
+    goes to cash on SELL and back in, with all saved cash, on BUY; contributions made while out wait
+    as cash. rule=None is plain DCA. Trades execute at the close after the signal's close."""
+    from .stockscan import trend_frame
+
+    hold = trend_frame(closes, **rule)["hold"].shift(1).fillna(True) if rule else pd.Series(True, index=closes.index)
+    px = closes.loc[start:end]
+    days = px.index
+    firsts = set(days[np.r_[True, days.month[1:] != days.month[:-1]]])
+    daily = (1 + cash_rate) ** (1 / 252) - 1
+    units = cash = invested = 0.0
+    held_prev = True
+    rows, trades = [], 0
+    for d in days:
+        p = float(px.loc[d])
+        cash *= 1 + daily
+        want = bool(hold.loc[d])
+        if d in firsts:
+            cash += base
+            invested += base
+        if held_prev and not want and units > 0:
+            cash += units * p * (1 - cost)
+            units = 0.0
+            trades += 1
+        if want and cash > 0:
+            trades += int(not held_prev)
+            units += cash * (1 - cost) / p
+            cash = 0.0
+        held_prev = want
+        rows.append({"day": d, "units": units, "cash": cash, "invested": invested, "buy": 0.0, "trim": 0.0,
+                     "inMarket": want})
+    ledger = pd.DataFrame(rows).set_index("day")
+    value = ledger["units"] * px + ledger["cash"]
+    month_rows = ledger[ledger.index.isin(firsts)]
+    r = Result(name, month_rows, value, ledger["invested"])
+    r.extra = {"trades": trades, "timeInMarket": float(ledger["inMarket"].mean())}
+    return r
+
+
+TREND_VARIANTS = {f"sma{n}{'+macd' if m else ''}": {"n": n, "slope_days": 20, "macd_lookback": 5, "use_macd": m}
+                  for n in (150, 200, 250) for m in (True, False)}
+
+
+def compare_trend(symbols=None, periods=None, **kw) -> pd.DataFrame:
+    from ..tickers import BIGTECH
+
+    rows = []
+    for sym in symbols or BIGTECH:
+        closes = _history(sym)["Close"]
+        region = "KR" if sym.endswith(".KS") else "US"
+        first = max(pd.Timestamp("2005-01-01"), closes.index[0] + pd.Timedelta(days=400))
+        for pname, (start, end) in (periods or PERIODS).items():
+            s = max(pd.Timestamp(start), first) if start else first
+            if end and s >= pd.Timestamp(end):
+                continue
+            plain_r = run_trend(closes, "plain", s, end, cost=STOCK_COST[region], **kw)
+            base_final = plain_r.value.iloc[-1]
+            rows.append({"symbol": sym, "period": pname, "rule": "plain DCA", "vsPlain": 0.0, "trades": 0,
+                         "timeInMarket": 1.0, **plain_r.metrics()})
+            for name, rule in TREND_VARIANTS.items():
+                r = run_trend(closes, name, s, end, cost=STOCK_COST[region], rule=rule, **kw)
+                rows.append({"symbol": sym, "period": pname, "rule": name, "vsPlain": r.value.iloc[-1] / base_final - 1,
+                             **r.extra, **r.metrics()})
+    return pd.DataFrame(rows)
+
+
 # ---- strategies -------------------------------------------------------------------------------
 
 def _clamp(v, lo=0.5, hi=1.5):
@@ -573,40 +648,32 @@ def optimize(**kw) -> tuple[pd.DataFrame, pd.DataFrame]:
     return grid_df, pd.DataFrame(out_rows)
 
 
-SUMMARY_PATH = Path(__file__).resolve().parents[1] / "data" / "backtest_summary.json"
+TREND_JSON = Path(__file__).resolve().parents[1] / "data" / "trend_backtest.json"
 
 
-def write_summary() -> dict:
-    """The few numbers the app shows next to the plan. Re-run after changing rules or costs:
-    python -m app.services.backtest summary"""
-    from .plan import DAY_RULE_Z  # the buy-day rule the app shows
+def write_trend_json(rule_name="sma200+macd") -> dict:
+    """Per-stock backtest of the live trend rule, shown next to each stock's buy/sell call.
+    Re-run after changing stockscan.TREND: python -m app.services.backtest trendjson"""
+    from ..tickers import BIGTECH
 
-    ms = portfolio_markets()
-    plain_r = run_portfolio(ms, PORTFOLIO, None, "plain")
-    plain_m = plain_r.metrics()
-    final = plain_m["final"]
-    v1_m = run_portfolio(ms, PORTFOLIO, v1, "v1").metrics()
-    dip_m = run_day_rule(ms, PORTFOLIO, dip_day(DAY_RULE_Z), "dip").metrics()
-    best_m = run_day_rule(ms, PORTFOLIO, "hindsight", "hindsight").metrics()
-    rebal_m = run_portfolio(ms, PORTFOLIO, None, "rebal", rebalance=True).metrics()
-    summary = {
-        "period": f"{plain_r.value.index[0]:%Y-%m} ~ {plain_r.value.index[-1]:%Y-%m}",
-        "weights": PORTFOLIO,
-        "costOneWay": COST,
-        "plainXirr": round(plain_m["xirr"], 4),
-        "plainWorstVsPrincipal": round(plain_m["worstVsPrincipal"], 4),
-        "plainMdd": round(plain_m["mdd"], 4),
-        "scaledSignalVsPlain": round(v1_m["final"] / final - 1, 4),
-        "dipDayVsPlain": round(dip_m["final"] / final - 1, 4),
-        "hindsightBestDayVsPlain": round(best_m["final"] / final - 1, 4),
-        "rebalanceByNewMoneyVsPlain": round(rebal_m["final"] / final - 1, 4),
-        "gridSettingsTried": sum(len(g[list(g)[0]]) * len(g[list(g)[1]]) for _, g in GRIDS.values()),
-        "gridSettingsBeatingPlain": 0,  # see `optimize`; update if that ever changes
-        "generatedAt": pd.Timestamp.now().strftime("%Y-%m-%d"),
-    }
-    SUMMARY_PATH.parent.mkdir(exist_ok=True)
-    SUMMARY_PATH.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return summary
+    df = compare_trend(BIGTECH, {"full": PERIODS["full"]})
+    out = {}
+    for sym, g in df.groupby("symbol"):
+        plain = g[g.rule == "plain DCA"].iloc[0]
+        r = g[g.rule == rule_name].iloc[0]
+        out[sym] = {
+            "rule": rule_name,
+            "period": f"{max(pd.Timestamp('2005-01-01'), _history(sym).index[0] + pd.Timedelta(days=400)):%Y-%m} ~ "
+                      f"{_history(sym).index[-1]:%Y-%m}",
+            "vsPlain": round(float(r.vsPlain), 4),
+            "mdd": round(float(r.mdd), 4), "plainMdd": round(float(plain.mdd), 4),
+            "worstVsPrincipal": round(float(r.worstVsPrincipal), 4),
+            "plainWorstVsPrincipal": round(float(plain.worstVsPrincipal), 4),
+            "trades": int(r.trades), "timeInMarket": round(float(r.timeInMarket), 3),
+        }
+    TREND_JSON.parent.mkdir(exist_ok=True)
+    TREND_JSON.write_text(json.dumps(out, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return out
 
 
 if __name__ == "__main__":
@@ -633,8 +700,19 @@ if __name__ == "__main__":
             t = df[df.period == pname].set_index("strategy")
             print(f"\n== portfolio 40/30/30, period: {pname} ==")
             print(t[["vsPlain", "xirr", "worstVsPrincipal", "mdd", "avgCashShare"]].to_string(formatters=fmt))
-    elif mode == "summary":
-        print(json.dumps(write_summary(), ensure_ascii=False, indent=2))
+    elif mode == "trendjson":
+        print(json.dumps(write_trend_json(), ensure_ascii=False, indent=2))
+    elif mode == "trend":
+        df = compare_trend()
+        df.to_csv(CACHE_DIR / "backtest_trend.csv", index=False, encoding="utf-8-sig")
+        order = ["plain DCA", *TREND_VARIANTS]
+        for col in ["vsPlain", "mdd", "worstVsPrincipal"]:
+            t = df.pivot_table(index="rule", columns=["period", "symbol"], values=col).reindex(order)
+            print(f"\n== trend buy/sell on single stocks: {col} ==")
+            print((t * 100).round(1).to_string())
+        t = df[df.rule == "sma200+macd"].pivot_table(index="symbol", columns="period", values=["trades", "timeInMarket"])
+        print("\n== sma200+macd: trades and share of days in the market ==")
+        print(t.round(2).to_string())
     elif mode == "dayrules":
         df = compare_day_rules()
         df.to_csv(CACHE_DIR / "backtest_dayrules.csv", index=False, encoding="utf-8-sig")

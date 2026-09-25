@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,9 +14,21 @@ import {
 import { api } from "../api";
 import { PriceChart } from "../components/PriceChart";
 import { RadarChart } from "../components/RadarChart";
+import { ReportSection } from "../components/ReportSection";
 import { fmtMoney, fmtNum, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, type } from "../theme";
-import type { FinancialLineKey, Fundamentals, HistoryPoint, Quote, Relative, RootStackParamList, ScanRow } from "../types";
+import type {
+  Analysis,
+  FinancialLineKey,
+  Fundamentals,
+  HistoryPoint,
+  NewsItem,
+  Quote,
+  Relative,
+  RootStackParamList,
+  ScanRow,
+  TrendChart,
+} from "../types";
 
 const LINE_LABELS: [FinancialLineKey, string][] = [
   ["revenue", "매출"],
@@ -51,7 +64,8 @@ function fmtRatioPct(v: number | null | undefined) {
 
 export default function StockDetailScreen({ route }: Props) {
   const { symbol, name } = route.params;
-  const [range, setRange] = useState("1mo");
+  // 1년 is the default: it's the view that carries the 200-day line and the BUY/SELL marks.
+  const [range, setRange] = useState("1y");
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [fundamentals, setFundamentals] = useState<Fundamentals | null>(null);
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -64,6 +78,22 @@ export default function StockDetailScreen({ route }: Props) {
   const [saved, setSaved] = useState(false);
   const [relative, setRelative] = useState<Relative | null>(null);
   const [fin, setFin] = useState<{ row: ScanRow; inGroup: boolean } | null>(null);
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [analysisFailed, setAnalysisFailed] = useState(false);
+  const [trendChart, setTrendChart] = useState<TrendChart | null>(null);
+  const [news, setNews] = useState<NewsItem[]>([]);
+
+  useEffect(() => {
+    api
+      .analysis(symbol)
+      .then(setAnalysis)
+      .catch((e) => {
+        console.warn("analysis load failed", e);
+        setAnalysisFailed(true);
+      });
+    api.trendChart(symbol).then(setTrendChart).catch((e) => console.warn("trend chart load failed", e));
+    api.news(symbol).then((n) => setNews(n.slice(0, 6))).catch(() => {});
+  }, [symbol]);
 
   useEffect(() => {
     api
@@ -111,6 +141,7 @@ export default function StockDetailScreen({ route }: Props) {
     try {
       const buyPrice = buyPriceText.trim() ? parseFloat(buyPriceText) : null;
       const quantity = quantityText.trim() ? parseFloat(quantityText) : null;
+      await api.addToWatchlist(symbol); // idempotent; PATCH needs the row to exist
       await api.updateWatchlistItem(symbol, {
         buyPrice: Number.isFinite(buyPrice) ? buyPrice : null,
         quantity: Number.isFinite(quantity) ? quantity : null,
@@ -173,6 +204,14 @@ export default function StockDetailScreen({ route }: Props) {
         </Text>
       </View>
 
+      <View style={styles.report}>
+        {analysis ? (
+          <ReportSection a={analysis} />
+        ) : (
+          <Text style={styles.note}>{analysisFailed ? "리포트를 만들지 못했어요." : "리포트를 만드는 중이에요…"}</Text>
+        )}
+      </View>
+
       <View style={styles.rangeRow} accessibilityRole="tablist">
         {RANGES.map((opt) => {
           const active = range === opt.key;
@@ -199,7 +238,23 @@ export default function StockDetailScreen({ route }: Props) {
         </View>
       ) : (
         <>
-          {chart.closes.length > 1 && (
+          {range === "1y" && trendChart && trendChart.points.length > 1 ? (
+            <View style={styles.chartWrap}>
+              <PriceChart
+                times={trendChart.points.map((p) => p.t)}
+                closes={trendChart.points.map((p) => p.close)}
+                ma={trendChart.points.map((p) => p.sma)}
+                marks={trendChart.marks
+                  .map((m) => ({ i: trendChart.points.findIndex((p) => p.t === m.t), type: m.type }))
+                  .filter((m) => m.i >= 0)}
+                currency={currency}
+                width={screenWidth - space.lg * 2}
+              />
+              <Text style={styles.maLabel}>
+                ━ {trendChart.maWindow}일선 · ▲ BUY ▼ SELL (신호 다음 거래일) · 최근 1년 {trendChart.marks.length}회
+              </Text>
+            </View>
+          ) : chart.closes.length > 1 && (
             <View style={styles.chartWrap}>
               <PriceChart
                 times={chart.times}
@@ -216,36 +271,6 @@ export default function StockDetailScreen({ route }: Props) {
             </View>
           )}
 
-          <Section title="내 포지션">
-            <View style={styles.positionRow}>
-              <Field label="매수가" value={buyPriceText} onChangeText={setBuyPriceText} />
-              <Field label="수량" value={quantityText} onChangeText={setQuantityText} />
-            </View>
-            {plPercent != null && (
-              <Text style={[styles.plPreview, { color: trendColor(plPercent) }]}>
-                평가 수익률 {fmtTrendPct(plPercent)}
-              </Text>
-            )}
-            <Text style={styles.fieldLabel}>메모</Text>
-            <TextInput
-              style={[styles.input, styles.noteInput]}
-              value={noteText}
-              onChangeText={setNoteText}
-              placeholder="매수 이유, 목표가, 체크할 점"
-              placeholderTextColor={colors.textMuted}
-              multiline
-              accessibilityLabel="메모"
-            />
-            <Pressable
-              style={({ pressed }) => [styles.saveBtn, (pressed || saving) && { opacity: 0.7 }]}
-              onPress={savePosition}
-              disabled={saving}
-              accessibilityRole="button"
-              accessibilityLabel="포지션과 메모 저장"
-            >
-              <Text style={styles.saveBtnText}>{saving ? "저장 중…" : saved ? "저장됨" : "저장"}</Text>
-            </Pressable>
-          </Section>
 
           {relative && relative.series.length > 1 && (
             <Section title={`지수 대비 상대강도 · ${relative.benchmarkName}`}>
@@ -348,6 +373,55 @@ export default function StockDetailScreen({ route }: Props) {
               <Text style={styles.summaryText}>{fundamentals.summary}</Text>
             </Section>
           )}
+
+          {news.length > 0 && (
+            <Section title="뉴스">
+              {news.map((n, i) => (
+                <Pressable
+                  key={i}
+                  style={styles.newsRow}
+                  onPress={() => n.url && Linking.openURL(n.url)}
+                  accessibilityRole="link"
+                  accessibilityLabel={n.title}
+                >
+                  <Text style={styles.newsTitle}>{n.title}</Text>
+                  {!!n.publisher && <Text style={styles.newsMeta}>{n.publisher}</Text>}
+                </Pressable>
+              ))}
+            </Section>
+          )}
+
+          <Section title="내 포지션">
+            <View style={styles.positionRow}>
+              <Field label="매수가" value={buyPriceText} onChangeText={setBuyPriceText} />
+              <Field label="수량" value={quantityText} onChangeText={setQuantityText} />
+            </View>
+            {plPercent != null && (
+              <Text style={[styles.plPreview, { color: trendColor(plPercent) }]}>
+                평가 수익률 {fmtTrendPct(plPercent)}
+              </Text>
+            )}
+            <Text style={styles.fieldLabel}>메모</Text>
+            <TextInput
+              style={[styles.input, styles.noteInput]}
+              value={noteText}
+              onChangeText={setNoteText}
+              placeholder="매수 이유, 목표가, 체크할 점"
+              placeholderTextColor={colors.textMuted}
+              multiline
+              accessibilityLabel="메모"
+            />
+            <Pressable
+              style={({ pressed }) => [styles.saveBtn, (pressed || saving) && { opacity: 0.7 }]}
+              onPress={savePosition}
+              disabled={saving}
+              accessibilityRole="button"
+              accessibilityLabel="포지션과 메모 저장"
+            >
+              <Text style={styles.saveBtnText}>{saving ? "저장 중…" : saved ? "저장됨" : "저장"}</Text>
+            </Pressable>
+          </Section>
+
         </>
       )}
     </ScrollView>
@@ -466,6 +540,10 @@ const styles = StyleSheet.create({
   rangeUnderline: { height: 2, alignSelf: "stretch", backgroundColor: colors.accent, marginTop: 4 },
   chartWrap: { paddingHorizontal: space.lg, marginTop: space.sm },
   maLabel: { ...type.num, fontSize: 11, color: colors.accent, marginTop: space.xs },
+  report: { paddingHorizontal: space.lg, paddingBottom: space.xl, marginBottom: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
+  newsRow: { paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
+  newsTitle: { ...type.body, fontSize: 13, color: colors.text, lineHeight: 19 },
+  newsMeta: { ...type.caption, color: colors.textMuted, marginTop: 2 },
   verdict: { ...type.body, fontSize: 13, color: colors.text, marginTop: space.md, marginBottom: space.xs },
   section: { paddingHorizontal: space.lg, marginTop: space.xxl },
   sectionTitle: { ...type.section, marginBottom: space.md },

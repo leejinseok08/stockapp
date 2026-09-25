@@ -1,0 +1,101 @@
+{
+  "000660.KS": {
+    "rule": "sma200+macd",
+    "period": "2005-01 ~ 2026-09",
+    "vsPlain": -0.5273,
+    "mdd": -0.6746,
+    "plainMdd": -0.8459,
+    "worstVsPrincipal": -0.3447,
+    "plainWorstVsPrincipal": -0.7398,
+    "trades": 56,
+    "timeInMarket": 0.756
+  },
+  "005930.KS": {
+    "rule": "sma200+macd",
+    "period": "2005-01 ~ 2026-09",
+    "vsPlain": -0.2965,
+    "mdd": -0.5405,
+    "plainMdd": -0.4736,
+    "worstVsPrincipal": -0.2378,
+    "plainWorstVsPrincipal": -0.2955,
+    "trades": 59,
+    "timeInMarket": 0.759
+  },
+  "AAPL": {
+    "rule": "sma200+macd",
+    "period": "2005-01 ~ 2026-09",
+    "vsPlain": -0.4444,
+    "mdd": -0.4082,
+    "plainMdd": -0.6087,
+    "worstVsPrincipal": -0.1014,
+    "plainWorstVsPrincipal": -0.1014,
+    "trades": 28,
+    "timeInMarket": 0.858
+  },
+  "AMZN": {
+    "rule": "sma200+macd",
+    "period": "2005-01 ~ 2026-09",
+    "vsPlain": -0.4563,
+    "mdd": -0.3929,
+    "plainMdd": -0.6526,
+    "worstVsPrincipal": -0.1986,
+    "plainWorstVsPrincipal": -0.3284,
+    "trades": 36,
+    "timeInMarket": 0.846
+  },
+  "GOOGL": {
+    "rule": "sma200+macd",
+    "period": "2005-09 ~ 2026-09",
+    "vsPlain": -0.347,
+    "mdd": -0.4668,
+    "plainMdd": -0.6531,
+    "worstVsPrincipal": -0.1114,
+    "plainWorstVsPrincipal": -0.4284,
+    "trades": 36,
+    "timeInMarket": 0.861
+  },
+  "META": {
+    "rule": "sma200+macd",
+    "period": "2013-06 ~ 2026-09",
+    "vsPlain": -0.3977,
+    "mdd": -0.4426,
+    "plainMdd": -0.7674,
+    "worstVsPrincipal": -0.001,
+    "plainWorstVsPrincipal": -0.2325,
+    "trades": 18,
+    "timeInMarket": 0.846
+  },
+  "MSFT": {
+    "rule": "sma200+macd",
+    "period": "2005-01 ~ 2026-09",
+    "vsPlain": -0.4442,
+    "mdd": -0.3886,
+    "plainMdd": -0.5796,
+    "worstVsPrincipal": -0.1665,
+    "plainWorstVsPrincipal": -0.4029,
+    "trades": 46,
+    "timeInMarket": 0.825
+  },
+  "NVDA": {
+    "rule": "sma200+macd",
+    "period": "2005-01 ~ 2026-09",
+    "vsPlain": -0.4127,
+    "mdd": -0.6949,
+    "plainMdd": -0.8508,
+    "worstVsPrincipal": -0.2707,
+    "plainWorstVsPrincipal": -0.603,
+    "trades": 28,
+    "timeInMarket": 0.805
+  },
+  "TSLA": {
+    "rule": "sma200+macd",
+    "period": "2011-08 ~ 2026-09",
+    "vsPlain": -0.7321,
+    "mdd": -0.6962,
+    "plainMdd": -0.7363,
+    "worstVsPrincipal": -0.2481,
+    "plainWorstVsPrincipal": -0.1938,
+    "trades": 39,
+    "timeInMarket": 0.771
+  }
+}

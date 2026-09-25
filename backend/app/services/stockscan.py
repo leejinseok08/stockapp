@@ -96,6 +96,112 @@ def get_relative(symbol: str) -> dict:
     return _cached(f"rs:{symbol}", 900, build)
 
 
+# ---- trend buy/sell (the owner's daily signal for individual stocks) ---------------------------
+
+TREND = {"n": 200, "slope_days": 20, "macd_lookback": 5, "use_macd": True}
+
+
+def trend_frame(closes: pd.Series, n=200, slope_days=20, macd_lookback=5, use_macd=True) -> pd.DataFrame:
+    """Evaluate the trend rule at every close.
+
+    SELL: close below its n-day average, the average itself falling (vs slope_days ago) and MACD
+          still sloping down -- a falling knife (TIP 54, 과매도≠매수).
+    BUY:  close back above the average and MACD sloping up -- "칼끝이 올라갈 때".
+    `hold` is the position after acting on that close's condition; the trade happens in the next
+    session, so nothing here uses a price that wasn't known yet."""
+    sma = closes.rolling(n).mean()
+    falling = sma < sma.shift(slope_days)
+    macd = closes.ewm(span=12, adjust=False).mean() - closes.ewm(span=26, adjust=False).mean()
+    macd_up = macd > macd.shift(macd_lookback)
+    sell = (closes < sma) & falling
+    buy = closes > sma
+    if use_macd:
+        sell &= ~macd_up
+        buy &= macd_up
+    valid = sma.shift(slope_days).notna()
+    hold, h = [], True
+    for s, b, ok in zip(sell.to_numpy(), buy.to_numpy(), valid.to_numpy()):
+        if ok:
+            if h and s:
+                h = False
+            elif not h and b:
+                h = True
+        hold.append(h)
+    return pd.DataFrame({"close": closes, "sma": sma, "macdUp": macd_up, "sell": sell & valid, "buy": buy & valid,
+                         "hold": hold}, index=closes.index)
+
+
+def trend_signal(closes: pd.Series, **rule) -> dict:
+    """Today's call from the latest close: BUY/SELL when the position flips (act next session),
+    otherwise 보유 (keep holding) or 관망 (stay out)."""
+    f = trend_frame(closes, **{**TREND, **rule})
+    hold = f["hold"]
+    now, before = bool(hold.iloc[-1]), bool(hold.iloc[-2])
+    action = "BUY" if now and not before else "SELL" if before and not now else ("HOLD" if now else "WAIT")
+    changed = hold.ne(hold.shift())
+    since = hold[changed].index[-1] if changed.iloc[1:].any() else None
+    last = f.iloc[-1]
+    return {
+        "action": action,
+        "position": "보유" if now else "현금",
+        "since": since.strftime("%Y-%m-%d") if since is not None else None,
+        "asOf": f.index[-1].strftime("%Y-%m-%d"),
+        "close": float(last["close"]),
+        "sma": float(last["sma"]) if pd.notna(last["sma"]) else None,
+        "vsSma": float(last["close"] / last["sma"] - 1) * 100 if pd.notna(last["sma"]) else None,
+        "macdUp": bool(last["macdUp"]),
+        "smaFalling": bool(f["sma"].iloc[-1] < f["sma"].iloc[-1 - TREND["slope_days"]]),
+    }
+
+
+def _closes_3y(ticker: str) -> pd.Series:
+    def fetch():
+        s = yf.Ticker(ticker).history(period="3y", interval="1d")["Close"].dropna()
+        s.index = s.index.tz_localize(None).normalize()
+        return s
+
+    return _cached(f"close3y:{ticker}", 900, fetch)
+
+
+def get_trend(symbol: str) -> dict:
+    return _cached(f"trend:{symbol}", 900, lambda: {"symbol": symbol, **trend_signal(_closes_3y(symbol))})
+
+
+def trend_chart(closes: pd.Series, days: int = 252) -> dict:
+    """Last `days` sessions of close + trend average, with the BUY/SELL flips marked. Flips are
+    placed on the session the trade happens (the one after the signal close)."""
+    f = trend_frame(closes, **TREND)
+    hold = f["hold"]
+    flips = hold.ne(hold.shift()) & hold.shift().notna()
+    trade_day = flips.shift(1, fill_value=False)
+    tail = f.iloc[-days:]
+    marks = [{"t": int(d.timestamp() * 1000), "type": "BUY" if hold.shift(1).loc[d] else "SELL",
+              "price": float(f.loc[d, "close"])}
+             for d in tail.index if trade_day.loc[d]]
+    return {
+        "maWindow": TREND["n"],
+        "points": [{"t": int(d.timestamp() * 1000), "close": round(float(r.close), 4),
+                    "sma": round(float(r.sma), 4) if pd.notna(r.sma) else None} for d, r in tail.iterrows()],
+        "marks": marks,
+    }
+
+
+def get_trend_chart(symbol: str) -> dict:
+    return _cached(f"trendchart:{symbol}", 900, lambda: {"symbol": symbol, **trend_chart(_closes_3y(symbol))})
+
+
+def get_list(extra: list[str]) -> dict:
+    """The 종목 tab: the big-tech group (financial score ranked within it) plus the owner's own
+    watchlist symbols (same analysis, no group score)."""
+    from ..tickers import BIGTECH
+
+    rows = [dict(r, group=True) for r in get_scan(BIGTECH)["rows"]]
+    others = [s for s in extra if s not in BIGTECH]
+    if others:
+        rows += [dict(r, group=False, score=None) for r in get_scan(others)["rows"]]
+    return {"rows": rows}
+
+
 # ---- financial change ------------------------------------------------------------------------
 
 LINES = {"revenue": ("income", "Total Revenue", "매출"),
@@ -228,6 +334,20 @@ def get_scan(symbols: list[str]) -> dict:
             except Exception as e:
                 log.warning("facts %s failed: %s", sym, e)
                 row |= {"lines": {}, "quarter": None, "ocfNegativeTtm": False}
+            try:
+                row["trend"] = get_trend(sym)
+            except Exception as e:
+                log.warning("trend %s failed: %s", sym, e)
+                row["trend"] = None
+            try:
+                from .analysis import get_analysis  # imports stockscan; import here to avoid a cycle
+
+                a = get_analysis(sym)
+                row["rating"] = {"rating": a["rating"], "conviction": a["conviction"],
+                                 "baseUpside": (a["scenarios"] or {}).get("base", {}).get("upside")}
+            except Exception as e:
+                log.warning("analysis %s failed: %s", sym, e)
+                row["rating"] = None
             try:
                 rs = get_relative(sym)
                 row["relative"] = {k: v for k, v in rs.items() if k != "series"}

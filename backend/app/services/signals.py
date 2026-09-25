@@ -2,8 +2,7 @@
 
 Higher score = cheaper / more fearful conditions. It used to scale the monthly DCA amount
 (0.5x/1.0x/1.5x), but the phase-3 backtest (docs/signal-research.md) found that scaling lost ~16% of
-final value to plain DCA on the owner's plan, so it is now context only and the plan (plan.py) buys a
-fixed amount every month.
+final value to plain DCA on the owner's plan, so it is now context only.
 """
 
 import logging
@@ -15,7 +14,7 @@ from .market import _cached
 
 log = logging.getLogger("stockapp.signals")
 
-# The first three are the owner's ISA plan; KOSPI is kept as a reference reading only.
+# The first three are what the owner's ISA holds; KOSPI is kept as a reference reading only.
 # KODEX 미국반도체 tracks MVIS US Listed Semiconductor 25, the same index as VanEck SMH.
 TARGETS = [
     {"id": "sp500", "symbol": "^GSPC", "name": "미국 S&P500", "etfExample": "TIGER·KODEX 미국S&P500", "region": "US", "reference": False},

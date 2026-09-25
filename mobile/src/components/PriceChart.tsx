@@ -7,6 +7,8 @@ type Props = {
   times: number[];
   closes: number[];
   ma?: (number | null)[];
+  // Trade days to mark: index into closes. ▲ below the line for BUY, ▼ above it for SELL.
+  marks?: { i: number; type: "BUY" | "SELL" }[];
   currency?: string | null;
   width: number;
   height?: number;
@@ -17,7 +19,7 @@ const GUTTER_BOTTOM = 18;
 const PAD_TOP = 8;
 
 // Unsmoothed line: straight segments between real closes, no interpolated prices.
-export function PriceChart({ times, closes, ma, currency, width, height = 190 }: Props) {
+export function PriceChart({ times, closes, ma, marks, currency, width, height = 190 }: Props) {
   if (closes.length < 2) return null;
 
   const plotW = width - GUTTER_RIGHT;
@@ -49,6 +51,20 @@ export function PriceChart({ times, closes, ma, currency, width, height = 190 }:
       )}
       <Polyline points={pts(closes)} fill="none" stroke={colors.text} strokeWidth={1.5} strokeLinejoin="round" />
       <Circle cx={x(closes.length - 1)} cy={y(last)} r={3} fill={colors.text} />
+
+      {(marks ?? []).map((m, k) => (
+        <SvgText
+          key={`m${k}`}
+          x={x(m.i)}
+          y={m.type === "BUY" ? y(closes[m.i]) + 14 : y(closes[m.i]) - 6}
+          fill={colors.text}
+          fontSize={11}
+          fontFamily={fonts.monoBold}
+          textAnchor="middle"
+        >
+          {m.type === "BUY" ? "▲" : "▼"}
+        </SvgText>
+      ))}
 
       <SvgText x={plotW + 6} y={y(max) + 4} fill={colors.textMuted} fontSize={10} fontFamily={fonts.mono}>
         {fmtPrice(max, currency)}

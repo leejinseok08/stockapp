@@ -3,16 +3,14 @@ import { ActivityIndicator, Dimensions, RefreshControl, ScrollView, StyleSheet, 
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { FlowBars } from "../components/FlowBars";
-import { PlanSection } from "../components/PlanSection";
 import { RiskSection } from "../components/RiskSection";
 import { SignalRow } from "../components/SignalRow";
 import { fmtMoney, fmtNum, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
-import type { InvestorFlows, MarketFlows, MarketOverview, Plan, RiskGauge, Signals } from "../types";
+import type { InvestorFlows, MarketFlows, MarketOverview, RiskGauge, Signals } from "../types";
 
 const CACHE_KEY = "market-overview";
 const SIGNALS_CACHE_KEY = "market-signals";
-const PLAN_CACHE_KEY = "market-plan";
 const RISK_CACHE_KEY = "market-risk";
 
 // Fetch one section; on failure fall back to the last copy saved on the device.
@@ -36,7 +34,6 @@ const INVESTORS: { key: keyof InvestorFlows; label: string }[] = [
 export default function MarketScreen() {
   const [data, setData] = useState<MarketOverview | null>(null);
   const [signals, setSignals] = useState<Signals | null>(null);
-  const [plan, setPlan] = useState<Plan | null>(null);
   const [risk, setRisk] = useState<RiskGauge | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -44,7 +41,6 @@ export default function MarketScreen() {
 
   const loadSections = useCallback(() => {
     fetchOrCache(api.marketSignals, SIGNALS_CACHE_KEY, setSignals);
-    fetchOrCache(api.plan, PLAN_CACHE_KEY, setPlan);
     fetchOrCache(api.risk, RISK_CACHE_KEY, setRisk);
   }, []);
 
@@ -107,10 +103,6 @@ export default function MarketScreen() {
           {staleMinutes != null ? `오프라인 · ${staleMinutes}분 전 데이터` : `${data.generatedAt.slice(5, 16).replace("T", " ")} 기준`}
         </Text>
       </View>
-
-      <Section title={`이번 달 적립 · ${plan?.account ?? "ISA"}`}>
-        {plan ? <PlanSection plan={plan} /> : <Text style={styles.note}>적립 계획을 불러오는 중이에요…</Text>}
-      </Section>
 
       <Section title={risk ? `위험 경고 · ${risk.lit}/${risk.total} 점등 · ${risk.level}` : "위험 경고"}>
         {risk ? <RiskSection risk={risk} /> : <Text style={styles.note}>지표를 불러오는 중이에요…</Text>}

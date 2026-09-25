@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .db import init_db
-from .routers import market, stocks, watchlist
+from .routers import market, stocks, today, watchlist
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
@@ -21,6 +21,7 @@ app.add_middleware(
 app.include_router(stocks.router)
 app.include_router(watchlist.router)
 app.include_router(market.router)
+app.include_router(today.router)
 
 
 @app.on_event("startup")

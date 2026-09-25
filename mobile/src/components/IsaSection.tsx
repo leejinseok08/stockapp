@@ -3,7 +3,6 @@ import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { readSetting, writeSetting } from "../cache";
 import { fmtMoney } from "../format";
 import { colors, fonts, space, type } from "../theme";
-import type { Plan, WatchlistEntry } from "../types";
 
 type IsaSettings = {
   joinDate: string; // YYYY-MM-DD
@@ -39,7 +38,7 @@ function maturity(joinDate: string): { date: string; days: number } | null {
   return { date: `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`, days };
 }
 
-export function IsaSection({ holdings, plan }: { holdings: WatchlistEntry[]; plan: Plan | null }) {
+export function IsaSection() {
   const [s, setS] = useState<IsaSettings>(DEFAULTS);
   const [editing, setEditing] = useState(false);
 
@@ -58,16 +57,6 @@ export function IsaSection({ holdings, plan }: { holdings: WatchlistEntry[]; pla
   const total = num(s.totalLimit);
   const mat = maturity(s.joinDate);
 
-  // Current weights of the plan's ETFs. All ISA ETFs are KRW-listed, so summing is safe.
-  const sleeves = (plan?.sleeves ?? []).map((sl) => {
-    const symbols = new Set(sl.etfs.map((e) => e.symbol));
-    const value = holdings
-      .filter((h) => symbols.has(h.symbol) && h.quantity != null && h.currency === "KRW")
-      .reduce((sum, h) => sum + (h.price ?? h.buyPrice ?? 0) * (h.quantity ?? 0), 0);
-    return { ...sl, value };
-  });
-  const held = sleeves.reduce((sum, sl) => sum + sl.value, 0);
-  const rebal = plan?.backtest?.rebalanceByNewMoneyVsPlain;
 
   return (
     <View>
@@ -125,29 +114,6 @@ export function IsaSection({ holdings, plan }: { holdings: WatchlistEntry[]; pla
         </Pressable>
       )}
 
-      <Text style={[styles.sectionTitle, { marginTop: space.xl }]}>목표 비중 · 현재</Text>
-      {held > 0 ? (
-        sleeves.map((sl) => {
-          const cur = (sl.value / held) * 100;
-          const diff = cur - sl.weight * 100;
-          return (
-            <Row
-              key={sl.id}
-              label={sl.name}
-              value={`${Math.round(sl.weight * 100)}% → ${cur.toFixed(1)}%`}
-              sub={`${diff >= 0 ? "▲" : "▼"} ${Math.abs(diff).toFixed(1)}%p · ${fmtMoney(sl.value, "KRW")}`}
-            />
-          );
-        })
-      ) : (
-        <Text style={styles.note}>
-          관심종목에 ISA ETF(예: TIGER 미국S&P500, KODEX 미국반도체)를 추가하고 수량을 입력하면 현재 비중이 표시돼요.
-        </Text>
-      )}
-      <Text style={styles.note}>
-        비중이 벗어나도 매달 정해진 비중대로 계속 삽니다.
-        {rebal != null && ` 신규 적립금으로 비중을 맞추는 방식은 백테스트상 최종 평가액 ${(rebal * 100).toFixed(1)}%였어요.`}
-      </Text>
     </View>
   );
 }

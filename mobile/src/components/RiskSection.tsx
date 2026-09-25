@@ -40,8 +40,8 @@ export function RiskSection({ risk }: { risk: RiskGauge }) {
       })}
       {risk.failed.length > 0 && <Text style={styles.note}>불러오지 못한 항목: {risk.failed.join(", ")}</Text>}
       <Text style={styles.note}>
-        0~1개 평상 · 2개 관찰 · 3개 이상 경계. 경고는 시점을 알려주지 못하고 거짓 경보도 많아요. 점등돼도 적립 계획은 그대로 두고,
-        비중과 현금 여력을 점검하는 용도로만 봅니다.
+        0~1개 평상 · 2개 관찰 · 3개 이상 경계. 경고는 시점을 알려주지 못하고 거짓 경보도 많아요. 매매 신호를 바꾸지 않고, 비중과
+        현금 여력을 점검하는 용도로만 봅니다.
       </Text>
     </View>
   );

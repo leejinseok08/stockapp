@@ -3,29 +3,18 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { api } from "../api";
-import { readCache, writeCache } from "../cache";
 import { IsaSection } from "../components/IsaSection";
 import { fmtMoney, fmtNum, fmtPrice, fmtTrendPct } from "../format";
 import { colors, space, trendColor, trendGlyph, type } from "../theme";
-import type { Plan, RootStackParamList, WatchlistEntry } from "../types";
+import type { RootStackParamList, WatchlistEntry } from "../types";
 
-export default function PortfolioScreen() {
+// 계좌 tab: holdings P/L per currency and the ISA account's limits and dates.
+export default function AccountScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [items, setItems] = useState<WatchlistEntry[]>([]);
-  const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    api
-      .plan()
-      .then((p) => {
-        setPlan(p);
-        writeCache("market-plan", p);
-      })
-      .catch(async () => {
-        const cached = await readCache<Plan>("market-plan");
-        if (cached) setPlan(cached.data);
-      });
     try {
       const data = await api.watchlist();
       setItems(data.filter((i) => i.buyPrice != null && i.quantity != null && i.buyPrice > 0 && i.quantity > 0));
@@ -60,6 +49,7 @@ export default function PortfolioScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: space.xxl * 2 }}>
+      <Text style={styles.title}>계좌</Text>
       {Array.from(totals.entries()).map(([cur, t], idx) => {
         const pl = t.value - t.cost;
         const plPct = t.cost > 0 ? (pl / t.cost) * 100 : null;
@@ -92,7 +82,7 @@ export default function PortfolioScreen() {
       {items.length === 0 ? (
         <View style={styles.emptyBox}>
           <Text style={styles.empty}>
-            보유 종목이 없어요.{"\n"}종목 상세 화면에서 매수가·수량을 입력하면{"\n"}여기에 표시됩니다.
+            보유 종목이 없어요.{"\n"}종목 리포트의 "내 포지션"에 매수가·수량을 넣으면{"\n"}여기에 표시됩니다.
           </Text>
         </View>
       ) : (
@@ -128,7 +118,7 @@ export default function PortfolioScreen() {
       )}
 
       <View style={styles.isa}>
-        <IsaSection holdings={items} plan={plan} />
+        <IsaSection />
       </View>
     </ScrollView>
   );
@@ -136,6 +126,7 @@ export default function PortfolioScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  title: { ...type.title, color: colors.text, paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.sm },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: space.xl },
   emptyBox: { alignItems: "center", paddingVertical: space.xxl, paddingHorizontal: space.xl },
   isa: { paddingHorizontal: space.lg, marginTop: space.xxl },
