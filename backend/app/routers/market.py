@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 
 from ..db import IS_SQLITE, MarketSnapshot, engine, get_session
 from ..services.macro import get_overview, snapshot_rows
+from ..services.heatmap import get_heatmap
 from ..services.risk import get_risk, risk_rows
 from ..services.signals import get_signals, signal_rows
 
@@ -30,6 +31,12 @@ def signals():
 @router.get("/risk")
 def risk():
     return get_risk()
+
+
+@router.get("/heatmap")
+def heatmap():
+    """Large caps by sector: size = market cap, color = today's move."""
+    return get_heatmap()
 
 
 def collect_snapshot(session: Session) -> int:

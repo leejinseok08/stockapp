@@ -2,6 +2,7 @@ import axios from "axios";
 import type {
   Analysis,
   Fundamentals,
+  HeatmapData,
   ListRow,
   HistoryPoint,
   MarketOverview,
@@ -62,6 +63,8 @@ export const api = {
     client.get<MarketOverview>("/market/overview", { timeout: 45000 }).then((r) => r.data),
 
   marketSignals: () => client.get<Signals>("/market/signals", { timeout: 45000 }).then((r) => r.data),
+
+  heatmap: () => client.get<HeatmapData>("/market/heatmap", { timeout: 60000 }).then((r) => r.data),
 
   risk: () => client.get<RiskGauge>("/market/risk", { timeout: 45000 }).then((r) => r.data),
 

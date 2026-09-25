@@ -92,6 +92,11 @@ export default function StockDetailScreen({ route }: Props) {
         setAnalysisFailed(true);
       });
     api.trendChart(symbol).then(setTrendChart).catch((e) => console.warn("trend chart load failed", e));
+    // Live quote for every stock, watched or not (Korean listings come from Naver in real time).
+    api
+      .quotes([symbol])
+      .then(([q]) => q && q.price != null && setQuote((prev) => ({ ...(prev ?? {}), ...q })))
+      .catch(() => {});
     api.news(symbol).then((n) => setNews(n.slice(0, 6))).catch(() => {});
   }, [symbol]);
 

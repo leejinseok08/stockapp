@@ -313,3 +313,12 @@ export type Today = {
   nextEarnings: { symbol: string; name: string | null; date: string; text: string } | null;
   generatedAt: string;
 };
+
+export type HeatmapMarket = {
+  id: "US" | "KR";
+  name: string;
+  currency: string;
+  sectors: { name: string; stocks: { symbol: string; name: string; cap: number; change: number | null }[] }[];
+};
+
+export type HeatmapData = { markets: HeatmapMarket[]; generatedAt: string };

@@ -26,8 +26,41 @@ def _num(value) -> float | None:
         return None
 
 
+def _naver_quote(symbol: str) -> dict:
+    """Korean listings: Naver is real time and uses the official close (after the closing auction);
+    Yahoo is delayed and its last price can miss the auction by a tick or two."""
+    import json
+    import urllib.request
+
+    code = symbol.split(".")[0]
+    req = urllib.request.Request(f"https://m.stock.naver.com/api/stock/{code}/basic",
+                                 headers={"User-Agent": "Mozilla/5.0"})
+    d = json.loads(urllib.request.urlopen(req, timeout=8).read())
+    price = float(d["closePrice"].replace(",", ""))
+    move = float(d["compareToPreviousClosePrice"].replace(",", "").lstrip("-"))
+    falling = (d.get("compareToPreviousPrice") or {}).get("name") in ("FALLING", "LOWER_LIMIT")
+    change = -move if falling else move
+    prev = price - change
+    return {
+        "symbol": symbol,
+        "price": price,
+        "previousClose": prev,
+        "change": change,
+        "changePercent": change / prev * 100 if prev else None,
+        "currency": "KRW",
+        "marketStatus": d.get("marketStatus"),
+        "asOf": d.get("localTradedAt"),
+        "source": "naver",
+    }
+
+
 def get_quote(symbol: str) -> dict:
     def fetch():
+        if symbol.endswith((".KS", ".KQ")):
+            try:
+                return _naver_quote(symbol)
+            except Exception:
+                pass  # fall back to Yahoo below
         fi = yf.Ticker(symbol).fast_info
         price = _num(fi.get("lastPrice"))
         prev = _num(fi.get("previousClose"))

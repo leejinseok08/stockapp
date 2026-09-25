@@ -1,17 +1,21 @@
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { FlowBars } from "../components/FlowBars";
+import { Heatmap } from "../components/Heatmap";
 import { RiskSection } from "../components/RiskSection";
 import { SignalRow } from "../components/SignalRow";
 import { fmtMoney, fmtNum, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
-import type { InvestorFlows, MarketFlows, MarketOverview, RiskGauge, Signals } from "../types";
+import type { HeatmapData, InvestorFlows, MarketFlows, MarketOverview, RiskGauge, RootStackParamList, Signals } from "../types";
 
 const CACHE_KEY = "market-overview";
 const SIGNALS_CACHE_KEY = "market-signals";
 const RISK_CACHE_KEY = "market-risk";
+const HEATMAP_CACHE_KEY = "market-heatmap";
 
 // Fetch one section; on failure fall back to the last copy saved on the device.
 async function fetchOrCache<T>(fetcher: () => Promise<T>, key: string, set: (v: T) => void) {
@@ -32,6 +36,9 @@ const INVESTORS: { key: keyof InvestorFlows; label: string }[] = [
 ];
 
 export default function MarketScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [heatmap, setHeatmap] = useState<HeatmapData | null>(null);
+  const [mapId, setMapId] = useState<"US" | "KR">("US");
   const [data, setData] = useState<MarketOverview | null>(null);
   const [signals, setSignals] = useState<Signals | null>(null);
   const [risk, setRisk] = useState<RiskGauge | null>(null);
@@ -42,6 +49,7 @@ export default function MarketScreen() {
   const loadSections = useCallback(() => {
     fetchOrCache(api.marketSignals, SIGNALS_CACHE_KEY, setSignals);
     fetchOrCache(api.risk, RISK_CACHE_KEY, setRisk);
+    fetchOrCache(api.heatmap, HEATMAP_CACHE_KEY, setHeatmap);
   }, []);
 
   const load = useCallback(async () => {
@@ -90,6 +98,7 @@ export default function MarketScreen() {
 
   const chartWidth = Dimensions.get("window").width - space.lg * 2;
   const dxy = data.fx.dollarIndex;
+  const map = heatmap?.markets.find((m) => m.id === mapId);
 
   return (
     <ScrollView
@@ -104,34 +113,54 @@ export default function MarketScreen() {
         </Text>
       </View>
 
-      <Section title={risk ? `위험 경고 · ${risk.lit}/${risk.total} 점등 · ${risk.level}` : "위험 경고"}>
+      <Section title="스탁 히트맵" desc="대형주를 업종별로 · 크기 = 시가총액, 색 = 오늘 등락률">
+        <View style={styles.toggle} accessibilityRole="tablist">
+          {(["US", "KR"] as const).map((id) => (
+            <Pressable
+              key={id}
+              onPress={() => setMapId(id)}
+              hitSlop={8}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: mapId === id }}
+              accessibilityLabel={id === "US" ? "미국 히트맵" : "한국 히트맵"}
+            >
+              <Text style={[styles.toggleText, mapId === id && styles.toggleActive]}>{id === "US" ? "미국" : "한국"}</Text>
+              {mapId === id && <View style={styles.underline} />}
+            </Pressable>
+          ))}
+        </View>
+        {map ? (
+          <Heatmap
+            market={map}
+            width={chartWidth}
+            height={Math.round(chartWidth * 1.05)}
+            onPress={(symbol, name) => navigation.navigate("StockDetail", { symbol, name })}
+          />
+        ) : (
+          <Text style={styles.note}>불러오는 중…</Text>
+        )}
+      </Section>
+
+      <Section
+        title={risk ? `위험 경고 · ${risk.lit}/${risk.total} 점등 · ${risk.level}` : "위험 경고"}
+        desc="시장 스트레스 지표 5개 중 켜진 개수 · 3개 이상이면 경계"
+      >
         {risk ? <RiskSection risk={risk} /> : <Text style={styles.note}>지표를 불러오는 중이에요…</Text>}
       </Section>
 
-      <Section title="시장 온도 · 참고">
+      <Section title="시장 온도" desc="0~100 · 70↑ 조정·공포, 40↓ 과열 · 눌러서 구성요소 보기">
         {signals ? (
           <>
             {signals.targets.map((t) => (
               <SignalRow key={t.id} target={t} />
             ))}
-            <Text style={styles.signalNote}>
-              {signals.bands
-                .map((b, i, all) => {
-                  const range =
-                    i === 0 ? `${b.min}점 이상` : b.min === 0 ? `${all[i - 1].min}점 미만` : `${b.min}~${all[i - 1].min - 1}점`;
-                  return `${range} ${b.action}`;
-                })
-                .join(" · ")}
-              {"\n"}지금 시장이 어디쯤인지 보여주는 점수예요. 백테스트상 이 점수로 금액을 늘리고 줄이면 정액 적립보다
-              불리해서, 매수 금액은 바꾸지 않습니다.
-            </Text>
           </>
         ) : (
           <Text style={styles.note}>점수를 계산하는 중이에요…</Text>
         )}
       </Section>
 
-      <Section title="지수">
+      <Section title="지수" desc="주요 지수 · 아래 줄은 200일선 대비와 52주 범위 위치">
         <View style={styles.headRow}>
           <Text style={[styles.headCell, styles.nameCol]} />
           <Text style={styles.headCell}>현재</Text>
@@ -158,19 +187,17 @@ export default function MarketScreen() {
         ))}
       </Section>
 
-      <Section title="수급 · 투자자별 순매수">
+      <Section title="수급" desc="투자자별 순매수 금액 · 5일·20일 합계">
         {data.flows.available ? (
           data.flows.markets.map((m) => <FlowBlock key={m.market} flows={m} chartWidth={chartWidth} />)
         ) : (
           <Text style={styles.note}>
-            {data.flows.reason === "krx_login_required"
-              ? "한국거래소(KRX)가 로그인을 요구해요. 서버에 KRX 계정(KRX_ID, KRX_PW)을 설정하면 표시됩니다."
-              : "수급 데이터를 가져오지 못했어요. 잠시 후 다시 시도해보세요."}
+            {data.flows.reason === "krx_login_required" ? "KRX 로그인 설정 필요" : "불러오지 못함"}
           </Text>
         )}
       </Section>
 
-      <Section title="통화 강세 · 달러 대비 1개월">
+      <Section title="통화 강세" desc="달러 대비 1개월 강세 순위 · ▲ = 해당 통화 강세">
         <View style={styles.row}>
           <View style={styles.rowTop}>
             <Text style={[styles.name, styles.nameCol]}>{dxy.name}</Text>
@@ -178,7 +205,6 @@ export default function MarketScreen() {
             <Text style={[styles.cell, { color: colors.textMuted }]}>{fmtTrendPct(dxy.change1d, 1)}</Text>
             <Text style={[styles.cell, { color: colors.textMuted }]}>{fmtTrendPct(dxy.change1m, 1)}</Text>
           </View>
-          <Text style={styles.sub}>오르면 달러 강세 · 원화 약세 압력</Text>
         </View>
         {data.fx.currencies.map((c, rank) => (
           <View
@@ -202,14 +228,13 @@ export default function MarketScreen() {
               <Text style={[styles.cell, { color: trendColor(c.strength1d) }]}>{fmtTrendPct(c.strength1d, 1)}</Text>
               <Text style={[styles.cell, { color: trendColor(c.strength1m) }]}>{fmtTrendPct(c.strength1m, 1)}</Text>
             </View>
-            <Text style={styles.sub}>{c.quoteLabel} 환율 · ▲는 해당 통화 강세</Text>
+            <Text style={styles.sub}>{c.quoteLabel}</Text>
           </View>
         ))}
       </Section>
 
       <Text style={styles.footnote}>
-        출처: Yahoo Finance(지수·환율·ETF), FRED(신용 스프레드·금리차), 한국거래소(수급). 일봉 종가 기준이며 투자
-        권유가 아닙니다.
+        출처 Yahoo · FRED · Naver · KRX · 투자 권유 아님
       </Text>
     </ScrollView>
   );
@@ -247,10 +272,11 @@ function FlowCell({ value }: { value: number }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={[styles.sectionTitle, !!desc && { marginBottom: 2 }]}>{title}</Text>
+      {!!desc && <Text style={styles.desc}>{desc}</Text>}
       {children}
     </View>
   );
@@ -295,6 +321,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.hairline,
   },
-  signalNote: { ...type.caption, color: colors.textMuted, marginTop: space.md, lineHeight: 17 },
+  desc: { ...type.caption, color: colors.textMuted, marginBottom: space.sm },
+  toggle: { flexDirection: "row", gap: space.lg, marginBottom: space.sm },
+  toggleText: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.textMuted },
+  toggleActive: { color: colors.text },
+  underline: { height: 2, backgroundColor: colors.accent, marginTop: 4 },
   footnote: { ...type.caption, color: colors.textMuted, paddingHorizontal: space.lg, marginTop: space.xl, lineHeight: 17 },
 });

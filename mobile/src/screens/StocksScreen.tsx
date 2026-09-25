@@ -127,6 +127,11 @@ export default function StocksScreen() {
         })}
       </View>
       {staleMinutes != null && <Text style={styles.stale}>오프라인 · {staleMinutes}분 전 데이터</Text>}
+      <View style={styles.colHead}>
+        <Text style={[styles.colText, { flex: 1 }]}>종목 · 현재가</Text>
+        <Text style={[styles.colText, { width: 96, textAlign: "right" }]}>신호 · 의견 · 재무</Text>
+        <Text style={[styles.colText, styles.colActive]}>{SORTS.find((x) => x.key === sort)!.label}</Text>
+      </View>
 
       {loading && rows.length === 0 ? (
         <View style={styles.center}>
@@ -155,7 +160,7 @@ export default function StocksScreen() {
             </Text>
           }
           renderItem={({ item }) => (
-            <Row row={item} onPress={() => navigation.navigate("StockDetail", { symbol: item.symbol, name: item.name })} />
+            <Row row={item} sort={sort} onPress={() => navigation.navigate("StockDetail", { symbol: item.symbol, name: item.name })} />
           )}
         />
       )}
@@ -197,7 +202,17 @@ export default function StocksScreen() {
   );
 }
 
-function Row({ row, onPress }: { row: ListRow; onPress: () => void }) {
+const upText = (v: number | null | undefined) => (v == null ? "-" : `${v >= 0 ? "+" : "−"}${Math.abs(v * 100).toFixed(0)}%`);
+
+// The big number on the right is always the value the list is sorted by.
+function Metric({ row, sort }: { row: ListRow; sort: SortKey }) {
+  if (sort === "signal") return <SignalBadge action={row.trend?.action} large />;
+  if (sort === "rating") return <Text style={styles.metricWord}>{row.rating?.rating ?? "-"}</Text>;
+  if (sort === "upside") return <Text style={styles.metric}>{upText(row.rating?.baseUpside)}</Text>;
+  return <Text style={styles.metric}>{row.score != null ? Math.round(row.score) : "-"}</Text>;
+}
+
+function Row({ row, sort, onPress }: { row: ListRow; sort: SortKey; onPress: () => void }) {
   const r = row.rating;
   const up = r?.baseUpside;
   return (
@@ -220,11 +235,13 @@ function Row({ row, onPress }: { row: ListRow; onPress: () => void }) {
         <View style={styles.right}>
           <SignalBadge action={row.trend?.action} />
           <Text style={styles.rating}>
-            {r?.rating ?? "-"}
-            {up != null && <Text style={styles.upside}> {`${up >= 0 ? "+" : "−"}${Math.abs(up * 100).toFixed(0)}%`}</Text>}
+            {r?.rating ?? "-"} <Text style={styles.upside}>{upText(up)}</Text>
           </Text>
+          <Text style={styles.upside}>재무 {row.score != null ? Math.round(row.score) : "-"}</Text>
         </View>
-        <Text style={styles.score}>{row.score != null ? Math.round(row.score) : "-"}</Text>
+        <View style={styles.metricBox}>
+          <Metric row={row} sort={sort} />
+        </View>
       </View>
     </Pressable>
   );
@@ -247,10 +264,15 @@ const styles = StyleSheet.create({
   symbolSmall: { ...type.num, fontSize: 11, color: colors.textMuted },
   symbol: { ...type.numStrong, fontSize: 15, color: colors.text },
   sub: { ...type.num, fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  right: { alignItems: "flex-end", marginLeft: space.sm, width: 88 },
+  right: { alignItems: "flex-end", marginLeft: space.sm, width: 96 },
   rating: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.text, marginTop: 4 },
   upside: { ...type.num, fontSize: 12, color: colors.textMuted },
-  score: { ...type.display, fontSize: 18, color: colors.text, width: 40, textAlign: "right" },
+  metricBox: { width: 64, alignItems: "flex-end" },
+  metric: { ...type.display, fontSize: 18, color: colors.text, textAlign: "right" },
+  metricWord: { fontFamily: fonts.sansBold, fontSize: 16, color: colors.text },
+  colHead: { flexDirection: "row", paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xs },
+  colText: { fontFamily: fonts.sansMedium, fontSize: 10, color: colors.textMuted },
+  colActive: { width: 64, textAlign: "right", color: colors.accent },
   note: { ...type.caption, color: colors.textMuted, marginTop: space.md, textAlign: "center" },
   footnote: { ...type.caption, color: colors.textMuted, padding: space.lg, lineHeight: 17 },
   modal: { flex: 1, backgroundColor: colors.background, paddingTop: 60 },
