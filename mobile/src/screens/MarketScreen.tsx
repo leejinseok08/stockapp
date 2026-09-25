@@ -161,7 +161,7 @@ export default function MarketScreen() {
           >
             <View style={styles.rowTop}>
               <Text style={[styles.name, { flex: 1 }]}>{idx.name}</Text>
-              <Text style={styles.value}>{idx.last != null ? idx.last.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "-"}</Text>
+              <Text style={styles.value}>{idx.last != null ? idx.last.toLocaleString("en-US", { minimumFractionDigits: idx.last < 1000 ? 2 : 0, maximumFractionDigits: idx.last < 1000 ? 2 : 0 }) : "-"}</Text>
               <View style={{ width: 84, alignItems: "flex-end" }}>
                 <ChangePill value={idx.change1d} />
               </View>

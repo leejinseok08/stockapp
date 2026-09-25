@@ -16,6 +16,8 @@ INDICES = [
     {"symbol": "^GSPC", "name": "S&P 500", "region": "US"},
     {"symbol": "^NDX", "name": "나스닥 100", "region": "US"},
     {"symbol": "^SOX", "name": "필라델피아 반도체", "region": "US"},
+    # KODEX 미국반도체 tracks MVIS US Listed Semiconductor 25, the same index as SMH (dividend-adjusted ETF price).
+    {"symbol": "SMH", "name": "미국 반도체 (SMH)", "region": "US"},
     {"symbol": "^KS11", "name": "코스피", "region": "KR"},
     {"symbol": "^KQ11", "name": "코스닥", "region": "KR"},
 ]
