@@ -6,6 +6,7 @@ import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { RiskSection } from "../components/RiskSection";
 import { SignalBadge } from "../components/SignalBadge";
+import { SplitBuyCard } from "../components/SplitBuyCard";
 import { Avatar, Section } from "../components/ui";
 import { fmtMoney, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
@@ -113,7 +114,8 @@ export default function TodayScreen() {
         <Text style={[styles.note, styles.pad]}>데이터를 불러오지 못했어요. 아래로 당겨 다시 시도해보세요.</Text>
       ) : (
         <>
-          <Section first title="신호 변경" desc="다음 거래일에 실행할 BUY · SELL">
+          {data.splitBuy?.active && <SplitBuyCard data={data.splitBuy} />}
+          <Section first={!data.splitBuy?.active} title="신호 변경" desc="다음 거래일에 실행할 BUY · SELL">
             {data.changed.length === 0 ? (
               <Text style={styles.note}>오늘 바뀐 신호가 없어요.</Text>
             ) : (

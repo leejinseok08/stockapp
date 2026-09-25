@@ -91,7 +91,13 @@ def get_today(extra: list[str]) -> dict:
             risk = get_risk()
         except Exception:
             risk = None
-        return {**summarize(rows, risk, catalysts, today), "dividends": upcoming_dividends(rows, today),
+        try:
+            from .splitbuy import get_split_buy
+
+            split = get_split_buy()
+        except Exception:
+            split = None
+        return {**summarize(rows, risk, catalysts, today), "dividends": upcoming_dividends(rows, today), "splitBuy": split,
                 "generatedAt": datetime.now(KST).isoformat(timespec="minutes")}
 
     return _cached("today:" + ",".join(sorted(extra)), 900, build)

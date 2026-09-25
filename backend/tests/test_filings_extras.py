@@ -74,3 +74,54 @@ def test_push_messages_only_for_flips_and_alert_level():
     msgs = daily_messages(today, risk)
     assert len(msgs) == 1 and "엔비디아 SELL" in msgs[0][2]
     assert daily_messages({"changed": []}, {"lit": 3, "total": 5, "level": "경계", "items": [{"label": "VIX", "lit": True}]})[0][1].startswith("위험 경고 3/5")
+
+
+def _closes(moves, end="2026-09-25"):
+    """Weekday closes ending on `end`: 70 quiet days (+/-0.5% alternating) then `moves`."""
+    import numpy as np
+
+    base = [0.005 if i % 2 else -0.005 for i in range(70)] + list(moves)
+    idx = pd.bdate_range(end=end, periods=len(base) + 1)
+    return pd.Series(100 * np.cumprod([1.0] + [1 + m for m in base]), index=idx)
+
+
+def test_split_buy_dip_signals_next_session():
+    from app.services.splitbuy import evaluate
+
+    c = _closes([-0.03], end="2026-09-10")  # Thursday close fell 6x the usual move
+    st = evaluate(c, pd.Timestamp("2026-09-10"), hour=17)
+    assert st["status"] == "buy" and st["reason"] == "dip" and st["buyOn"] == "2026-09-11" and not st["buyToday"]
+    morning = evaluate(c, pd.Timestamp("2026-09-11"), hour=8)
+    assert morning["status"] == "buy" and morning["buyToday"]
+    # Once that session has a close, the month is done.
+    later = evaluate(_closes([-0.03, 0.005], end="2026-09-11"), pd.Timestamp("2026-09-11"), hour=17)
+    assert later["status"] == "done" and later["boughtOn"] == "2026-09-11"
+
+
+def test_split_buy_quiet_month_waits_then_buys_at_month_end():
+    from app.services.splitbuy import evaluate
+
+    quiet = evaluate(_closes([], end="2026-09-10"), pd.Timestamp("2026-09-10"), hour=17)
+    assert quiet["status"] == "wait"
+    end = evaluate(_closes([], end="2026-09-28"), pd.Timestamp("2026-09-28"), hour=17)  # next session 29th
+    assert end["status"] == "buy" and end["reason"] == "monthEnd"
+    after = evaluate(_closes([], end="2026-09-29"), pd.Timestamp("2026-09-29"), hour=17)
+    assert after["status"] == "done" and after["reason"] == "monthEnd"
+
+
+def test_split_buy_holiday_afternoon_moves_to_next_weekday():
+    from app.services.splitbuy import evaluate
+
+    c = _closes([-0.03], end="2026-09-23")  # 9/24~25 closed
+    st = evaluate(c, pd.Timestamp("2026-09-25"), hour=17)
+    assert st["buyOn"] == "2026-09-28" and not st["buyToday"]
+
+
+def test_split_push_message():
+    from app.services.push import split_message
+
+    assert split_message({"items": [{"status": "wait"}]}) is None
+    key, title, body = split_message({"items": [
+        {"status": "buy", "buyOn": "2026-09-11", "buyToday": False, "sleeve": "S&P500", "weight": 0.4, "reason": "dip"},
+        {"status": "done"}]})
+    assert key == "2026-09-11" and "09/11" in title and "S&P500 40%" in body

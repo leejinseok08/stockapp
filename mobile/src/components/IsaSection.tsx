@@ -6,6 +6,7 @@ import { colors, fonts, space, type } from "../theme";
 
 type IsaSettings = {
   joinDate: string; // YYYY-MM-DD
+  monthly?: string; // 월 적립금, used by the 분할매수 card on 오늘
   paidThisYear: string;
   paidTotal: string;
   annualLimit: string;
@@ -65,6 +66,11 @@ export function IsaSection({ gainKRW }: { gainKRW?: number | null }) {
     <View>
       <Text style={styles.sectionTitle}>ISA · KB증권 중개형 · 일반형</Text>
       <Row
+        label="월 적립금"
+        value={s.monthly && num(s.monthly) ? fmtMoney(num(s.monthly), "KRW") : "설정에서 입력"}
+        sub="분할매수 날 오늘 탭에 ETF별 금액으로 나눠 보여줘요 (40 : 30 : 30)"
+      />
+      <Row
         label="올해 납입"
         value={paidYear != null && annual ? `${fmtMoney(paidYear, "KRW")} / ${fmtMoney(annual, "KRW")}` : "설정에서 입력"}
         progress={paidYear != null && annual ? paidYear / annual : undefined}
@@ -100,6 +106,7 @@ export function IsaSection({ gainKRW }: { gainKRW?: number | null }) {
       {editing ? (
         <View style={styles.form}>
           <Field label="가입일 (YYYY-MM-DD)" value={s.joinDate} onChange={(v) => setS({ ...s, joinDate: v })} />
+          <Field label="월 적립금 (원, 분할매수 금액 계산)" value={s.monthly ?? ""} onChange={(v) => setS({ ...s, monthly: v })} numeric />
           <Field label="올해 납입액 (원)" value={s.paidThisYear} onChange={(v) => setS({ ...s, paidThisYear: v })} numeric />
           <Field label="누적 납입액 (원)" value={s.paidTotal} onChange={(v) => setS({ ...s, paidTotal: v })} numeric />
           <Field label="연 납입한도 (원)" value={s.annualLimit} onChange={(v) => setS({ ...s, annualLimit: v })} numeric />

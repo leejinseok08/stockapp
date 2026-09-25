@@ -317,6 +317,7 @@ export type Today = {
   risk: { lit: number; total: number; level: string; litItems: string[] } | null;
   earnings: { symbol: string; name: string | null; logo?: string | null; date: string; text: string }[];
   nextEarnings: { symbol: string; name: string | null; date: string; text: string } | null;
+  splitBuy?: SplitBuy | null;
   dividends?: { symbol: string; name: string | null; logo?: string | null; date: string; estimated: boolean; amount: number | null; currency: string | null }[];
   generatedAt: string;
 };
@@ -396,3 +397,20 @@ export type Performance = {
     valueKRW: number | null;
   }[];
 };
+
+export type SplitBuyItem = {
+  id: string;
+  symbol: string;
+  name: string;
+  sleeve: string;
+  weight: number;
+  status: "buy" | "wait" | "done" | "error";
+  reason?: "dip" | "monthEnd";
+  boughtOn?: string;
+  buyOn?: string;
+  buyToday?: boolean;
+  lastDate?: string;
+  move?: number;
+  ratio?: number | null;
+};
+export type SplitBuy = { active: boolean; items: SplitBuyItem[]; rule: string; backtestVsPlain: number; generatedAt: string };
