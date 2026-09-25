@@ -6,7 +6,7 @@ import type { RiskGauge } from "../types";
 // One line per signal: what it measures. Thresholds live in backend/app/services/risk.py.
 const WHAT: Record<string, string> = {
   hy: "고위험 회사채 − 국채 금리 · 신용시장 불안",
-  curve: "10년물 − 2년물 금리 · 역전 후 정상화 = 침체 신호",
+  curve: "10년 − 2년 금리 · 역전 뒤 정상화 = 침체 신호",
   trend: "S&P500의 200일선 대비 위치 · 장기 추세",
   vix: "S&P500 옵션 변동성 · 공포(30↑)·안일(12↓)",
   breadth: "동일가중 vs 시총가중 3개월 · 상승 쏠림",
@@ -41,16 +41,10 @@ export function RiskSection({ risk }: { risk: RiskGauge }) {
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: space.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.hairline,
-  },
-  label: { ...type.body, fontFamily: fonts.sansMedium, fontSize: 13, color: colors.text },
+  row: { flexDirection: "row", alignItems: "center", paddingVertical: space.md },
+  label: { ...type.body, fontFamily: fonts.sansBold, color: colors.text },
   what: { ...type.caption, color: colors.textMuted, marginTop: 2 },
-  value: { ...type.num, fontSize: 13, color: colors.text, width: 70, textAlign: "right" },
+  value: { ...type.numStrong, fontSize: 14, color: colors.text, width: 72, textAlign: "right" },
   state: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.textMuted, width: 60, textAlign: "right" },
   lit: { color: colors.text, fontFamily: fonts.sansBold },
 });

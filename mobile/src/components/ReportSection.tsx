@@ -157,7 +157,7 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 const styles = StyleSheet.create({
   top: { flexDirection: "row", alignItems: "flex-start" },
   label: { ...type.caption, color: colors.textMuted, marginBottom: space.xs },
-  rating: { fontFamily: fonts.sansBold, fontSize: 24, color: colors.text },
+  rating: { fontFamily: fonts.sansBold, fontSize: 28, color: colors.text },
   conviction: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.textMuted },
   target: { ...type.numStrong, fontSize: 14, color: colors.text, marginTop: space.xs },
   muted: { ...type.caption, color: colors.textMuted, marginTop: 2 },
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   trackLine: { ...type.caption, color: colors.text, marginTop: 2, lineHeight: 17 },
   trackNum: { fontFamily: fonts.monoMedium },
   block: { marginTop: space.lg },
-  blockTitle: { ...type.section, marginBottom: space.xs },
+  blockTitle: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.text, marginBottom: space.xs },
   item: { ...type.body, fontSize: 13, color: colors.text, lineHeight: 20, marginTop: 2 },
   num: { ...type.numStrong, fontSize: 12 },
   disclaimer: { ...type.caption, color: colors.textMuted, marginTop: space.lg },

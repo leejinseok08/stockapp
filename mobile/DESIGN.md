@@ -4,23 +4,32 @@ Every UI change should follow this file. References it was built from:
 [ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) (fintech design-system search, React Native stack rules, chart guidance) and
 [design-for-ai](https://github.com/ryanthedev/design-for-ai) (AI-tell avoidance, data-viz principles: Tufte, Cleveland & McGill, Cairo).
 
-## Direction: "quiet trading ledger"
+## Direction: Toss-style clarity on the app's own dark palette (2026-09-25)
 
-A personal instrument panel for reading numbers, not a marketing app. It should feel like a calm
-terminal ledger: numbers first, hairline rules instead of boxes, one warm accent, nothing decorative.
-Someone could disagree with this direction (it is deliberately dense and austere), which is the point.
+Layout, type and component shapes follow Toss Securities (reference: wwit.design/2021/02/16/toss):
+big bold titles, generous spacing, content grouped into sections separated by a thick band instead
+of a hairline under every row, round letter avatars, change shown as a tinted pill, pill-shaped chips
+for choices. **Colors stay as below** (dark background, red up / blue down, amber accent).
 
-**Why dark:** the app is checked often, often at night/pre-market, and is number-dense. Dark is a
-decision tied to use context, not a default.
+**Why dark:** the app is checked often, often at night/pre-market, and is number-dense.
 
 ## Typography
 
 | Role | Font | Why |
 |---|---|---|
-| UI text (Korean + Latin) | IBM Plex Sans KR | Engineering heritage fits a semiconductor/quant tool; full Hangul support. Not Inter/Roboto (the default-font tell). |
-| All numbers | IBM Plex Mono, `tabular-nums` | Columns of prices line up digit-for-digit, so changes are scannable. |
+| UI text and big numbers (prices, scores) | IBM Plex Sans KR, bold for headlines, `tabular-nums` | Toss reads numbers as headlines, not as code. |
+| Small numbers in tables and rows | IBM Plex Mono, `tabular-nums` | Columns still line up digit-for-digit. |
 
-Hierarchy comes from weight and size first, color last. Use `type.*` tokens from `src/theme.ts`.
+Tokens: `type.hero` (price), `type.title` (screen title), `type.section` (bold section title), `type.body`, `type.caption`.
+
+## Components (`src/components/ui.tsx`)
+
+- `Section` — bold title + one-line description; draws the band above itself unless `first`.
+- `ChangePill` — "▲ 1.25%" on `upSoft`/`downSoft`; the glyph stays so direction is never color alone.
+- `Avatar` — round, neutral, first letter(s) of the name. No logos.
+- `Chips` — pill chips for ranges, sorts and toggles; the selected one is filled with `surface`.
+- Descriptions are one line: what the thing is and what it's for. No explanatory paragraphs on screen;
+  details belong in `docs/`.
 
 ## Color
 
@@ -40,7 +49,7 @@ Rules:
 
 ## Layout
 
-- Rows separated by hairlines, not cards. At most **one** filled block (`surface`) per screen, for the single most important number (e.g. portfolio P/L; one block per currency, since KRW and USD are never summed). Never nest cards.
+- Sections are separated by a thick `band`; rows inside a section are separated by spacing, not lines (tables may keep hairlines). Never nest cards.
 
 ## Numbers and currency
 
@@ -68,5 +77,5 @@ Rules:
 
 ## Anti-patterns (don't ship)
 
-Inter/Roboto, purple/indigo gradients, cyan-on-dark, card grids of identical boxes, nested cards,
-emoji icons, gradient text on numbers, smoothed financial lines, color-only up/down.
+Inter/Roboto, purple/indigo gradients, cyan-on-dark, nested cards, emoji icons, gradient text on
+numbers, smoothed financial lines, color-only up/down, paragraphs of explanation on screen.

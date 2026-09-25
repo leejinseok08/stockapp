@@ -66,7 +66,7 @@ export function SignalRow({ target }: { target: SignalTarget }) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
+  wrap: {},
   row: { flexDirection: "row", alignItems: "center", paddingVertical: space.md },
   left: { flex: 1 },
   name: { ...type.body, fontFamily: fonts.sansMedium, color: colors.text },

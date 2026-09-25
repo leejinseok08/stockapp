@@ -15,6 +15,7 @@ import { api } from "../api";
 import { PriceChart } from "../components/PriceChart";
 import { RadarChart } from "../components/RadarChart";
 import { ReportSection } from "../components/ReportSection";
+import { Band, Chips, Section } from "../components/ui";
 import { fmtMoney, fmtNum, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, type } from "../theme";
 import type {
@@ -217,24 +218,9 @@ export default function StockDetailScreen({ route }: Props) {
         )}
       </View>
 
-      <View style={styles.rangeRow} accessibilityRole="tablist">
-        {RANGES.map((opt) => {
-          const active = range === opt.key;
-          return (
-            <Pressable
-              key={opt.key}
-              style={styles.rangeBtn}
-              onPress={() => setRange(opt.key)}
-              hitSlop={6}
-              accessibilityRole="tab"
-              accessibilityLabel={`${opt.label} 차트`}
-              accessibilityState={{ selected: active }}
-            >
-              <Text style={[styles.rangeText, active && styles.rangeTextActive]}>{opt.label}</Text>
-              {active && <View style={styles.rangeUnderline} />}
-            </Pressable>
-          );
-        })}
+      <Band />
+      <View style={styles.rangeRow}>
+        <Chips options={RANGES} value={range} onChange={setRange} labelFor={(l) => `${l} 차트`} />
       </View>
 
       {loading ? (
@@ -433,15 +419,6 @@ export default function StockDetailScreen({ route }: Props) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {children}
-    </View>
-  );
-}
-
 function Field({ label, value, onChangeText }: { label: string; value: string; onChangeText: (t: string) => void }) {
   return (
     <View style={styles.positionField}>
@@ -530,7 +507,7 @@ const styles = StyleSheet.create({
   headerBlock: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg },
   name: { ...type.body, fontFamily: fonts.sansMedium, color: colors.text },
   sector: { ...type.caption, color: colors.textMuted, marginTop: 2 },
-  price: { ...type.display, color: colors.text, fontSize: 34, marginTop: space.md },
+  price: { ...type.hero, color: colors.text, marginTop: space.md },
   periodChange: { ...type.numStrong, fontSize: 14, marginTop: 2 },
   periodLabel: { fontFamily: fonts.sans, fontSize: 11, color: colors.textMuted },
   rangeRow: {
@@ -545,7 +522,7 @@ const styles = StyleSheet.create({
   rangeUnderline: { height: 2, alignSelf: "stretch", backgroundColor: colors.accent, marginTop: 4 },
   chartWrap: { paddingHorizontal: space.lg, marginTop: space.sm },
   maLabel: { ...type.num, fontSize: 11, color: colors.accent, marginTop: space.xs },
-  report: { paddingHorizontal: space.lg, paddingBottom: space.xl, marginBottom: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
+  report: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.xl },
   newsRow: { paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
   newsTitle: { ...type.body, fontSize: 13, color: colors.text, lineHeight: 19 },
   newsMeta: { ...type.caption, color: colors.textMuted, marginTop: 2 },

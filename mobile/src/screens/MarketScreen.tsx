@@ -1,13 +1,14 @@
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Dimensions, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { FlowBars } from "../components/FlowBars";
 import { Heatmap } from "../components/Heatmap";
 import { RiskSection } from "../components/RiskSection";
 import { SignalRow } from "../components/SignalRow";
+import { Chips, Section } from "../components/ui";
 import { fmtMoney, fmtNum, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
 import type { HeatmapData, InvestorFlows, MarketFlows, MarketOverview, RiskGauge, RootStackParamList, Signals } from "../types";
@@ -113,21 +114,21 @@ export default function MarketScreen() {
         </Text>
       </View>
 
-      <Section title="스탁 히트맵" desc="대형주를 업종별로 · 크기 = 시가총액, 색 = 오늘 등락률">
-        <View style={styles.toggle} accessibilityRole="tablist">
-          {(["US", "KR"] as const).map((id) => (
-            <Pressable
-              key={id}
-              onPress={() => setMapId(id)}
-              hitSlop={8}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: mapId === id }}
-              accessibilityLabel={id === "US" ? "미국 히트맵" : "한국 히트맵"}
-            >
-              <Text style={[styles.toggleText, mapId === id && styles.toggleActive]}>{id === "US" ? "미국" : "한국"}</Text>
-              {mapId === id && <View style={styles.underline} />}
-            </Pressable>
-          ))}
+      <Section
+        first
+        title="스탁 히트맵"
+        desc="대형주를 업종별로 · 크기 = 시가총액, 색 = 오늘 등락률"
+      >
+        <View style={styles.toggle}>
+          <Chips
+            options={[
+              { key: "US" as const, label: "미국" },
+              { key: "KR" as const, label: "한국" },
+            ]}
+            value={mapId}
+            onChange={setMapId}
+            labelFor={(l) => `${l} 히트맵`}
+          />
         </View>
         {map ? (
           <Heatmap
@@ -269,16 +270,6 @@ function FlowCell({ value }: { value: number }) {
     <Text style={[styles.cell, { color: trendColor(value) }]}>
       {trendGlyph(value)} {fmtMoney(Math.abs(value), "KRW")}
     </Text>
-  );
-}
-
-function Section({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.section}>
-      <Text style={[styles.sectionTitle, !!desc && { marginBottom: 2 }]}>{title}</Text>
-      {!!desc && <Text style={styles.desc}>{desc}</Text>}
-      {children}
-    </View>
   );
 }
 

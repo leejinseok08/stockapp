@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, T
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { SignalBadge } from "../components/SignalBadge";
+import { Avatar, Section } from "../components/ui";
 import { fmtMoney, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
 import type { RootStackParamList, Today, TodayItem, WatchlistEntry } from "../types";
@@ -100,7 +101,7 @@ export default function TodayScreen() {
         <Text style={[styles.note, styles.pad]}>데이터를 불러오지 못했어요. 아래로 당겨 다시 시도해보세요.</Text>
       ) : (
         <>
-          <Section title="신호 변경 · 다음 거래일에 실행">
+          <Section first title="신호 변경" desc="다음 거래일에 실행할 BUY · SELL">
             {data.changed.length === 0 ? (
               <Text style={styles.note}>오늘 바뀐 신호가 없어요.</Text>
             ) : (
@@ -117,7 +118,7 @@ export default function TodayScreen() {
           </Section>
 
           {data.risk && (
-            <Section title="위험 경고">
+            <Section title="위험 경고" desc="시장 스트레스 지표 5개 중 켜진 개수">
               <Pressable
                 style={({ pressed }) => [styles.row, pressed && styles.pressed]}
                 // Market is a sibling tab; navigate() from a tab screen reaches it directly.
@@ -133,7 +134,7 @@ export default function TodayScreen() {
             </Section>
           )}
 
-          <Section title="실적 발표 · 14일 내">
+          <Section title="실적 발표" desc="2주 안에 발표하는 종목">
             {data.earnings.length === 0 ? (
               <Text style={styles.note}>
                 2주 안에 발표하는 종목이 없어요.
@@ -157,7 +158,7 @@ export default function TodayScreen() {
         </>
       )}
 
-      <Section title="보유 손익">
+      <Section title="보유 손익" desc="통화별 평가 손익">
         {totals.size === 0 ? (
           <Text style={styles.note}>종목 리포트의 "내 포지션"에 매수가·수량을 넣으면 여기에 표시돼요.</Text>
         ) : (
@@ -189,21 +190,13 @@ function SignalItem({ item, onPress }: { item: TodayItem; onPress: () => void })
       accessibilityRole="button"
       accessibilityLabel={`${item.name ?? item.symbol} ${item.action}, ${item.since ?? ""}부터. 리포트 보기`}
     >
+      <Avatar name={item.name ?? item.symbol} size={36} />
+      <View style={{ flex: 1, marginLeft: space.md }}>
+        <Text style={styles.name}>{item.name ?? item.symbol}</Text>
+        <Text style={styles.sub}>{item.since ? `${md(item.since)}부터` : ""}</Text>
+      </View>
       <SignalBadge action={item.action} />
-      <Text style={[styles.name, { flex: 1, marginLeft: space.md }]}>
-        {item.name ?? item.symbol} <Text style={styles.symbol}>{item.symbol}</Text>
-      </Text>
-      <Text style={styles.sub}>{item.since ? `${md(item.since)}~` : ""}</Text>
     </Pressable>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {children}
-    </View>
   );
 }
 
@@ -217,18 +210,12 @@ const styles = StyleSheet.create({
   section: { paddingHorizontal: space.lg, marginTop: space.xl },
   sectionTitle: { ...type.section, marginBottom: space.sm },
   subhead: { ...type.caption, color: colors.textMuted, marginTop: space.md },
-  row: { paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
-  line: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: space.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.hairline,
-  },
+  row: { paddingVertical: space.xs },
+  line: { flexDirection: "row", alignItems: "center", paddingVertical: space.md },
   pressed: { backgroundColor: colors.surface },
-  big: { ...type.display, fontSize: 24, color: colors.text },
+  big: { ...type.hero, color: colors.text },
   level: { fontFamily: fonts.sansMedium, fontSize: 14, color: colors.textMuted },
-  name: { ...type.body, fontFamily: fonts.sansMedium, color: colors.text },
+  name: { ...type.body, fontFamily: fonts.sansBold, fontSize: 16, color: colors.text },
   symbol: { ...type.num, fontSize: 11, color: colors.textMuted },
   date: { ...type.numStrong, fontSize: 13, color: colors.text, width: 56 },
   num: { ...type.numStrong, fontSize: 13, marginLeft: "auto" },

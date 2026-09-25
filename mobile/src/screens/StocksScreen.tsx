@@ -6,8 +6,9 @@ import { ActivityIndicator, FlatList, Modal, Pressable, RefreshControl, SectionL
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { SignalBadge } from "../components/SignalBadge";
-import { fmtPrice, fmtTrendPct } from "../format";
-import { colors, fonts, space, trendColor, type } from "../theme";
+import { Avatar, ChangePill, Chips } from "../components/ui";
+import { fmtPrice } from "../format";
+import { colors, fonts, radius, space, type } from "../theme";
 import type { ListRow, RootStackParamList, Ticker } from "../types";
 
 const CACHE_KEY = "stock-list";
@@ -108,28 +109,13 @@ export default function StocksScreen() {
         </Pressable>
       </View>
 
-      <View style={styles.sortRow} accessibilityRole="tablist">
-        {SORTS.map((s) => {
-          const active = s.key === sort;
-          return (
-            <Pressable
-              key={s.key}
-              onPress={() => setSort(s.key)}
-              hitSlop={8}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: active }}
-              accessibilityLabel={`${s.label} 순으로 정렬`}
-            >
-              <Text style={[styles.sortText, active && styles.sortActive]}>{s.label}</Text>
-              {active && <View style={styles.underline} />}
-            </Pressable>
-          );
-        })}
+      <View style={styles.sortRow}>
+        <Chips options={SORTS} value={sort} onChange={setSort} labelFor={(l) => `${l} 순으로 정렬`} />
       </View>
       {staleMinutes != null && <Text style={styles.stale}>오프라인 · {staleMinutes}분 전 데이터</Text>}
       <View style={styles.colHead}>
-        <Text style={[styles.colText, { flex: 1 }]}>종목 · 현재가</Text>
-        <Text style={[styles.colText, { width: 96, textAlign: "right" }]}>신호 · 의견 · 재무</Text>
+        <Text style={[styles.colText, { flex: 1 }]}>종목</Text>
+        <Text style={[styles.colText, { width: 100, textAlign: "right" }]}>그 밖의 값</Text>
         <Text style={[styles.colText, styles.colActive]}>{SORTS.find((x) => x.key === sort)!.label}</Text>
       </View>
 
@@ -212,32 +198,51 @@ function Metric({ row, sort }: { row: ListRow; sort: SortKey }) {
   return <Text style={styles.metric}>{row.score != null ? Math.round(row.score) : "-"}</Text>;
 }
 
+// Everything except the sorted-by value, which is shown big on the right.
+function Secondary({ row, sort }: { row: ListRow; sort: SortKey }) {
+  const rating = row.rating?.rating ?? "-";
+  const up = upText(row.rating?.baseUpside);
+  const score = `재무 ${row.score != null ? Math.round(row.score) : "-"}`;
+  if (sort === "signal")
+    return (
+      <>
+        <Text style={styles.rating}>{rating} <Text style={styles.upside}>{up}</Text></Text>
+        <Text style={styles.upside}>{score}</Text>
+      </>
+    );
+  return (
+    <>
+      <SignalBadge action={row.trend?.action} />
+      <Text style={styles.upside}>
+        {sort === "rating" ? `${up} · ${score}` : sort === "upside" ? `${rating} · ${score}` : `${rating} ${up}`}
+      </Text>
+    </>
+  );
+}
+
 function Row({ row, sort, onPress }: { row: ListRow; sort: SortKey; onPress: () => void }) {
   const r = row.rating;
   const up = r?.baseUpside;
   return (
     <Pressable
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${row.name ?? row.symbol}, 신호 ${row.trend?.action ?? "없음"}, 의견 ${r?.rating ?? "없음"}. 리포트 보기`}
     >
       <View style={styles.rowTop}>
-        <View style={{ flex: 1 }}>
+        <Avatar name={row.name ?? row.symbol} />
+        <View style={{ flex: 1, marginLeft: space.md }}>
           <Text style={styles.name} numberOfLines={1}>
-            {row.name ?? row.symbol} <Text style={styles.symbolSmall}>{row.symbol}</Text>
+            {row.name ?? row.symbol}
           </Text>
-          <Text style={styles.sub}>
-            {fmtPrice(row.price, row.quoteCurrency)}{" "}
-            <Text style={{ color: trendColor(row.changePercent) }}>{fmtTrendPct(row.changePercent)}</Text>
-          </Text>
+          <View style={styles.priceLine}>
+            <Text style={styles.price}>{fmtPrice(row.price, row.quoteCurrency)}</Text>
+            <ChangePill value={row.changePercent} />
+          </View>
         </View>
         <View style={styles.right}>
-          <SignalBadge action={row.trend?.action} />
-          <Text style={styles.rating}>
-            {r?.rating ?? "-"} <Text style={styles.upside}>{upText(up)}</Text>
-          </Text>
-          <Text style={styles.upside}>재무 {row.score != null ? Math.round(row.score) : "-"}</Text>
+          <Secondary row={row} sort={sort} />
         </View>
         <View style={styles.metricBox}>
           <Metric row={row} sort={sort} />
@@ -252,27 +257,27 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: space.xl },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: space.lg, paddingTop: space.sm },
   title: { ...type.title, color: colors.text },
-  addBtn: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: colors.accent },
-  sortRow: { flexDirection: "row", gap: space.lg, paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.sm },
-  sortText: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.textMuted },
-  sortActive: { color: colors.text },
-  underline: { height: 2, backgroundColor: colors.accent, marginTop: 4 },
+  addBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: colors.accent },
+  sortRow: { paddingHorizontal: space.lg - 12, paddingTop: space.md, paddingBottom: space.xs },
   stale: { ...type.caption, color: colors.accent, paddingHorizontal: space.lg },
-  row: { paddingVertical: space.md, paddingHorizontal: space.lg, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
+  row: { paddingVertical: 14, paddingHorizontal: space.lg },
+  rowPressed: { backgroundColor: colors.surface, borderRadius: radius.md },
+  priceLine: { flexDirection: "row", alignItems: "center", gap: space.sm, marginTop: 3 },
+  price: { ...type.num, fontSize: 13, color: colors.textMuted },
   rowTop: { flexDirection: "row", alignItems: "center" },
-  name: { ...type.body, fontFamily: fonts.sansMedium, color: colors.text },
+  name: { ...type.body, fontFamily: fonts.sansBold, fontSize: 16, color: colors.text },
   symbolSmall: { ...type.num, fontSize: 11, color: colors.textMuted },
   symbol: { ...type.numStrong, fontSize: 15, color: colors.text },
   sub: { ...type.num, fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  right: { alignItems: "flex-end", marginLeft: space.sm, width: 96 },
-  rating: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.text, marginTop: 4 },
+  right: { alignItems: "flex-end", marginLeft: space.sm, width: 100, gap: 4 },
+  rating: { fontFamily: fonts.sansBold, fontSize: 13, color: colors.text },
   upside: { ...type.num, fontSize: 12, color: colors.textMuted },
-  metricBox: { width: 64, alignItems: "flex-end" },
-  metric: { ...type.display, fontSize: 18, color: colors.text, textAlign: "right" },
+  metricBox: { width: 68, alignItems: "flex-end", marginLeft: space.sm },
+  metric: { ...type.display, fontSize: 20, color: colors.text, textAlign: "right" },
   metricWord: { fontFamily: fonts.sansBold, fontSize: 16, color: colors.text },
-  colHead: { flexDirection: "row", paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xs },
-  colText: { fontFamily: fonts.sansMedium, fontSize: 10, color: colors.textMuted },
-  colActive: { width: 64, textAlign: "right", color: colors.accent },
+  colHead: { flexDirection: "row", paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.xs },
+  colText: { fontFamily: fonts.sansMedium, fontSize: 11, color: colors.textMuted },
+  colActive: { width: 76, textAlign: "right", color: colors.accent },
   note: { ...type.caption, color: colors.textMuted, marginTop: space.md, textAlign: "center" },
   footnote: { ...type.caption, color: colors.textMuted, padding: space.lg, lineHeight: 17 },
   modal: { flex: 1, backgroundColor: colors.background, paddingTop: 60 },

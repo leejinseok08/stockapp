@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 
-from .market import _cached, _num
+from .market import _cached, _num, get_quote
 from .stockscan import _closes_3y, get_relative, trend_signal
 
 log = logging.getLogger("stockapp.analysis")
@@ -267,7 +267,9 @@ def get_analysis(symbol: str) -> dict:
         fi = _safe(lambda: t.fast_info) or {}
         currency = _safe(lambda: fi.get("currency"))
         shares = _safe(lambda: _num(fi.get("shares")))
-        price = float(closes.iloc[-1])
+        # The live quote (Naver for Korean listings) so the note's upside matches the price on screen.
+        live = _safe(lambda: get_quote(symbol)) or {}
+        price = float(live.get("price") or closes.iloc[-1])
         eps, source = _eps_inputs(t, q_income, shares)
         annual_eps_s = annual.loc["Diluted EPS"] if annual is not None and "Diluted EPS" in annual.index else pd.Series(dtype=float)
         pes = pe_history(annual_eps_s, long)
