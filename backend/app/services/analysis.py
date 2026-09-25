@@ -23,7 +23,7 @@ import yfinance as yf
 
 from ..db import latest_snapshots, upsert_snapshots
 from .macro import KST
-from .market import _cached, _num, get_quote
+from .market import _cached, _num, get_logo, get_quote
 from .stockscan import _closes_3y, get_relative, trend_signal
 
 log = logging.getLogger("stockapp.analysis")
@@ -338,7 +338,7 @@ def get_analysis(symbol: str) -> dict:
         note = build_note(price, eps, source, pes, _safe(lambda: margin_trend(q_income)), street,
                           _next_earnings(t), trend, relative, ocf_negative, currency,
                           annual_eps=[float(v) for v in annual_eps_s.dropna()], pbr=pbr)
-        return {"symbol": symbol, "asOf": closes.index[-1].strftime("%Y-%m-%d"), **note,
+        return {"symbol": symbol, "logo": _safe(lambda: get_logo(symbol)), "asOf": closes.index[-1].strftime("%Y-%m-%d"), **note,
                 "trend": trend, "trendBacktest": trend_backtest(symbol)}
 
     return _cached(f"analysis:{symbol}", 1800, build)

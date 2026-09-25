@@ -23,7 +23,7 @@ Phone app = PWA on Cloudflare Pages: https://stockapp-i5a.pages.dev (project `st
 Without `EXPO_PUBLIC_API_URL` the app uses the deployed backend https://stockapp-ghmx.onrender.com (Render, auto-deploys on push to main, Python pinned via `PYTHON_VERSION=3.11.9`).
 
 ## Rules
-- All UI follows `mobile/DESIGN.md` (Toss-style layout on the app's dark palette: bold section titles, bands between sections, change pills, letter avatars, chips; red=up blue=down always with ▲▼, amber accent only for actions, one-line descriptions only, no emoji icons).
+- All UI follows `mobile/DESIGN.md` (Toss-style layout on the app's dark palette: bold section titles, bands between sections, change pills, logo avatars, chips; red=up blue=down always with ▲▼, amber accent only for actions, one-line descriptions only, no emoji icons).
 - Money: never sum or rank across currencies without converting. Use `fmtPrice` / `fmtMoney` in `mobile/src/format.ts` (KRW: no decimals, 억/조).
 - Charts: no smoothing, never draw values that don't exist (e.g. moving average before a full window).
 - Verify UI changes by rendering (`npm run web`), not only typecheck.

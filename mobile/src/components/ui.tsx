@@ -1,7 +1,7 @@
 // Shared building blocks for the Toss-style layout (DESIGN.md): bold section titles, thick bands
 // between sections, change pills, letter avatars and pill chips. Colors are the app's own.
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius, space, type } from "../theme";
 
 export function Section({
@@ -51,8 +51,21 @@ export function ChangePill({ value, digits = 2 }: { value: number | null | undef
   );
 }
 
-// No logos: a round avatar with the name's first letters, the same neutral for every company.
-export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
+// Company logo in a circle (Naver Securities image); the name's first letters when there's no logo
+// or it fails to load.
+export function Avatar({ name, uri, size = 40 }: { name: string; uri?: string | null; size?: number }) {
+  const [failed, setFailed] = useState(false);
+  if (uri && !failed) {
+    return (
+      <Image
+        source={{ uri }}
+        onError={() => setFailed(true)}
+        resizeMode="cover"
+        style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]}
+        accessibilityLabel={`${name} 로고`}
+      />
+    );
+  }
   // "SK하이닉스" -> "SK", "삼성전자" -> "삼", "NVIDIA" -> "NV"
   const latin = name.match(/^[A-Za-z0-9]+/);
   const label = latin ? latin[0].slice(0, 2).toUpperCase() : name.slice(0, 1);

@@ -15,7 +15,7 @@ import { api } from "../api";
 import { PriceChart } from "../components/PriceChart";
 import { RadarChart } from "../components/RadarChart";
 import { ReportSection } from "../components/ReportSection";
-import { Band, Chips, Section } from "../components/ui";
+import { Avatar, Band, Chips, Section } from "../components/ui";
 import { fmtMoney, fmtNum, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, type } from "../theme";
 import type {
@@ -191,7 +191,10 @@ export default function StockDetailScreen({ route }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: space.xxl * 2 }}>
       <View style={styles.headerBlock}>
-        <Text style={styles.name}>{fundamentals?.name || name || symbol}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+          <Avatar name={name || fundamentals?.name || symbol} uri={analysis?.logo} size={32} />
+          <Text style={styles.name}>{fundamentals?.name || name || symbol}</Text>
+        </View>
         {!!(fundamentals?.sector || fundamentals?.industry) && (
           <Text style={styles.sector}>
             {[fundamentals?.sector, fundamentals?.industry].filter(Boolean).join(" · ")}

@@ -8,7 +8,7 @@ Every UI change should follow this file. References it was built from:
 
 Layout, type and component shapes follow Toss Securities (reference: wwit.design/2021/02/16/toss):
 big bold titles, generous spacing, content grouped into sections separated by a thick band instead
-of a hairline under every row, round letter avatars, change shown as a tinted pill, pill-shaped chips
+of a hairline under every row, round logo avatars, change shown as a tinted pill, pill-shaped chips
 for choices. **Colors stay as below** (dark background, red up / blue down, amber accent).
 
 **Why dark:** the app is checked often, often at night/pre-market, and is number-dense.
@@ -26,7 +26,7 @@ Tokens: `type.hero` (price), `type.title` (screen title), `type.section` (bold s
 
 - `Section` — bold title + one-line description; draws the band above itself unless `first`.
 - `ChangePill` — "▲ 1.25%" on `upSoft`/`downSoft`; the glyph stays so direction is never color alone.
-- `Avatar` — round, neutral, first letter(s) of the name. No logos.
+- `Avatar` — company logo in a circle (Naver Securities image, `get_logo`); first letter(s) of the name when there is none.
 - `Chips` — pill chips for ranges, sorts and toggles; the selected one is filled with `surface`.
 - Descriptions are one line: what the thing is and what it's for. No explanatory paragraphs on screen;
   details belong in `docs/`.

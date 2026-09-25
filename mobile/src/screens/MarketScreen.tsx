@@ -6,16 +6,14 @@ import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { FlowBars } from "../components/FlowBars";
 import { Heatmap } from "../components/Heatmap";
-import { RiskSection } from "../components/RiskSection";
 import { SignalRow } from "../components/SignalRow";
 import { Chips, Section } from "../components/ui";
 import { fmtMoney, fmtNum, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
-import type { HeatmapData, InvestorFlows, MarketFlows, MarketOverview, RiskGauge, RootStackParamList, Signals } from "../types";
+import type { HeatmapData, InvestorFlows, MarketFlows, MarketOverview, RootStackParamList, Signals } from "../types";
 
 const CACHE_KEY = "market-overview";
 const SIGNALS_CACHE_KEY = "market-signals";
-const RISK_CACHE_KEY = "market-risk";
 const HEATMAP_CACHE_KEY = "market-heatmap";
 
 // Fetch one section; on failure fall back to the last copy saved on the device.
@@ -42,14 +40,12 @@ export default function MarketScreen() {
   const [mapId, setMapId] = useState<"US" | "KR">("US");
   const [data, setData] = useState<MarketOverview | null>(null);
   const [signals, setSignals] = useState<Signals | null>(null);
-  const [risk, setRisk] = useState<RiskGauge | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [staleMinutes, setStaleMinutes] = useState<number | null>(null);
 
   const loadSections = useCallback(() => {
     fetchOrCache(api.marketSignals, SIGNALS_CACHE_KEY, setSignals);
-    fetchOrCache(api.risk, RISK_CACHE_KEY, setRisk);
     fetchOrCache(api.heatmap, HEATMAP_CACHE_KEY, setHeatmap);
   }, []);
 
@@ -140,13 +136,6 @@ export default function MarketScreen() {
         ) : (
           <Text style={styles.note}>불러오는 중…</Text>
         )}
-      </Section>
-
-      <Section
-        title={risk ? `위험 경고 · ${risk.lit}/${risk.total} 점등 · ${risk.level}` : "위험 경고"}
-        desc="시장 스트레스 지표 5개 중 켜진 개수 · 3개 이상이면 경계"
-      >
-        {risk ? <RiskSection risk={risk} /> : <Text style={styles.note}>지표를 불러오는 중이에요…</Text>}
       </Section>
 
       <Section title="시장 온도" desc="0~100 · 70↑ 조정·공포, 40↓ 과열 · 눌러서 구성요소 보기">

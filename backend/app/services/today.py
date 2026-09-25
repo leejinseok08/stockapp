@@ -26,7 +26,7 @@ def summarize(rows: list[dict], risk: dict | None, catalysts: list[dict], today:
     cutoff = today - pd.tseries.offsets.BDay(RECENT_SESSIONS)
     for r in rows:
         t = r.get("trend") or {}
-        item = {"symbol": r["symbol"], "name": r.get("name"), "action": t.get("action"),
+        item = {"symbol": r["symbol"], "name": r.get("name"), "logo": r.get("logo"), "action": t.get("action"),
                 "position": t.get("position"), "since": t.get("since"), "asOf": t.get("asOf"),
                 "rating": (r.get("rating") or {}).get("rating")}
         if t.get("action") in ("BUY", "SELL"):
@@ -54,7 +54,7 @@ def get_today(extra: list[str]) -> dict:
         for r in rows:
             try:
                 for c in get_analysis(r["symbol"])["catalysts"]:
-                    catalysts.append({"symbol": r["symbol"], "name": r.get("name"), **c})
+                    catalysts.append({"symbol": r["symbol"], "name": r.get("name"), "logo": r.get("logo"), **c})
             except Exception:
                 pass
         try:

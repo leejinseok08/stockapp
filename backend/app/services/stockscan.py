@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 
-from .market import _cached, _num
+from .market import _cached, _num, get_logo
 
 log = logging.getLogger("stockapp.stockscan")
 
@@ -334,6 +334,7 @@ def get_scan(symbols: list[str]) -> dict:
             except Exception as e:
                 log.warning("facts %s failed: %s", sym, e)
                 row |= {"lines": {}, "quarter": None, "ocfNegativeTtm": False}
+            row["logo"] = get_logo(sym)
             try:
                 row["trend"] = get_trend(sym)
             except Exception as e:

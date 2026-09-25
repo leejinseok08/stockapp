@@ -4,11 +4,12 @@ import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
+import { RiskSection } from "../components/RiskSection";
 import { SignalBadge } from "../components/SignalBadge";
 import { Avatar, Section } from "../components/ui";
 import { fmtMoney, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
-import type { RootStackParamList, Today, TodayItem, WatchlistEntry } from "../types";
+import type { RiskGauge, RootStackParamList, Today, TodayItem, WatchlistEntry } from "../types";
 
 const CACHE_KEY = "today";
 const md = (d: string) => d.slice(5).replace("-", "/");
@@ -18,11 +19,22 @@ export default function TodayScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [data, setData] = useState<Today | null>(null);
   const [holdings, setHoldings] = useState<WatchlistEntry[]>([]);
+  const [risk, setRisk] = useState<RiskGauge | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [staleMinutes, setStaleMinutes] = useState<number | null>(null);
 
   const load = useCallback(async () => {
+    api
+      .risk()
+      .then((r) => {
+        setRisk(r);
+        writeCache("market-risk", r);
+      })
+      .catch(async () => {
+        const cached = await readCache<RiskGauge>("market-risk");
+        if (cached) setRisk(cached.data);
+      });
     api
       .watchlist()
       .then((w) => setHoldings(w.filter((i) => i.buyPrice && i.quantity)))
@@ -117,20 +129,12 @@ export default function TodayScreen() {
             )}
           </Section>
 
-          {data.risk && (
-            <Section title="위험 경고" desc="시장 스트레스 지표 5개 중 켜진 개수">
-              <Pressable
-                style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-                // Market is a sibling tab; navigate() from a tab screen reaches it directly.
-                onPress={() => (navigation as unknown as { navigate: (n: string) => void }).navigate("Market")}
-                accessibilityRole="button"
-                accessibilityLabel={`위험 경고 ${data.risk.lit}/${data.risk.total} 점등, ${data.risk.level}. 시장 탭에서 자세히 보기`}
-              >
-                <Text style={styles.big}>
-                  {data.risk.lit}/{data.risk.total} <Text style={styles.level}>{data.risk.level}</Text>
-                </Text>
-                <Text style={styles.sub}>{data.risk.litItems.length ? `점등: ${data.risk.litItems.join(", ")}` : "점등 없음"}</Text>
-              </Pressable>
+          {risk && (
+            <Section
+              title={`위험 경고 · ${risk.lit}/${risk.total} 점등 · ${risk.level}`}
+              desc="시장 스트레스 지표 5개 · 3개 이상 켜지면 경계"
+            >
+              <RiskSection risk={risk} />
             </Section>
           )}
 
@@ -150,7 +154,8 @@ export default function TodayScreen() {
                   accessibilityLabel={`${md(e.date)} ${e.name ?? e.symbol} 실적 발표`}
                 >
                   <Text style={styles.date}>{md(e.date)}</Text>
-                  <Text style={styles.name}>{e.name ?? e.symbol}</Text>
+                  <Avatar name={e.name ?? e.symbol} uri={e.logo} size={28} />
+                  <Text style={[styles.name, { marginLeft: space.sm }]}>{e.name ?? e.symbol}</Text>
                 </Pressable>
               ))
             )}
@@ -190,7 +195,7 @@ function SignalItem({ item, onPress }: { item: TodayItem; onPress: () => void })
       accessibilityRole="button"
       accessibilityLabel={`${item.name ?? item.symbol} ${item.action}, ${item.since ?? ""}부터. 리포트 보기`}
     >
-      <Avatar name={item.name ?? item.symbol} size={36} />
+      <Avatar name={item.name ?? item.symbol} uri={item.logo} size={36} />
       <View style={{ flex: 1, marginLeft: space.md }}>
         <Text style={styles.name}>{item.name ?? item.symbol}</Text>
         <Text style={styles.sub}>{item.since ? `${md(item.since)}부터` : ""}</Text>

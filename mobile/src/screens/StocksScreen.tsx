@@ -231,7 +231,7 @@ function Row({ row, sort, onPress }: { row: ListRow; sort: SortKey; onPress: () 
       accessibilityLabel={`${row.name ?? row.symbol}, 신호 ${row.trend?.action ?? "없음"}, 의견 ${r?.rating ?? "없음"}. 리포트 보기`}
     >
       <View style={styles.rowTop}>
-        <Avatar name={row.name ?? row.symbol} />
+        <Avatar name={row.name ?? row.symbol} uri={row.logo} />
         <View style={{ flex: 1, marginLeft: space.md }}>
           <Text style={styles.name} numberOfLines={1}>
             {row.name ?? row.symbol}

@@ -194,6 +194,7 @@ export type FinancialLineKey = "revenue" | "operatingIncome" | "netIncome" | "op
 
 export type ScanRow = {
   symbol: string;
+  logo?: string | null;
   name?: string;
   category?: string;
   currency?: string | null;
@@ -262,6 +263,7 @@ export type Scenario = { price: number; upside: number };
 
 export type Analysis = {
   symbol: string;
+  logo?: string | null;
   asOf: string;
   rating: "매수" | "중립" | "매도" | null;
   conviction: "높음" | "보통" | null;
@@ -297,6 +299,7 @@ export type ListRow = ScanRow & {
 
 export type TodayItem = {
   symbol: string;
+  logo?: string | null;
   name: string | null;
   action: TrendAction | null;
   position: string | null;
@@ -309,7 +312,7 @@ export type Today = {
   changed: TodayItem[];
   recent: TodayItem[];
   risk: { lit: number; total: number; level: string; litItems: string[] } | null;
-  earnings: { symbol: string; name: string | null; date: string; text: string }[];
+  earnings: { symbol: string; name: string | null; logo?: string | null; date: string; text: string }[];
   nextEarnings: { symbol: string; name: string | null; date: string; text: string } | null;
   generatedAt: string;
 };
