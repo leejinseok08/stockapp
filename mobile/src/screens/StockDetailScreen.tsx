@@ -183,7 +183,7 @@ export default function StockDetailScreen({ route, navigation }: Props) {
               onPress={remove}
               disabled={deleting}
               hitSlop={10}
-              style={{ paddingHorizontal: space.md }}
+              style={{ paddingLeft: space.md, paddingRight: space.lg }}
               accessibilityRole="button"
               accessibilityLabel={confirmDelete ? "한 번 더 누르면 목록에서 삭제" : "목록에서 삭제"}
             >

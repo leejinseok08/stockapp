@@ -30,7 +30,7 @@ export function ReportSection({ a }: { a: Analysis }) {
         </View>
         <View style={{ alignItems: "flex-end" }}>
           <Text style={styles.label}>오늘 신호</Text>
-          <SignalBadge action={a.trend?.action} large />
+          <SignalBadge action={a.trend?.action} large style={{ alignSelf: "flex-end" }} />
           {a.trend && (
             <Text style={styles.muted}>
               {a.trend.position} · {a.trend.since ? `${a.trend.since}~` : "처음부터"}
