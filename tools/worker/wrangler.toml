@@ -1,6 +1,6 @@
 # Keeps the Render free instance awake (it sleeps after 15 idle minutes, then takes 30-60 s to wake)
 # and asks the backend to send push alerts after each market's close. Free Workers plan.
-# Deploy: cd tools/worker; npx wrangler@3 deploy; npx wrangler@3 secret put CRON_SECRET  (same value as on Render)
+# Deploy: cd tools/worker; npx wrangler@3 deploy; npx wrangler@3 secret put CRON_SECRET (same as Render)
 name = "stockapp-cron"
 main = "worker.js"
 compatibility_date = "2026-09-01"

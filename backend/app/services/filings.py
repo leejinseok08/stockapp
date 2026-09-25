@@ -12,6 +12,7 @@ import io
 import json
 import logging
 import os
+import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
@@ -35,8 +36,15 @@ class FilingsUnavailable(Exception):
 
 def _get(url: str, headers: dict | None = None, timeout: int = 30) -> bytes:
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", **(headers or {})})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.read()
+    except urllib.error.HTTPError as e:
+        # SEC answers 403 "Undeclared Automated Tool" when it doesn't accept the declared contact
+        # (naver.com addresses are refused; other domains pass).
+        if e.code == 403 and "sec.gov" in url:
+            raise FilingsUnavailable("SEC가 연락처 이메일을 거부함 (SEC_CONTACT를 다른 도메인으로)") from e
+        raise
 
 
 # ---- SEC (US) ------------------------------------------------------------------------------------
@@ -412,10 +420,7 @@ def snowflake(fin: dict, price: float, fy_prices: dict[int, float]) -> dict:
 
 def get_snowflake(symbol: str) -> dict:
     def build():
-        try:
-            fin = get_financials(symbol)
-        except FilingsUnavailable as e:
-            return {"symbol": symbol, "available": False, "reason": str(e)}
+        fin = get_financials(symbol)
         import yfinance as yf
 
         closes = yf.Ticker(symbol).history(period="7y", interval="1mo")["Close"].dropna()
@@ -433,4 +438,11 @@ def get_snowflake(symbol: str) -> dict:
         return {"symbol": symbol, "available": True, "source": fin["source"], "sourceUrl": fin["url"],
                 "currency": fin["currency"], "price": price, "priceSource": "시세(시장 데이터)", **sf, "years": years}
 
-    return _cached(f"snowflake:{symbol}", 6 * 3600, build)
+    # Failures aren't cached, so a blocked or slow filing source is retried on the next open.
+    try:
+        return _cached(f"snowflake:{symbol}", 6 * 3600, build)
+    except FilingsUnavailable as e:
+        return {"symbol": symbol, "available": False, "reason": str(e)}
+    except Exception as e:
+        log.warning("snowflake %s failed: %s", symbol, e)
+        return {"symbol": symbol, "available": False, "reason": "공시 데이터를 불러오지 못했어요"}

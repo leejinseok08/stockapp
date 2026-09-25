@@ -1,6 +1,11 @@
 import axios from "axios";
 import type {
   Analysis,
+  Disclosure,
+  Dividends,
+  Performance,
+  SearchResult,
+  Snowflake,
   Fundamentals,
   HeatmapData,
   ListRow,
@@ -88,4 +93,22 @@ export const api = {
   relative: (symbol: string) =>
     client.get<Relative>(`/stocks/${encodeURIComponent(symbol)}/relative`, { timeout: 45000 }).then((r) => r.data),
 
+  search: (q: string) => client.get<SearchResult[]>("/stocks/search", { params: { q } }).then((r) => r.data),
+
+  // Six years of filings (DART / SEC) on a cold cache.
+  snowflake: (symbol: string) =>
+    client.get<Snowflake>(`/stocks/${encodeURIComponent(symbol)}/snowflake`, { timeout: 90000 }).then((r) => r.data),
+
+  disclosures: (symbol: string) =>
+    client.get<Disclosure[]>(`/stocks/${encodeURIComponent(symbol)}/disclosures`, { timeout: 45000 }).then((r) => r.data),
+
+  dividends: (symbol: string) =>
+    client.get<Dividends>(`/stocks/${encodeURIComponent(symbol)}/dividends`, { timeout: 45000 }).then((r) => r.data),
+
+  performance: () => client.get<Performance>("/watchlist/performance", { timeout: 90000 }).then((r) => r.data),
+
+  vapidKey: () => client.get<{ key: string }>("/push/vapid-public-key").then((r) => r.data.key),
+  pushSubscribe: (sub: unknown) => client.post("/push/subscribe", sub),
+  pushUnsubscribe: (endpoint: string) => client.post("/push/unsubscribe", { endpoint }),
+  pushTest: (endpoint: string) => client.post<{ sent: number }>("/push/test", { endpoint }).then((r) => r.data),
 };

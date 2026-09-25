@@ -7,7 +7,7 @@ import { minutesAgo, readCache, writeCache } from "../cache";
 import { RiskSection } from "../components/RiskSection";
 import { SignalBadge } from "../components/SignalBadge";
 import { Avatar, Section } from "../components/ui";
-import { fmtMoney, fmtTrendPct } from "../format";
+import { fmtMoney, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
 import type { RiskGauge, RootStackParamList, Today, TodayItem, WatchlistEntry } from "../types";
 
@@ -160,6 +160,27 @@ export default function TodayScreen() {
               ))
             )}
           </Section>
+
+          {!!data.dividends?.length && (
+            <Section title="배당 일정" desc="30일 안 배당락일 · 예상 = 지난 지급 간격으로 계산">
+              {data.dividends.map((d) => (
+                <Pressable
+                  key={d.symbol + d.date}
+                  style={({ pressed }) => [styles.line, pressed && styles.pressed]}
+                  onPress={() => open(d)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${md(d.date)} ${d.name ?? d.symbol} 배당락${d.estimated ? " 예상" : ""}`}
+                >
+                  <Text style={styles.date}>{md(d.date)}</Text>
+                  <Avatar name={d.name ?? d.symbol} uri={d.logo} size={28} />
+                  <Text style={[styles.name, { marginLeft: space.sm, flex: 1 }]}>{d.name ?? d.symbol}</Text>
+                  <Text style={styles.divMeta}>
+                    {d.estimated ? "예상 · " : ""}직전 {fmtPrice(d.amount, d.currency)}
+                  </Text>
+                </Pressable>
+              ))}
+            </Section>
+          )}
         </>
       )}
 
@@ -226,5 +247,6 @@ const styles = StyleSheet.create({
   num: { ...type.numStrong, fontSize: 13, marginLeft: "auto" },
   sub: { ...type.caption, color: colors.textMuted, marginTop: 2 },
   note: { ...type.caption, color: colors.textMuted, lineHeight: 17, marginTop: space.sm },
+  divMeta: { ...type.num, fontSize: 12, color: colors.textMuted },
   footnote: { ...type.caption, color: colors.textMuted, paddingHorizontal: space.lg, marginTop: space.xl, lineHeight: 17 },
 });

@@ -13,13 +13,15 @@ import {
 } from "react-native";
 import { api } from "../api";
 import { PriceChart } from "../components/PriceChart";
-import { RadarChart } from "../components/RadarChart";
+import { DisclosureSection, DividendSection, SnowflakeSection } from "../components/FilingsSections";
 import { ReportSection } from "../components/ReportSection";
 import { Avatar, Band, Chips, Section } from "../components/ui";
 import { fmtMoney, fmtNum, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, type } from "../theme";
 import type {
   Analysis,
+  Disclosure,
+  Dividends,
   FinancialLineKey,
   Fundamentals,
   HistoryPoint,
@@ -28,6 +30,7 @@ import type {
   Relative,
   RootStackParamList,
   ScanRow,
+  Snowflake,
   TrendChart,
 } from "../types";
 
@@ -58,11 +61,6 @@ function sma(values: number[], window: number): (number | null)[] {
   });
 }
 
-// yfinance ratios are fractions (0.25 = 25%).
-function fmtRatioPct(v: number | null | undefined) {
-  return v != null ? `${(v * 100).toFixed(1)}%` : "-";
-}
-
 export default function StockDetailScreen({ route }: Props) {
   const { symbol, name } = route.params;
   // 1년 is the default: it's the view that carries the 200-day line and the BUY/SELL marks.
@@ -83,6 +81,10 @@ export default function StockDetailScreen({ route }: Props) {
   const [analysisFailed, setAnalysisFailed] = useState(false);
   const [trendChart, setTrendChart] = useState<TrendChart | null>(null);
   const [news, setNews] = useState<NewsItem[]>([]);
+  const [snowflake, setSnowflake] = useState<Snowflake | null>(null);
+  const [disclosures, setDisclosures] = useState<Disclosure[]>([]);
+  const [dividends, setDividends] = useState<Dividends | null>(null);
+  const [buyDateText, setBuyDateText] = useState("");
 
   useEffect(() => {
     api
@@ -99,6 +101,12 @@ export default function StockDetailScreen({ route }: Props) {
       .then(([q]) => q && q.price != null && setQuote((prev) => ({ ...(prev ?? {}), ...q })))
       .catch(() => {});
     api.news(symbol).then((n) => setNews(n.slice(0, 6))).catch(() => {});
+    api
+      .snowflake(symbol)
+      .then(setSnowflake)
+      .catch(() => setSnowflake({ symbol, available: false, reason: "서버 응답 없음" }));
+    if (/\.K[SQ]$/.test(symbol)) api.disclosures(symbol).then(setDisclosures).catch(() => {});
+    api.dividends(symbol).then(setDividends).catch(() => {});
   }, [symbol]);
 
   useEffect(() => {
@@ -138,6 +146,7 @@ export default function StockDetailScreen({ route }: Props) {
         setBuyPriceText(entry?.buyPrice != null ? String(entry.buyPrice) : "");
         setQuantityText(entry?.quantity != null ? String(entry.quantity) : "");
         setNoteText(entry?.note ?? "");
+        setBuyDateText(entry?.buyDate ?? "");
       })
       .catch((e) => console.warn("watchlist entry load failed", e));
   }, [symbol]);
@@ -152,6 +161,7 @@ export default function StockDetailScreen({ route }: Props) {
         buyPrice: Number.isFinite(buyPrice) ? buyPrice : null,
         quantity: Number.isFinite(quantity) ? quantity : null,
         note: noteText.trim() || null,
+        buyDate: /^\d{4}-\d{2}-\d{2}$/.test(buyDateText.trim()) ? buyDateText.trim() : null,
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -185,8 +195,6 @@ export default function StockDetailScreen({ route }: Props) {
   const plPercent = hasPosition && currentPrice != null ? ((currentPrice - buyPriceNum) / buyPriceNum) * 100 : null;
 
   const screenWidth = Dimensions.get("window").width;
-  const r = fundamentals?.ratios;
-  const scores = fundamentals?.scores;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: space.xxl * 2 }}>
@@ -320,43 +328,9 @@ export default function StockDetailScreen({ route }: Props) {
             </Section>
           )}
 
-          <Section title="펀더멘털 스코어">
-            <View style={styles.radarWrap}>
-              <RadarChart
-                size={200}
-                axes={[
-                  { label: "밸류", value: scores?.valuation ?? null },
-                  { label: "수익성", value: scores?.profitability ?? null },
-                  { label: "건전성", value: scores?.health ?? null },
-                  { label: "성장성", value: scores?.growth ?? null },
-                ]}
-              />
-            </View>
-            <ScoreBar label="밸류에이션" value={scores?.valuation} />
-            <ScoreBar label="수익성" value={scores?.profitability} />
-            <ScoreBar label="재무건전성" value={scores?.health} />
-            <ScoreBar label="성장성" value={scores?.growth} />
-            <Text style={styles.note}>업종 평균이 아닌 절대 기준으로 환산한 참고 점수입니다.</Text>
-          </Section>
-
-          <Section title="주요 지표">
-            <Ledger
-              rows={[
-                ["PER", fmtNum(r?.trailingPE)],
-                ["선행 PER", fmtNum(r?.forwardPE)],
-                ["PBR", fmtNum(r?.priceToBook)],
-                ["ROE", fmtRatioPct(r?.returnOnEquity)],
-                ["영업이익률", fmtRatioPct(r?.operatingMargins)],
-                ["순이익률", fmtRatioPct(r?.profitMargins)],
-                ["매출 성장률", fmtRatioPct(r?.revenueGrowth)],
-                ["이익 성장률", fmtRatioPct(r?.earningsGrowth)],
-                ["부채비율 (D/E)", fmtNum(r?.debtToEquity)],
-                ["배당수익률", fmtRatioPct(r?.dividendYield)],
-                ["52주 최고", fmtNum(r?.fiftyTwoWeekHigh)],
-                ["52주 최저", fmtNum(r?.fiftyTwoWeekLow)],
-              ]}
-            />
-          </Section>
+          <SnowflakeSection data={snowflake} />
+          <DividendSection d={dividends} />
+          <DisclosureSection items={disclosures} />
 
           <StatementSection title="손익계산서" rows={fundamentals?.income ?? []} currency={fundamentals?.financialCurrency} />
           <StatementSection title="재무상태표" rows={fundamentals?.balance ?? []} currency={fundamentals?.financialCurrency} />
@@ -390,6 +364,15 @@ export default function StockDetailScreen({ route }: Props) {
               <Field label="매수가" value={buyPriceText} onChangeText={setBuyPriceText} />
               <Field label="수량" value={quantityText} onChangeText={setQuantityText} />
             </View>
+            <Text style={styles.fieldLabel}>매수일 (YYYY-MM-DD, 지수 비교용)</Text>
+            <TextInput
+              style={[styles.input, styles.numInput]}
+              value={buyDateText}
+              onChangeText={setBuyDateText}
+              placeholder="2026-01-02"
+              placeholderTextColor={colors.textMuted}
+              accessibilityLabel="매수일"
+            />
             {plPercent != null && (
               <Text style={[styles.plPreview, { color: trendColor(plPercent) }]}>
                 평가 수익률 {fmtTrendPct(plPercent)}
@@ -435,19 +418,6 @@ function Field({ label, value, onChangeText }: { label: string; value: string; o
         placeholderTextColor={colors.textMuted}
         accessibilityLabel={label}
       />
-    </View>
-  );
-}
-
-function ScoreBar({ label, value }: { label: string; value: number | null | undefined }) {
-  const pct = value != null ? Math.max(0, Math.min(100, value)) : 0;
-  return (
-    <View style={styles.scoreRow} accessible accessibilityLabel={`${label} ${value != null ? Math.round(value) : "정보 없음"}점`}>
-      <Text style={styles.scoreLabel}>{label}</Text>
-      <View style={styles.scoreTrack}>
-        <View style={[styles.scoreFill, { width: `${pct}%` }]} />
-      </View>
-      <Text style={styles.scoreValue}>{value != null ? Math.round(value) : "-"}</Text>
     </View>
   );
 }
@@ -555,12 +525,6 @@ const styles = StyleSheet.create({
     marginTop: space.md,
   },
   saveBtnText: { fontFamily: fonts.sansBold, color: colors.onAccent, fontSize: 14 },
-  radarWrap: { alignItems: "center", marginBottom: space.md },
-  scoreRow: { flexDirection: "row", alignItems: "center", paddingVertical: 6 },
-  scoreLabel: { ...type.caption, color: colors.textMuted, width: 72 },
-  scoreTrack: { flex: 1, height: 4, backgroundColor: colors.hairline, borderRadius: 2, overflow: "hidden" },
-  scoreFill: { height: 4, backgroundColor: colors.text },
-  scoreValue: { ...type.numStrong, color: colors.text, fontSize: 12, width: 32, textAlign: "right" },
   note: { ...type.caption, color: colors.textMuted, marginTop: space.sm },
   ledgerRow: {
     flexDirection: "row",

@@ -66,7 +66,9 @@ Rules:
 - Line charts are **not smoothed** (bezier interpolation invents prices that never traded).
 - Label series directly on or next to the chart instead of a separate legend where possible.
 - No gradients, shadows, or fills that encode nothing (data-ink ratio).
-- Radar chart is for the at-a-glance shape only; the exact scores are always shown as bars (position on a common scale is the most accurate encoding).
+- Radar chart is for the at-a-glance shape only; the exact scores are always shown next to it (snowflake: 6 pips per axis, each check with its filed number).
+- Price charts have a touch/hover crosshair: vertical rule, dot on the line, one tooltip with date, close and the average line.
+- Estimated values (e.g. next ex-dividend date inferred from past intervals) are labeled "예상".
 - A KPI is always shown with its baseline (e.g. P/L next to cost basis).
 
 ## Interaction and accessibility

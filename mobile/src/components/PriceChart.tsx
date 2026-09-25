@@ -1,5 +1,6 @@
-import React from "react";
-import Svg, { Circle, Line, Polyline, Text as SvgText } from "react-native-svg";
+import React, { useState } from "react";
+import { GestureResponderEvent, View } from "react-native";
+import Svg, { Circle, Line, Polyline, Rect, Text as SvgText } from "react-native-svg";
 import { fmtPrice } from "../format";
 import { colors, fonts } from "../theme";
 
@@ -14,14 +15,17 @@ type Props = {
   height?: number;
 };
 
-const GUTTER_RIGHT = 56;
 const GUTTER_BOTTOM = 18;
 const PAD_TOP = 8;
 
 // Unsmoothed line: straight segments between real closes, no interpolated prices.
 export function PriceChart({ times, closes, ma, marks, currency, width, height = 190 }: Props) {
+  // Crosshair: touch (or hover on web) shows that day's date and close; release hides it.
+  const [hover, setHover] = useState<number | null>(null);
   if (closes.length < 2) return null;
 
+  // Right gutter fits the longest axis label (KRW prices run to 7+ digits).
+  const GUTTER_RIGHT = Math.max(56, fmtPrice(Math.max(...closes), currency).length * 6.4 + 10);
   const plotW = width - GUTTER_RIGHT;
   const plotH = height - GUTTER_BOTTOM - PAD_TOP;
   const values = [...closes, ...((ma ?? []).filter((v) => v != null) as number[])];
@@ -41,7 +45,44 @@ export function PriceChart({ times, closes, ma, marks, currency, width, height =
   const dateLabel = (t: number) => new Date(t).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" });
   const mid = Math.floor((closes.length - 1) / 2);
 
+  const pick = (px: number) => setHover(Math.max(0, Math.min(closes.length - 1, Math.round((px / plotW) * (closes.length - 1)))));
+  const onTouch = (e: GestureResponderEvent) => pick(e.nativeEvent.locationX);
+  const web = {
+    onMouseMove: (e: { nativeEvent: { offsetX: number } }) => pick(e.nativeEvent.offsetX),
+    onMouseLeave: () => setHover(null),
+  };
+
+  let tip: React.ReactNode = null;
+  if (hover != null) {
+    const hx = x(hover);
+    const hy = y(closes[hover]);
+    const dt = new Date(times[hover]);
+    const full = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    const maV = ma?.[hover];
+    const text = `${full}  ${fmtPrice(closes[hover], currency)}${maV != null ? `  평균 ${fmtPrice(maV, currency)}` : ""}`;
+    const boxW = Math.min(plotW, text.length * 6.2 + 12);
+    const bx = Math.max(0, Math.min(plotW - boxW, hx - boxW / 2));
+    tip = (
+      <>
+        <Line x1={hx} y1={PAD_TOP} x2={hx} y2={PAD_TOP + plotH} stroke={colors.textMuted} strokeWidth={1} />
+        <Circle cx={hx} cy={hy} r={4} fill={colors.text} stroke={colors.background} strokeWidth={2} />
+        <Rect x={bx} y={0} width={boxW} height={18} rx={4} fill={colors.surface} stroke={colors.hairline} />
+        <SvgText x={bx + boxW / 2} y={13} fill={colors.text} fontSize={11} fontFamily={fonts.mono} textAnchor="middle">
+          {text}
+        </SvgText>
+      </>
+    );
+  }
+
   return (
+    <View
+      onStartShouldSetResponder={() => true}
+      onResponderGrant={onTouch}
+      onResponderMove={onTouch}
+      onResponderRelease={() => setHover(null)}
+      onResponderTerminate={() => setHover(null)}
+      {...(web as object)}
+    >
     <Svg width={width} height={height} accessibilityLabel="가격 차트">
       <Line x1={0} y1={y(max)} x2={plotW} y2={y(max)} stroke={colors.hairline} strokeWidth={1} />
       <Line x1={0} y1={y(min)} x2={plotW} y2={y(min)} stroke={colors.hairline} strokeWidth={1} />
@@ -86,6 +127,8 @@ export function PriceChart({ times, closes, ma, marks, currency, width, height =
           {dateLabel(times[i])}
         </SvgText>
       ))}
+      {tip}
     </Svg>
+    </View>
   );
 }

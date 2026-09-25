@@ -29,16 +29,19 @@ const num = (s: string) => {
   return Number.isFinite(v) ? v : null;
 };
 
-function maturity(joinDate: string): { date: string; days: number } | null {
+function maturity(joinDate: string): { date: string; days: number; elapsed: number } | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(joinDate.trim());
   if (!m) return null;
   const end = new Date(Number(m[1]) + 3, Number(m[2]) - 1, Number(m[3]));
+  const start = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
   const days = Math.ceil((end.getTime() - Date.now()) / 86400000);
+  const elapsed = (Date.now() - start.getTime()) / (end.getTime() - start.getTime());
   const pad = (n: number) => String(n).padStart(2, "0");
-  return { date: `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`, days };
+  return { date: `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`, days, elapsed };
 }
 
-export function IsaSection() {
+// gainKRW: unrealized P/L of the KRW-listed holdings (what ISA can hold), for the tax-free meter.
+export function IsaSection({ gainKRW }: { gainKRW?: number | null }) {
   const [s, setS] = useState<IsaSettings>(DEFAULTS);
   const [editing, setEditing] = useState(false);
 
@@ -64,21 +67,25 @@ export function IsaSection() {
       <Row
         label="올해 납입"
         value={paidYear != null && annual ? `${fmtMoney(paidYear, "KRW")} / ${fmtMoney(annual, "KRW")}` : "설정에서 입력"}
+        progress={paidYear != null && annual ? paidYear / annual : undefined}
         sub={paidYear != null && annual ? `${Math.round((paidYear / annual) * 100)}% 사용 · 남은 한도 ${fmtMoney(Math.max(annual - paidYear, 0), "KRW")}` : undefined}
       />
       <Row
         label="누적 납입"
         value={paidTotal != null && total ? `${fmtMoney(paidTotal, "KRW")} / ${fmtMoney(total, "KRW")}` : "설정에서 입력"}
+        progress={paidTotal != null && total ? paidTotal / total : undefined}
       />
       <Row
         label="의무가입 만료 (3년)"
         value={mat ? mat.date : "가입일 입력 필요"}
+        progress={mat ? mat.elapsed : undefined}
         sub={mat ? (mat.days > 0 ? `D-${mat.days} · 만료 전 해지하면 비과세 혜택이 사라져요` : "만료됨 · 해지·연장·연금 이전 가능") : undefined}
       />
       <Row
         label="비과세 한도"
         value={num(s.taxFree) != null ? fmtMoney(num(s.taxFree), "KRW") : "-"}
-        sub="계좌 전체 손익을 합산해 해지 때 과세 · 한도 초과분은 9.9% 분리과세"
+        progress={gainKRW != null && gainKRW > 0 && num(s.taxFree) ? gainKRW / num(s.taxFree)! : undefined}
+        sub={`${gainKRW != null ? `국내 상장 보유분 평가이익 ${fmtMoney(gainKRW, "KRW")} · ` : ""}손익 합산해 해지 때 과세 · 초과분 9.9% 분리과세`}
       />
       <Row
         label="만기 후"
@@ -118,13 +125,18 @@ export function IsaSection() {
   );
 }
 
-function Row({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Row({ label, value, sub, progress }: { label: string; value: string; sub?: string; progress?: number }) {
   return (
     <View style={styles.row} accessible accessibilityLabel={`${label} ${value}${sub ? `, ${sub}` : ""}`}>
       <View style={styles.rowTop}>
         <Text style={styles.label}>{label}</Text>
         <Text style={[styles.value, !/\d/.test(value) && styles.valueText]}>{value}</Text>
       </View>
+      {progress != null && (
+        <View style={styles.track}>
+          <View style={[styles.fill, { width: `${Math.max(0, Math.min(1, progress)) * 100}%` }]} />
+        </View>
+      )}
       {!!sub && <Text style={styles.sub}>{sub}</Text>}
     </View>
   );
@@ -153,6 +165,8 @@ const styles = StyleSheet.create({
   label: { ...type.body, fontSize: 13, color: colors.textMuted },
   value: { ...type.numStrong, fontSize: 13, color: colors.text, textAlign: "right" },
   valueText: { fontFamily: fonts.sansMedium },
+  track: { height: 4, borderRadius: 2, backgroundColor: colors.hairline, marginTop: space.sm, overflow: "hidden" },
+  fill: { height: 4, borderRadius: 2, backgroundColor: colors.text },
   sub: { ...type.caption, color: colors.textMuted, marginTop: space.xs, lineHeight: 16 },
   note: { ...type.caption, color: colors.textMuted, marginTop: space.md, lineHeight: 17 },
   editLink: { marginTop: space.md, alignSelf: "flex-start" },

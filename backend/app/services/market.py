@@ -273,8 +273,8 @@ def get_news(symbol: str) -> list[dict]:
     return _cached(f"news:{symbol}", 600, fetch)
 
 
-def get_logo(symbol: str) -> str | None:
-    """Company logo from Naver Securities (PNG URL). Korean codes use the domestic API; US
+def naver_basic(symbol: str) -> dict:
+    """Naver Securities' basic record (Korean name, logo). Korean codes use the domestic API; US
     symbols try the NASDAQ code (".O") first, then the plain NYSE code. Cached for a week."""
     import json
     import urllib.request
@@ -289,10 +289,19 @@ def get_logo(symbol: str) -> str | None:
             try:
                 req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
                 d = json.loads(urllib.request.urlopen(req, timeout=6).read())
-                if d.get("itemLogoPngUrl"):
-                    return d["itemLogoPngUrl"]
+                if d.get("stockName") or d.get("itemLogoPngUrl"):
+                    return d
             except Exception:
                 continue
-        return None
+        return {}
 
-    return _cached(f"logo:{symbol}", 7 * 24 * 3600, fetch)
+    return _cached(f"naver:{symbol}", 7 * 24 * 3600, fetch)
+
+
+def get_logo(symbol: str) -> str | None:
+    return naver_basic(symbol).get("itemLogoPngUrl")
+
+
+def get_name(symbol: str) -> str | None:
+    """Korean display name for listings outside tickers.UNIVERSE (e.g. added through search)."""
+    return naver_basic(symbol).get("stockName")

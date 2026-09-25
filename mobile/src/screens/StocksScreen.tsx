@@ -1,8 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Modal, Pressable, RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, FlatList, Modal, Pressable, RefreshControl, SectionList, StyleSheet, Text, TextInput, View } from "react-native";
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { SignalBadge } from "../components/SignalBadge";
@@ -45,6 +45,21 @@ export default function StocksScreen() {
   const [staleMinutes, setStaleMinutes] = useState<number | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [universe, setUniverse] = useState<Ticker[]>([]);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Ticker[] | null>(null);
+
+  // Any KOSPI/KOSDAQ/NYSE/NASDAQ listing, searched as you type (short pause first).
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) return setResults(null);
+    const id = setTimeout(() => {
+      api
+        .search(q)
+        .then((r) => setResults(r.map((x) => ({ symbol: x.symbol, name: x.name, category: x.market }) as Ticker)))
+        .catch(() => setResults([]));
+    }, 250);
+    return () => clearTimeout(id);
+  }, [query]);
 
   const load = useCallback(async () => {
     try {
@@ -85,6 +100,7 @@ export default function StocksScreen() {
     }
     return Array.from(by.entries()).map(([title, data]) => ({ title, data }));
   }, [universe, groupSymbols]);
+  const shown = results ? [{ title: results.length ? "검색 결과" : "검색 결과 없음", data: results }] : sections;
 
   const toggle = async (symbol: string) => {
     if (watched.has(symbol)) await api.removeFromWatchlist(symbol);
@@ -159,9 +175,20 @@ export default function StocksScreen() {
               <Text style={styles.close}>닫기</Text>
             </Pressable>
           </View>
+          <TextInput
+            style={styles.search}
+            value={query}
+            onChangeText={setQuery}
+            placeholder="종목명 또는 코드 (국내·미국 전체)"
+            placeholderTextColor={colors.textMuted}
+            autoCorrect={false}
+            autoCapitalize="none"
+            accessibilityLabel="종목 검색"
+          />
           <Text style={[styles.note, { paddingHorizontal: space.lg }]}>빅테크 9개는 항상 목록에 있어요.</Text>
           <SectionList
-            sections={sections}
+            sections={shown}
+            keyboardShouldPersistTaps="handled"
             keyExtractor={(t) => t.symbol}
             renderSectionHeader={({ section }) => <Text style={styles.pickerSection}>{section.title}</Text>}
             renderItem={({ item }) => {
@@ -173,9 +200,12 @@ export default function StocksScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`${item.name} ${on ? "목록에서 빼기" : "목록에 추가"}`}
                 >
-                  <View>
-                    <Text style={styles.symbol}>{item.symbol}</Text>
-                    <Text style={styles.sub}>{item.name}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.pickerName}>{item.name || item.symbol}</Text>
+                    <Text style={styles.sub}>
+                      {item.symbol}
+                      {results && item.category ? ` · ${item.category}` : ""}
+                    </Text>
                   </View>
                   <Feather name={on ? "check-circle" : "plus-circle"} size={20} color={on ? colors.accent : colors.textMuted} />
                 </Pressable>
@@ -268,6 +298,7 @@ const styles = StyleSheet.create({
   name: { ...type.body, fontFamily: fonts.sansBold, fontSize: 16, color: colors.text },
   symbolSmall: { ...type.num, fontSize: 11, color: colors.textMuted },
   symbol: { ...type.numStrong, fontSize: 15, color: colors.text },
+  pickerName: { ...type.body, fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text },
   sub: { ...type.num, fontSize: 12, color: colors.textMuted, marginTop: 2 },
   right: { alignItems: "flex-end", marginLeft: space.sm, width: 100, gap: 4 },
   rating: { fontFamily: fonts.sansBold, fontSize: 13, color: colors.text },
@@ -283,6 +314,17 @@ const styles = StyleSheet.create({
   modal: { flex: 1, backgroundColor: colors.background, paddingTop: 60 },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: space.lg, marginBottom: space.sm },
   close: { fontFamily: fonts.sansMedium, color: colors.accent, fontSize: 15 },
+  search: {
+    marginHorizontal: space.lg,
+    marginBottom: space.sm,
+    backgroundColor: colors.surface,
+    color: colors.text,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
+    paddingVertical: 12,
+    fontFamily: fonts.sans,
+    fontSize: 15,
+  },
   pickerSection: { ...type.section, paddingHorizontal: space.lg, paddingTop: space.xl, paddingBottom: space.xs, backgroundColor: colors.background },
   pickerRow: {
     flexDirection: "row",

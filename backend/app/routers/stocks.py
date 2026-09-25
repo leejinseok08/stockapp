@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 
 from ..db import WatchlistItem, get_session
 
-from ..services.market import HISTORY_RANGES, get_compare_rows, get_fundamentals, get_history, get_news, get_quote, get_quotes
+from ..services.market import HISTORY_RANGES, get_compare_rows, get_fundamentals, get_history, get_name, get_news, get_quote, get_quotes
 from ..services.analysis import get_analysis
 from ..services.extras import get_dividends, search
 from ..services.filings import dart_disclosures, get_snowflake
@@ -51,7 +51,8 @@ def stock_list(session: Session = Depends(get_session)):
     rows = []
     for r in result["rows"]:
         q = quotes.get(r["symbol"]) or {}
-        rows.append({**r, **{k: v for k, v in UNIVERSE_BY_SYMBOL.get(r["symbol"], {}).items() if k != "symbol"},
+        meta = UNIVERSE_BY_SYMBOL.get(r["symbol"]) or {"name": get_name(r["symbol"]) or r.get("name")}
+        rows.append({**r, **{k: v for k, v in meta.items() if k != "symbol"},
                      "price": q.get("price"), "changePercent": q.get("changePercent"),
                      "quoteCurrency": q.get("currency"), "watched": r["symbol"] in watched})
     return {"rows": rows}

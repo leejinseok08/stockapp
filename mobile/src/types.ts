@@ -19,6 +19,7 @@ export type PortfolioFields = {
   buyPrice: number | null;
   quantity: number | null;
   note: string | null;
+  buyDate?: string | null;
 };
 
 export type WatchlistEntry = Quote & Partial<Ticker> & PortfolioFields;
@@ -316,6 +317,7 @@ export type Today = {
   risk: { lit: number; total: number; level: string; litItems: string[] } | null;
   earnings: { symbol: string; name: string | null; logo?: string | null; date: string; text: string }[];
   nextEarnings: { symbol: string; name: string | null; date: string; text: string } | null;
+  dividends?: { symbol: string; name: string | null; logo?: string | null; date: string; estimated: boolean; amount: number | null; currency: string | null }[];
   generatedAt: string;
 };
 
@@ -327,3 +329,70 @@ export type HeatmapMarket = {
 };
 
 export type HeatmapData = { markets: HeatmapMarket[]; generatedAt: string };
+
+export type SearchResult = { symbol: string; name: string; market: string; nation: "KOR" | "USA" };
+
+export type SnowflakeCheck = { label: string; pass: boolean; detail: string };
+export type SnowflakeAxis = { label: string; score: number; checks: SnowflakeCheck[] };
+export type FilingYear = {
+  year: number;
+  periodEnd?: string;
+  form?: string;
+  revenue?: number;
+  operatingIncome?: number;
+  netIncome?: number;
+  eps?: number;
+  ocf?: number;
+  equity?: number;
+  debt?: number;
+  dps?: number;
+};
+export type Snowflake =
+  | { symbol: string; available: false; reason: string }
+  | {
+      symbol: string;
+      available: true;
+      source: string;
+      sourceUrl: string;
+      currency: string;
+      price: number;
+      priceSource: string;
+      axes: Record<"value" | "growth" | "past" | "health" | "dividend", SnowflakeAxis>;
+      total: number;
+      metrics: Record<string, number | null>;
+      years: FilingYear[];
+    };
+
+export type Disclosure = { title: string; date: string; filer: string; url: string };
+
+export type Dividends = {
+  symbol: string;
+  currency: string | null;
+  pays: boolean;
+  lastExDate?: string;
+  lastAmount?: number;
+  ttm?: number;
+  frequency?: string;
+  nextExDate?: string | null;
+  nextEstimated?: boolean;
+  yieldTTM?: number;
+  history?: { date: string; amount: number }[];
+};
+
+export type Performance = {
+  usdkrw: number | null;
+  totalCostKRW: number;
+  totalValueKRW: number;
+  totalReturn: number | null;
+  rows: {
+    symbol: string;
+    currency: string;
+    cost: number;
+    value: number;
+    return: number | null;
+    buyDate: string | null;
+    benchmark: { symbol: string; name: string; return: number } | null;
+    excess: number | null;
+    valueKRW: number | null;
+  }[];
+};

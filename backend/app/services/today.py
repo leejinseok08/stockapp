@@ -19,6 +19,30 @@ from .stockscan import get_list
 
 RECENT_SESSIONS = 5
 EARNINGS_DAYS = 14
+DIVIDEND_DAYS = 30
+
+
+def upcoming_dividends(rows: list[dict], today: pd.Timestamp) -> list[dict]:
+    """Ex-dividend dates within DIVIDEND_DAYS for the listed stocks and ETFs; estimated ones say so."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    from .extras import get_dividends
+
+    def one(r):
+        try:
+            d = get_dividends(r["symbol"])
+        except Exception:
+            return None
+        if not d.get("pays") or not d.get("nextExDate"):
+            return None
+        if not today <= pd.Timestamp(d["nextExDate"]) <= today + pd.Timedelta(days=DIVIDEND_DAYS):
+            return None
+        return {"symbol": r["symbol"], "name": r.get("name"), "logo": r.get("logo"), "date": d["nextExDate"],
+                "estimated": d.get("nextEstimated"), "amount": d.get("lastAmount"), "currency": d.get("currency")}
+
+    with ThreadPoolExecutor(max_workers=3) as ex:
+        found = [x for x in ex.map(one, rows) if x]
+    return sorted(found, key=lambda x: x["date"])
 
 
 def summarize(rows: list[dict], risk: dict | None, catalysts: list[dict], today: pd.Timestamp) -> dict:
@@ -50,6 +74,12 @@ def get_today(extra: list[str]) -> dict:
     def build():
         today = pd.Timestamp(datetime.now(KST).date())
         rows = get_list(extra)["rows"]
+        # Korean display names (the app's list, Naver for anything added through search), not Yahoo's.
+        from ..tickers import UNIVERSE_BY_SYMBOL
+        from .market import get_name
+
+        rows = [{**r, "name": UNIVERSE_BY_SYMBOL.get(r["symbol"], {}).get("name") or get_name(r["symbol"]) or r.get("name")}
+                for r in rows]
         catalysts = []
         for r in rows:
             try:
@@ -61,7 +91,7 @@ def get_today(extra: list[str]) -> dict:
             risk = get_risk()
         except Exception:
             risk = None
-        return {**summarize(rows, risk, catalysts, today),
+        return {**summarize(rows, risk, catalysts, today), "dividends": upcoming_dividends(rows, today),
                 "generatedAt": datetime.now(KST).isoformat(timespec="minutes")}
 
     return _cached("today:" + ",".join(sorted(extra)), 900, build)
