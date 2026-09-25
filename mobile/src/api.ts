@@ -6,6 +6,7 @@ import type {
   Dividends,
   Performance,
   SearchResult,
+  SwingScan,
   Snowflake,
   Fundamentals,
   HeatmapData,
@@ -71,6 +72,8 @@ export const api = {
   marketSignals: () => client.get<Signals>("/market/signals", { timeout: 45000 }).then((r) => r.data),
 
   heatmap: () => client.get<HeatmapData>("/market/heatmap", { timeout: 60000 }).then((r) => r.data),
+
+  swing: () => client.get<Partial<Record<"KR" | "US", SwingScan>>>("/swing", { timeout: 45000 }).then((r) => r.data),
 
   isaPlan: () => client.get<IsaPlan>("/market/isa-plan", { timeout: 60000 }).then((r) => r.data),
 

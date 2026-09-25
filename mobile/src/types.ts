@@ -413,3 +413,26 @@ export type IsaPlanItem = {
   ratio?: number | null;
 };
 export type IsaPlan = { active: boolean; items: IsaPlanItem[]; rule: string; backtestVsPlain: number; generatedAt: string };
+
+export type SwingRecord = {
+  pass: boolean;
+  trades: number;
+  win: number;
+  avg: number;
+  median: number;
+  edge: number;
+  days: number;
+  pf: number | null;
+  portfolio?: { cagr: number; mdd: number; bhCagr: number; bhMdd: number } | null;
+};
+export type SwingCandidate = { symbol: string; name: string | null; close: number; order: string; limit: number | null; date: string };
+export type SwingGroup = { key: string; name: string; source: string; plan: string; record: SwingRecord; count: number; candidates: SwingCandidate[] };
+export type SwingScan = {
+  market: "KR" | "US";
+  asOf: string | null;
+  scanned: number;
+  techniques: { key: string; name: string }[];
+  excluded: { key: string; name: string; record?: SwingRecord | null }[];
+  groups: SwingGroup[];
+  generatedAt: string;
+};

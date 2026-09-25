@@ -6,10 +6,11 @@ import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { RiskSection } from "../components/RiskSection";
 import { SignalBadge } from "../components/SignalBadge";
+import { SwingSection } from "../components/SwingSection";
 import { Avatar, Section } from "../components/ui";
 import { fmtMoney, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
-import type { RiskGauge, RootStackParamList, Today, TodayItem, WatchlistEntry } from "../types";
+import type { RiskGauge, RootStackParamList, SwingScan, Today, TodayItem, WatchlistEntry } from "../types";
 
 const CACHE_KEY = "today";
 const md = (d: string) => d.slice(5).replace("-", "/");
@@ -20,6 +21,7 @@ export default function TodayScreen() {
   const [data, setData] = useState<Today | null>(null);
   const [holdings, setHoldings] = useState<WatchlistEntry[]>([]);
   const [risk, setRisk] = useState<RiskGauge | null>(null);
+  const [swing, setSwing] = useState<Partial<Record<"KR" | "US", SwingScan>>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [staleMinutes, setStaleMinutes] = useState<number | null>(null);
@@ -35,6 +37,7 @@ export default function TodayScreen() {
         const cached = await readCache<RiskGauge>("market-risk");
         if (cached) setRisk(cached.data);
       });
+    api.swing().then(setSwing).catch(() => {});
     api
       .watchlist()
       .then((w) => setHoldings(w.filter((i) => i.buyPrice && i.quantity)))
@@ -128,6 +131,8 @@ export default function TodayScreen() {
               </>
             )}
           </Section>
+
+          <SwingSection scans={swing} onOpen={(symbol, name) => open({ symbol, name })} />
 
 
           <Section title="실적 발표" desc="2주 안에 발표하는 종목">

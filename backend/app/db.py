@@ -46,6 +46,27 @@ class PushSubscription(SQLModel, table=True):
     auth: str
 
 
+class AppState(SQLModel, table=True):
+    """Small JSON documents the app computes in batches (e.g. the daily swing scan per market)."""
+
+    key: str = Field(primary_key=True)
+    value: str
+    updated: str
+
+
+def put_state(key: str, value: str, updated: str) -> None:
+    with Session(engine) as session:
+        row = session.get(AppState, key) or AppState(key=key, value=value, updated=updated)
+        row.value, row.updated = value, updated
+        session.add(row)
+        session.commit()
+
+
+def get_state(key: str) -> "AppState | None":
+    with Session(engine) as session:
+        return session.get(AppState, key)
+
+
 _ADDED_COLUMNS = {"buy_price": "FLOAT", "quantity": "FLOAT", "note": "VARCHAR", "buy_date": "VARCHAR"}
 
 

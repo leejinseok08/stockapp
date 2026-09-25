@@ -12,7 +12,7 @@ listed base fees (KR 0.009%, US 0.07% per side) in case the event ends.
 Not modeled: US capital gains tax (22% over 2.5M KRW/yr, realized gains only - which favors
 buy-and-hold further) and dividends beyond the adjusted prices.
 
-Run: python -m app.services.swing_bt [summary|json]
+Run: python -m app.services.swing_bt_bigcaps [summary|json]
 """
 
 import json
@@ -32,7 +32,7 @@ from .stockscan import TREND, trend_frame
 CASH_RATE = 0.025
 START = "2010-01-01"
 PERIODS = {"2010~2018": ("2010-01-01", "2018-12-31"), "2019~": ("2019-01-01", None)}
-OUT = Path(__file__).resolve().parent.parent / "data" / "swing_backtest.json"
+OUT = Path(__file__).resolve().parent.parent / "data" / "swing_backtest_bigcaps.json"
 
 COSTS = {
     # (buy side, sell side) as fractions of the traded amount
