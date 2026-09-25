@@ -61,7 +61,7 @@ function sma(values: number[], window: number): (number | null)[] {
   });
 }
 
-export default function StockDetailScreen({ route }: Props) {
+export default function StockDetailScreen({ route, navigation }: Props) {
   const { symbol, name } = route.params;
   // 1년 is the default: it's the view that carries the 200-day line and the BUY/SELL marks.
   const [range, setRange] = useState("1y");
@@ -85,6 +85,9 @@ export default function StockDetailScreen({ route }: Props) {
   const [disclosures, setDisclosures] = useState<Disclosure[]>([]);
   const [dividends, setDividends] = useState<Dividends | null>(null);
   const [buyDateText, setBuyDateText] = useState("");
+  const [inWatchlist, setInWatchlist] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     api
@@ -143,6 +146,7 @@ export default function StockDetailScreen({ route }: Props) {
       .then((list) => {
         const entry = list.find((w) => w.symbol === symbol);
         if (entry) setQuote(entry);
+        setInWatchlist(!!entry);
         setBuyPriceText(entry?.buyPrice != null ? String(entry.buyPrice) : "");
         setQuantityText(entry?.quantity != null ? String(entry.quantity) : "");
         setNoteText(entry?.note ?? "");
@@ -151,12 +155,54 @@ export default function StockDetailScreen({ route }: Props) {
       .catch((e) => console.warn("watchlist entry load failed", e));
   }, [symbol]);
 
+  // Header 삭제: first tap arms it (3 s), second tap removes the stock from the list and goes back.
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const id = setTimeout(() => setConfirmDelete(false), 3000);
+    return () => clearTimeout(id);
+  }, [confirmDelete]);
+
+  useEffect(() => {
+    const remove = async () => {
+      if (!confirmDelete) return setConfirmDelete(true);
+      setDeleting(true);
+      try {
+        await api.removeFromWatchlist(symbol);
+        navigation.goBack();
+      } catch (e) {
+        console.warn("remove failed", e);
+        setDeleting(false);
+        setConfirmDelete(false);
+      }
+    };
+    navigation.setOptions({
+      // Big-tech 9 stay on the list regardless, so only stocks the owner added get 삭제.
+      headerRight: inWatchlist && fin && !fin.inGroup
+        ? () => (
+            <Pressable
+              onPress={remove}
+              disabled={deleting}
+              hitSlop={10}
+              style={{ paddingHorizontal: space.md }}
+              accessibilityRole="button"
+              accessibilityLabel={confirmDelete ? "한 번 더 누르면 목록에서 삭제" : "목록에서 삭제"}
+            >
+              <Text style={[styles.deleteText, confirmDelete && styles.deleteArmed]}>
+                {deleting ? "삭제 중…" : confirmDelete ? "삭제 확인" : "삭제"}
+              </Text>
+            </Pressable>
+          )
+        : undefined,
+    });
+  }, [navigation, inWatchlist, fin, confirmDelete, deleting, symbol]);
+
   const savePosition = async () => {
     setSaving(true);
     try {
       const buyPrice = buyPriceText.trim() ? parseFloat(buyPriceText) : null;
       const quantity = quantityText.trim() ? parseFloat(quantityText) : null;
       await api.addToWatchlist(symbol); // idempotent; PATCH needs the row to exist
+      setInWatchlist(true);
       await api.updateWatchlistItem(symbol, {
         buyPrice: Number.isFinite(buyPrice) ? buyPrice : null,
         quantity: Number.isFinite(quantity) ? quantity : null,
@@ -524,6 +570,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: space.md,
   },
+  deleteText: { fontFamily: fonts.sansMedium, fontSize: 15, color: colors.textMuted },
+  deleteArmed: { color: colors.accent, fontFamily: fonts.sansBold },
   saveBtnText: { fontFamily: fonts.sansBold, color: colors.onAccent, fontSize: 14 },
   note: { ...type.caption, color: colors.textMuted, marginTop: space.sm },
   ledgerRow: {

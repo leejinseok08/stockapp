@@ -102,11 +102,30 @@ export default function StocksScreen() {
   }, [universe, groupSymbols]);
   const shown = results ? [{ title: results.length ? "검색 결과" : "검색 결과 없음", data: results }] : sections;
 
+  // The list takes up to a minute to recompute for a new stock, so the picker reflects the change
+  // right away and the list catches up in the background.
+  const [override, setOverride] = useState<Record<string, boolean>>({});
+  const [failed, setFailed] = useState<string | null>(null);
+  const isOn = (symbol: string) => override[symbol] ?? watched.has(symbol);
   const toggle = async (symbol: string) => {
-    if (watched.has(symbol)) await api.removeFromWatchlist(symbol);
-    else await api.addToWatchlist(symbol);
-    await load();
+    const next = !isOn(symbol);
+    setOverride((o) => ({ ...o, [symbol]: next }));
+    setFailed(null);
+    try {
+      if (next) await api.addToWatchlist(symbol);
+      else await api.removeFromWatchlist(symbol);
+    } catch (e) {
+      console.warn("watchlist toggle failed", e);
+      setOverride((o) => ({ ...o, [symbol]: !next }));
+      setFailed(symbol);
+      return;
+    }
+    load().then(() => setOverride((o) => {
+      const { [symbol]: _, ...rest } = o;
+      return rest;
+    }));
   };
+  const adding = Object.entries(override).filter(([s, on]) => on && !watched.has(s)).length;
 
   const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
 
@@ -129,6 +148,7 @@ export default function StocksScreen() {
         <Chips options={SORTS} value={sort} onChange={setSort} labelFor={(l) => `${l} 순으로 정렬`} />
       </View>
       {staleMinutes != null && <Text style={styles.stale}>오프라인 · {staleMinutes}분 전 데이터</Text>}
+      {adding > 0 && <Text style={styles.stale}>{adding}개 추가 중 · 신호와 점수를 계산하고 있어요</Text>}
       <View style={styles.colHead}>
         <Text style={[styles.colText, { flex: 1 }]}>종목</Text>
         <Text style={[styles.colText, { width: 100, textAlign: "right" }]}>그 밖의 값</Text>
@@ -185,20 +205,24 @@ export default function StocksScreen() {
             autoCapitalize="none"
             accessibilityLabel="종목 검색"
           />
-          <Text style={[styles.note, { paddingHorizontal: space.lg }]}>빅테크 9개는 항상 목록에 있어요.</Text>
+          <Text style={[styles.note, { paddingHorizontal: space.lg }]}>
+            {failed ? `${failed} 저장 실패 · 다시 눌러 주세요` : "빅테크 9개는 항상 목록에 있어요. 새 종목은 목록에 뜨기까지 1분쯤 걸려요."}
+          </Text>
           <SectionList
             sections={shown}
             keyboardShouldPersistTaps="handled"
             keyExtractor={(t) => t.symbol}
             renderSectionHeader={({ section }) => <Text style={styles.pickerSection}>{section.title}</Text>}
             renderItem={({ item }) => {
-              const on = watched.has(item.symbol);
+              const on = isOn(item.symbol);
+              const fixed = groupSymbols.has(item.symbol); // big-tech 9 are always listed
               return (
                 <Pressable
                   style={styles.pickerRow}
-                  onPress={() => toggle(item.symbol)}
+                  onPress={() => !fixed && toggle(item.symbol)}
+                  disabled={fixed}
                   accessibilityRole="button"
-                  accessibilityLabel={`${item.name} ${on ? "목록에서 빼기" : "목록에 추가"}`}
+                  accessibilityLabel={`${item.name} ${fixed ? "기본 포함" : on ? "목록에서 빼기" : "목록에 추가"}`}
                 >
                   <View style={{ flex: 1 }}>
                     <Text style={styles.pickerName}>{item.name || item.symbol}</Text>
@@ -207,7 +231,11 @@ export default function StocksScreen() {
                       {results && item.category ? ` · ${item.category}` : ""}
                     </Text>
                   </View>
-                  <Feather name={on ? "check-circle" : "plus-circle"} size={20} color={on ? colors.accent : colors.textMuted} />
+                  {fixed ? (
+                    <Text style={styles.sub}>기본 포함</Text>
+                  ) : (
+                    <Feather name={on ? "check-circle" : "plus-circle"} size={20} color={on ? colors.accent : colors.textMuted} />
+                  )}
                 </Pressable>
               );
             }}
