@@ -19,6 +19,7 @@ cd mobile; npm install
 $env:EXPO_PUBLIC_API_URL="http://localhost:8000"; npm run web   # browser preview
 npx tsc --noEmit                                                # typecheck
 ```
+Phone app = PWA on Cloudflare Pages: https://stockapp-i5a.pages.dev (project `stockapp`). Deploy from `mobile/` with `npm run deploy:web` (wrangler, logged in on this PC). `scripts/fix-web-assets.js` must run after export: Pages drops folders named node_modules, which is where Expo puts the fonts, and the app then hangs on a blank screen. Service worker is network-first for pages, so a deploy shows up on the next open.
 Without `EXPO_PUBLIC_API_URL` the app uses the deployed backend https://stockapp-ghmx.onrender.com (Render, auto-deploys on push to main, Python pinned via `PYTHON_VERSION=3.11.9`).
 
 ## Rules

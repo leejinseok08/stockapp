@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build:web": "expo export -p web --output-dir dist",
+    "build:web": "expo export -p web --output-dir dist && node scripts/fix-web-assets.js",
     "deploy:web": "npm run build:web && npx wrangler@3 pages deploy dist --project-name stockapp --branch main"
   },
   "dependencies": {
