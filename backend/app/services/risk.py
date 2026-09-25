@@ -37,9 +37,22 @@ def _closes_2y(ticker: str) -> pd.Series:
     return _cached(f"daily2y:{ticker}", 900, fetch)
 
 
-def _item(key, label, value, unit, lit, rule, reason, as_of, source):
+def _item(key, label, value, unit, lit, rule, reason, as_of, source, history=None, zones=None):
+    """zones: value ranges that count as danger, {"from": low or None, "to": high or None}; the app
+    shades them behind the one-year line so "how close to the line" reads at a glance."""
     return {"key": key, "label": label, "value": value, "unit": unit, "lit": bool(lit), "rule": rule,
-            "reason": reason, "asOf": as_of, "source": source}
+            "reason": reason, "asOf": as_of, "source": source,
+            "history": _weekly(history) if history is not None else [], "zones": zones or []}
+
+
+def _weekly(s: pd.Series) -> list[dict]:
+    """Last year, one point per week (Friday close), for a sparkline."""
+    s = s.dropna()
+    s = s.loc[s.index >= s.index[-1] - pd.Timedelta(days=365)]
+    w = s.resample("W-FRI").last().dropna()
+    if len(w) and w.index[-1] < s.index[-1]:
+        w.loc[s.index[-1]] = s.iloc[-1]
+    return [{"t": int(pd.Timestamp(t).timestamp() * 1000), "v": round(float(v), 3)} for t, v in w.items()]
 
 
 def high_yield(s: pd.Series) -> dict:
@@ -49,7 +62,8 @@ def high_yield(s: pd.Series) -> dict:
     reason = f"{last:.2f}%, 1개월 {rise:+.2f}%p. " + (
         "신용시장이 위험을 먼저 반영하는 중" if lit else "정상 범위(3~4%대 이하)")
     return _item("hy", "하이일드 스프레드", round(last, 2), "%", lit, "5% 이상 또는 1개월 +1%p 이상",
-                 reason, s.index[-1].strftime("%Y-%m-%d"), "FRED BAMLH0A0HYM2")
+                 reason, s.index[-1].strftime("%Y-%m-%d"), "FRED BAMLH0A0HYM2",
+                 history=s, zones=[{"from": 5.0, "to": None}])
 
 
 def yield_curve(s: pd.Series) -> dict:
@@ -63,7 +77,8 @@ def yield_curve(s: pd.Series) -> dict:
     else:
         reason = f"{last:+.2f}%p. 최근 1년 역전 없음"
     return _item("curve", "장단기 금리차 (10년-2년)", round(last, 2), "%p", normalized,
-                 "1년 내 역전 후 정상화", reason, s.index[-1].strftime("%Y-%m-%d"), "FRED T10Y2Y")
+                 "1년 내 역전 후 정상화", reason, s.index[-1].strftime("%Y-%m-%d"), "FRED T10Y2Y",
+                 history=s, zones=[{"from": None, "to": 0.0}])
 
 
 def trend(closes: pd.Series) -> dict:
@@ -71,8 +86,10 @@ def trend(closes: pd.Series) -> dict:
     gap = (last / ma - 1) * 100
     lit = last < ma
     reason = f"200일선 대비 {gap:+.1f}%. " + ("장기 추세 이탈" if lit else "장기 추세 위")
+    gaps = (closes / closes.rolling(200).mean() - 1) * 100
     return _item("trend", "S&P500 200일선", round(gap, 1), "%", lit, "200일선 아래",
-                 reason, closes.index[-1].strftime("%Y-%m-%d"), "Yahoo ^GSPC")
+                 reason, closes.index[-1].strftime("%Y-%m-%d"), "Yahoo ^GSPC",
+                 history=gaps, zones=[{"from": None, "to": 0.0}])
 
 
 def vix(closes: pd.Series) -> dict:
@@ -85,7 +102,8 @@ def vix(closes: pd.Series) -> dict:
     else:
         reason = f"{last:.1f}. 보통(12~30)"
     return _item("vix", "VIX", round(last, 1), "", lit, "30 이상 또는 12 이하",
-                 reason, closes.index[-1].strftime("%Y-%m-%d"), "Yahoo ^VIX")
+                 reason, closes.index[-1].strftime("%Y-%m-%d"), "Yahoo ^VIX",
+                 history=closes, zones=[{"from": 30.0, "to": None}, {"from": None, "to": 12.0}])
 
 
 def breadth(rsp: pd.Series, spy: pd.Series) -> dict:
@@ -94,8 +112,10 @@ def breadth(rsp: pd.Series, spy: pd.Series) -> dict:
     lit = change <= -3
     reason = f"동일가중(RSP)이 시총가중(SPY) 대비 3개월 {change:+.1f}%. " + (
         "소수 대형주가 지수를 끌어올리는 좁은 장" if lit else "상승이 넓게 퍼져 있음")
+    changes = (ratio / ratio.shift(63) - 1) * 100
     return _item("breadth", "시장 폭 (RSP/SPY)", round(change, 1), "%", lit, "3개월 −3% 이하",
-                 reason, ratio.index[-1].strftime("%Y-%m-%d"), "Yahoo RSP, SPY")
+                 reason, ratio.index[-1].strftime("%Y-%m-%d"), "Yahoo RSP, SPY",
+                 history=changes, zones=[{"from": None, "to": -3.0}])
 
 
 LEVELS = [(3, "경계"), (2, "관찰"), (0, "평상")]

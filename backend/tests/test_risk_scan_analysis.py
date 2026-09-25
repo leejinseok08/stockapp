@@ -242,3 +242,13 @@ def test_consensus_falls_back_to_last_stored_values(monkeypatch):
     assert c["street"]["median"] == 150.0
     eps, src = analysis._eps_inputs(c, None, None)
     assert src.startswith("컨센서스") and "저장값" in src
+
+
+def test_risk_items_carry_weekly_history_and_danger_zones():
+    days = pd.bdate_range(end="2026-09-24", periods=500)
+    item = risk.trend(pd.Series(np.linspace(80, 120, 500), index=days))
+    assert 50 <= len(item["history"]) <= 54  # about one point per week for a year
+    assert item["history"][-1]["v"] == pytest.approx(item["value"], abs=0.05)
+    assert item["zones"] == [{"from": None, "to": 0.0}]
+    v = risk.vix(pd.Series(np.full(300, 20.0), index=days[-300:]))
+    assert {(z["from"], z["to"]) for z in v["zones"]} == {(30.0, None), (None, 12.0)}

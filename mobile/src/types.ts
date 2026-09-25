@@ -160,6 +160,8 @@ export type RiskItem = {
   reason: string;
   asOf: string;
   source: string;
+  history: { t: number; v: number }[];
+  zones: { from: number | null; to: number | null }[];
 };
 
 export type RiskGauge = {

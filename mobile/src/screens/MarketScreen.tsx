@@ -7,7 +7,8 @@ import { minutesAgo, readCache, writeCache } from "../cache";
 import { FlowBars } from "../components/FlowBars";
 import { Heatmap } from "../components/Heatmap";
 import { SignalRow } from "../components/SignalRow";
-import { Chips, Section } from "../components/ui";
+import { DivergingBar, RangeBar } from "../components/charts";
+import { ChangePill, Chips, Section } from "../components/ui";
 import { fmtMoney, fmtNum, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
 import type { HeatmapData, InvestorFlows, MarketFlows, MarketOverview, RootStackParamList, Signals } from "../types";
@@ -138,11 +139,11 @@ export default function MarketScreen() {
         )}
       </Section>
 
-      <Section title="시장 온도" desc="0~100 · 70↑ 조정·공포, 40↓ 과열 · 눌러서 구성요소 보기">
+      <Section title="시장 온도" desc="0~100 점수가 어느 구간인가 · 눌러서 구성요소 보기">
         {signals ? (
           <>
             {signals.targets.map((t) => (
-              <SignalRow key={t.id} target={t} />
+              <SignalRow key={t.id} target={t} meterWidth={chartWidth} />
             ))}
           </>
         ) : (
@@ -150,28 +151,26 @@ export default function MarketScreen() {
         )}
       </Section>
 
-      <Section title="지수" desc="주요 지수 · 아래 줄은 200일선 대비와 52주 범위 위치">
-        <View style={styles.headRow}>
-          <Text style={[styles.headCell, styles.nameCol]} />
-          <Text style={styles.headCell}>현재</Text>
-          <Text style={styles.headCell}>1일</Text>
-          <Text style={styles.headCell}>1개월</Text>
-        </View>
+      <Section title="지수" desc="오늘 등락 · 52주 최저~최고 사이 현재 위치">
         {data.indices.map((idx) => (
           <View
             key={idx.symbol}
-            style={styles.row}
+            style={styles.vizRow}
             accessible
-            accessibilityLabel={`${idx.name} ${fmtNum(idx.last)}, 1일 ${fmtTrendPct(idx.change1d)}, 1개월 ${fmtTrendPct(idx.change1m)}`}
+            accessibilityLabel={`${idx.name} ${fmtNum(idx.last)}, 오늘 ${fmtTrendPct(idx.change1d)}, 52주 범위 ${idx.range52w != null ? Math.round(idx.range52w) : "-"}% 지점`}
           >
             <View style={styles.rowTop}>
-              <Text style={[styles.name, styles.nameCol]}>{idx.name}</Text>
-              <Text style={styles.cell}>{idx.last != null ? idx.last.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "-"}</Text>
-              <Text style={[styles.cell, { color: trendColor(idx.change1d) }]}>{fmtTrendPct(idx.change1d, 1)}</Text>
-              <Text style={[styles.cell, { color: trendColor(idx.change1m) }]}>{fmtTrendPct(idx.change1m, 1)}</Text>
+              <Text style={[styles.name, { flex: 1 }]}>{idx.name}</Text>
+              <Text style={styles.value}>{idx.last != null ? idx.last.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "-"}</Text>
+              <View style={{ width: 84, alignItems: "flex-end" }}>
+                <ChangePill value={idx.change1d} />
+              </View>
+            </View>
+            <View style={{ marginTop: space.sm }}>
+              <RangeBar position={idx.range52w} width={chartWidth} />
             </View>
             <Text style={styles.sub}>
-              200일선 대비 {fmtTrendPct(idx.vsMa200, 1)} · 52주 범위 {idx.range52w != null ? `${Math.round(idx.range52w)}%` : "-"} 지점
+              1개월 {fmtTrendPct(idx.change1m, 1)} · 200일선 대비 {fmtTrendPct(idx.vsMa200, 1)}
             </Text>
           </View>
         ))}
@@ -187,40 +186,25 @@ export default function MarketScreen() {
         )}
       </Section>
 
-      <Section title="통화 강세" desc="달러 대비 1개월 강세 순위 · ▲ = 해당 통화 강세">
-        <View style={styles.row}>
-          <View style={styles.rowTop}>
-            <Text style={[styles.name, styles.nameCol]}>{dxy.name}</Text>
-            <Text style={styles.cell}>{fmtNum(dxy.last)}</Text>
-            <Text style={[styles.cell, { color: colors.textMuted }]}>{fmtTrendPct(dxy.change1d, 1)}</Text>
-            <Text style={[styles.cell, { color: colors.textMuted }]}>{fmtTrendPct(dxy.change1m, 1)}</Text>
-          </View>
-        </View>
-        {data.fx.currencies.map((c, rank) => (
-          <View
-            key={c.code}
-            style={styles.row}
-            accessible
-            accessibilityLabel={`${c.name} 1개월 ${fmtTrendPct(c.strength1m)}, ${rank + 1}위`}
-          >
-            <View style={styles.rowTop}>
-              <Text style={[styles.name, styles.nameCol, c.code === "KRW" && styles.emphasis]}>
-                {rank + 1}. {c.name}
-              </Text>
-              <Text style={styles.cell}>
-                {c.quote != null
-                  ? c.quote.toLocaleString("en-US", {
-                      minimumFractionDigits: c.quote > 100 ? 1 : 3,
-                      maximumFractionDigits: c.quote > 100 ? 1 : 3,
-                    })
-                  : "-"}
-              </Text>
-              <Text style={[styles.cell, { color: trendColor(c.strength1d) }]}>{fmtTrendPct(c.strength1d, 1)}</Text>
-              <Text style={[styles.cell, { color: trendColor(c.strength1m) }]}>{fmtTrendPct(c.strength1m, 1)}</Text>
+      <Section title="통화 강세" desc="달러 대비 1개월 · 오른쪽 = 해당 통화 강세">
+        {(() => {
+          const max = Math.max(...data.fx.currencies.map((c) => Math.abs(c.strength1m ?? 0)), 0.1);
+          return data.fx.currencies.map((c) => (
+            <View
+              key={c.code}
+              style={styles.fxRow}
+              accessible
+              accessibilityLabel={`${c.name} 1개월 ${fmtTrendPct(c.strength1m)}`}
+            >
+              <Text style={[styles.name, styles.fxName, c.code === "KRW" && styles.emphasis]}>{c.name}</Text>
+              <DivergingBar value={c.strength1m} max={max} width={chartWidth - 72 - 70} />
+              <Text style={[styles.fxValue, { color: trendColor(c.strength1m) }]}>{fmtTrendPct(c.strength1m, 1)}</Text>
             </View>
-            <Text style={styles.sub}>{c.quoteLabel}</Text>
-          </View>
-        ))}
+          ));
+        })()}
+        <Text style={styles.sub}>
+          {dxy.name} {fmtNum(dxy.last)} · 1개월 {fmtTrendPct(dxy.change1m, 1)} (오르면 달러 강세)
+        </Text>
       </Section>
 
       <Text style={styles.footnote}>
@@ -263,6 +247,11 @@ function FlowCell({ value }: { value: number }) {
 }
 
 const styles = StyleSheet.create({
+  vizRow: { paddingVertical: space.md },
+  value: { ...type.numStrong, fontSize: 15, color: colors.text },
+  fxRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10 },
+  fxName: { width: 72, fontSize: 14 },
+  fxValue: { ...type.numStrong, fontSize: 13, width: 70, textAlign: "right" },
   container: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: space.xl, backgroundColor: colors.background },
   loadingNote: { ...type.caption, color: colors.textMuted, marginTop: space.md },

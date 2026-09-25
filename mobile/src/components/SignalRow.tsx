@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, fonts, space, type } from "../theme";
 import type { SignalTarget } from "../types";
+import { BandMeter } from "./charts";
 
 const MISSING_LABELS: Record<string, string> = {
   flows: "외국인 수급 (KRX 로그인 필요)",
@@ -13,7 +14,14 @@ const MISSING_LABELS: Record<string, string> = {
   pullback: "1개월 수익률",
 };
 
-export function SignalRow({ target }: { target: SignalTarget }) {
+// Reading bands of the 0-100 score (signals.BANDS): low = 과열, high = 조정·공포.
+const BANDS = [
+  { from: 0, to: 40, label: "과열" },
+  { from: 40, to: 70, label: "보통" },
+  { from: 70, to: 100, label: "조정·공포" },
+];
+
+export function SignalRow({ target, meterWidth }: { target: SignalTarget; meterWidth?: number }) {
   const [open, setOpen] = useState(false);
   const score = target.score != null ? Math.round(target.score) : null;
 
@@ -36,6 +44,11 @@ export function SignalRow({ target }: { target: SignalTarget }) {
         </View>
         <Feather name={open ? "chevron-up" : "chevron-down"} size={16} color={colors.textMuted} style={styles.chevron} />
       </Pressable>
+      {meterWidth != null && (
+        <View style={{ marginBottom: space.md }}>
+          <BandMeter value={target.score} bands={BANDS} width={meterWidth} />
+        </View>
+      )}
 
       {open && (
         <View style={styles.detail}>

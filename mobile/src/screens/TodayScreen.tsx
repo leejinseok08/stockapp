@@ -131,8 +131,8 @@ export default function TodayScreen() {
 
           {risk && (
             <Section
-              title={`위험 경고 · ${risk.lit}/${risk.total} 점등 · ${risk.level}`}
-              desc="시장 스트레스 지표 5개 · 3개 이상 켜지면 경계"
+              title="위험 경고"
+              desc="시장 스트레스 지표 5개가 위험 구간에 들어갔는지"
             >
               <RiskSection risk={risk} />
             </Section>
