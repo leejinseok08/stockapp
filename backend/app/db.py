@@ -23,6 +23,7 @@ class WatchlistItem(SQLModel, table=True):
     buy_price: float | None = Field(default=None)
     quantity: float | None = Field(default=None)
     note: str | None = Field(default=None)
+    buy_date: str | None = Field(default=None)  # YYYY-MM-DD, for the benchmark comparison
 
 
 class MarketSnapshot(SQLModel, table=True):
@@ -36,12 +37,24 @@ class MarketSnapshot(SQLModel, table=True):
     value: float
 
 
-_ADDED_COLUMNS = {"buy_price": "FLOAT", "quantity": "FLOAT", "note": "VARCHAR"}
+class PushSubscription(SQLModel, table=True):
+    """A browser's Web Push endpoint (the installed PWA on the owner's phone)."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    endpoint: str = Field(index=True, unique=True)
+    p256dh: str
+    auth: str
+
+
+_ADDED_COLUMNS = {"buy_price": "FLOAT", "quantity": "FLOAT", "note": "VARCHAR", "buy_date": "VARCHAR"}
 
 
 def init_db():
     SQLModel.metadata.create_all(engine)
     if not IS_SQLITE:
+        # create_all doesn't add columns to an existing table.
+        with engine.begin() as conn:
+            conn.exec_driver_sql("ALTER TABLE watchlistitem ADD COLUMN IF NOT EXISTS buy_date VARCHAR")
         return
     # create_all doesn't add columns to an existing table; patch older local SQLite files in place.
     with engine.begin() as conn:

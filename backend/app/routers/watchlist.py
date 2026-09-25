@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from ..db import WatchlistItem, get_session
+from ..services.extras import performance
 from ..services.market import get_quotes
 from ..tickers import UNIVERSE_BY_SYMBOL
 
@@ -16,6 +17,7 @@ def _serialize(item: WatchlistItem, quote: dict | None) -> dict:
         "buyPrice": item.buy_price,
         "quantity": item.quantity,
         "note": item.note,
+        "buyDate": item.buy_date,
     }
 
 
@@ -40,6 +42,15 @@ class WatchlistItemUpdate(BaseModel):
     buyPrice: float | None = None
     quantity: float | None = None
     note: str | None = None
+    buyDate: str | None = None
+
+
+@router.get("/performance")
+def portfolio_performance(session: Session = Depends(get_session)):
+    """KRW total (USD at today's rate, stated) and each position vs its home index since the buy date."""
+    items = [i for i in session.exec(select(WatchlistItem)).all() if i.buy_price and i.quantity]
+    return performance([{"symbol": i.symbol, "buyPrice": i.buy_price, "quantity": i.quantity, "buyDate": i.buy_date}
+                        for i in items])
 
 
 @router.patch("/{symbol}")
@@ -55,6 +66,8 @@ def update_watchlist_item(symbol: str, body: WatchlistItemUpdate, session: Sessi
         existing.quantity = fields["quantity"]
     if "note" in fields:
         existing.note = fields["note"]
+    if "buyDate" in fields:
+        existing.buy_date = fields["buyDate"] or None
     session.add(existing)
     session.commit()
     session.refresh(existing)

@@ -5,6 +5,8 @@ from ..db import WatchlistItem, get_session
 
 from ..services.market import HISTORY_RANGES, get_compare_rows, get_fundamentals, get_history, get_news, get_quote, get_quotes
 from ..services.analysis import get_analysis
+from ..services.extras import get_dividends, search
+from ..services.filings import dart_disclosures, get_snowflake
 from ..services.stockscan import get_list, get_relative, get_scan, get_trend, get_trend_chart
 from ..tickers import BIGTECH, UNIVERSE, UNIVERSE_BY_SYMBOL
 
@@ -14,6 +16,12 @@ router = APIRouter(prefix="/stocks", tags=["stocks"])
 @router.get("/universe")
 def universe():
     return UNIVERSE
+
+
+@router.get("/search")
+def search_stocks(q: str):
+    """Any KOSPI/KOSDAQ/NYSE/NASDAQ listing by name or code (Naver autocomplete)."""
+    return search(q)
 
 
 @router.get("/quotes")
@@ -101,3 +109,26 @@ def fundamentals(symbol: str):
 @router.get("/{symbol}/news")
 def news(symbol: str):
     return get_news(symbol.upper())
+
+
+@router.get("/{symbol}/snowflake")
+def snowflake(symbol: str):
+    """5-axis score built only from filed annual reports (DART for KR, SEC EDGAR 10-K for US)."""
+    return get_snowflake(symbol.upper())
+
+
+@router.get("/{symbol}/disclosures")
+def disclosures(symbol: str):
+    """Recent DART filings (KR only; empty elsewhere)."""
+    symbol = symbol.upper()
+    if not symbol.endswith((".KS", ".KQ")):
+        return []
+    try:
+        return dart_disclosures(symbol)
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
+
+@router.get("/{symbol}/dividends")
+def dividends(symbol: str):
+    return get_dividends(symbol.upper())
