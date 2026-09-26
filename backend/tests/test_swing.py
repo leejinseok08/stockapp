@@ -61,3 +61,19 @@ def test_records_drop_techniques_that_win_less_than_half(tmp_path, monkeypatch):
     f.write_text(json.dumps({"stats": stats, "portfolio": []}), encoding="utf-8")
     monkeypatch.setattr(screener, "BACKTEST", f)
     assert not screener.records()["US"]["oneil"]["pass"]
+
+
+def test_replay_holds_then_sells_after_bnf_time_limit():
+    # BNF fired on bar 300, bought at the next open; the rule sells after 3 bars if price stays down.
+    held = _bars([100.0] * 300 + [89.0, 88.0])
+    assert screener.replay(held, BY_KEY["bnf"], 301, 88.0) is None
+    due = _bars([100.0] * 300 + [89.0, 88.0, 88.0, 88.0, 88.0])
+    assert screener.replay(due, BY_KEY["bnf"], 301, 88.0) == {"order": "시가", "limit": None, "since": None}
+    late = _bars([100.0] * 300 + [89.0] + [88.0] * 6)
+    assert screener.replay(late, BY_KEY["bnf"], 301, 88.0)["since"] == late.index[305].strftime("%Y-%m-%d")
+
+
+def test_replay_gives_the_limit_for_midline_exits():
+    b = _bars([100.0] * 300 + [89.0, 88.0])
+    order = screener.replay(b, BY_KEY["envelope"], 301, 88.0)
+    assert order["order"] == "지정가" and abs(order["limit"] - b["ma20"][b.n - 1]) < 1e-9

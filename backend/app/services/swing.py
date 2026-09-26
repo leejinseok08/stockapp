@@ -649,6 +649,7 @@ class Technique:
     exit: Callable
     plan: str  # one line: how the trade is run
     needs_market: bool = False  # only fires while the index is above a rising 50-day line (stockbee)
+    short: str | None = None  # tag under a BUY/SELL in the app; the name when unset
 
 
 TECHNIQUES = [
@@ -687,9 +688,10 @@ TECHNIQUES = [
     Technique("mfi", "스토캐스틱·MFI 다이버전스", "3480180071", mfi_entry, mfi_exit,
               "MFI가 스토캐스틱보다 20 이상 높음(스토캐스틱 50 미만) → 다음 날 시가 · 스토캐스틱 80 매도 · 최대 10일"),
     Technique("band_mid", "밴드 합성 20 → 20일선 매도", "4030738378", band_entry, band_mid_exit,
-              "볼린저·엔벨로프 합성 위치 20 이하 → 다음 날 시가 · 20일선 지정가 매도 · 0 아래 손절 · 최대 20일"),
+              "볼린저·엔벨로프 합성 위치 20 이하 → 다음 날 시가 · 20일선 지정가 매도 · 0 아래 손절 · 최대 20일", short="밴드 합성"),
     Technique("mfi_mid", "MFI 다이버전스 → 20일선 매도", "3480180071", mfi_mid_entry, mfi_mid_exit,
-              "20일선 아래에서 MFI가 스토캐스틱보다 20 이상 높음 → 다음 날 시가 · 20일선 지정가 매도 · 2차지지 손절 · 최대 10일"),
+              "20일선 아래에서 MFI가 스토캐스틱보다 20 이상 높음 → 다음 날 시가 · 20일선 지정가 매도 · 2차지지 손절 · 최대 10일",
+              short="MFI 다이버전스"),
     Technique("score", "7조건 매매 확률 점수", "10325555927", score_entry, score_exit,
               "기술 7조건 중 5개 이상으로 올라선 날 → 다음 날 시가 · 3개 이하 또는 −8% 매도 · 최대 20일"),
     Technique("rsi_own", "종목별 RSI 과매도", "9959890244·9959902866", rsi_own_entry, rsi_own_exit,

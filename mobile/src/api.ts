@@ -7,6 +7,7 @@ import type {
   Performance,
   SearchResult,
   SwingScan,
+  SwingSell,
   Snowflake,
   Fundamentals,
   HeatmapData,
@@ -74,6 +75,7 @@ export const api = {
   heatmap: () => client.get<HeatmapData>("/market/heatmap", { timeout: 60000 }).then((r) => r.data),
 
   swing: () => client.get<Partial<Record<"KR" | "US", SwingScan>>>("/swing", { timeout: 45000 }).then((r) => r.data),
+  swingSells: () => client.get<SwingSell[]>("/swing/sells", { timeout: 90000 }).then((r) => r.data),
 
   isaPlan: () => client.get<IsaPlan>("/market/isa-plan", { timeout: 60000 }).then((r) => r.data),
 

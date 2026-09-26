@@ -1,116 +1,171 @@
-// 스윙 후보 on 오늘: after each market's close the server scans the liquid whole market for the
-// swing techniques that held up in the backtest (backend app/services/screener.py). Each technique
-// shows its record next to its candidates; techniques that failed the backtest are not shown.
+// 스윙 on 오늘: only the conclusion. BUY = stocks where a technique that passed the backtest fired at
+// the last close (backend screener.scan); SELL = holdings bought on such a signal whose exit rule is
+// due (screener.sells). The techniques behind each one are small tags; no records or explanations.
 import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { fmtPrice } from "../format";
 import { colors, fonts, space, type } from "../theme";
-import type { SwingScan } from "../types";
+import type { SwingScan, SwingSell } from "../types";
+import { SignalBadge } from "./SignalBadge";
 import { Avatar, Chips, Section } from "./ui";
 
-const SHOW = 3;
-const pct = (v: number, d = 1) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v * 100).toFixed(d)}%`;
+const SHOW = 5;
+const md = (d: string) => d.slice(5).replace("-", "/");
+
+type Row = {
+  symbol: string;
+  name: string | null;
+  action: "BUY" | "SELL";
+  tags: string[];
+  order: string; // "다음 날 시가" or "지정가 12,300"
+  note?: string;
+};
 
 export function SwingSection({
   scans,
+  sells,
   onOpen,
 }: {
   scans: Partial<Record<"KR" | "US", SwingScan>>;
+  sells: SwingSell[];
   onOpen: (symbol: string, name?: string | null) => void;
 }) {
-  const markets = (["KR", "US"] as const).filter((m) => scans[m]);
+  const markets = (["KR", "US"] as const).filter((m) => scans[m] || sells.some((s) => s.market === m));
   const [market, setMarket] = useState<"KR" | "US">(markets[0] ?? "KR");
-  const [open, setOpen] = useState<string | null>(null);
+  const [all, setAll] = useState(false);
+  if (!markets.length) return null;
   const scan = scans[market];
-  if (!markets.length || !scan) return null;
   const cur = market === "KR" ? "KRW" : "USD";
+  const order = (limit: number | null) => (limit != null ? `지정가 ${fmtPrice(limit, cur)}` : "다음 날 시가");
+
+  // One BUY per stock, however many techniques fired on it (merged on the server; older scans are
+  // merged here from the per-technique groups).
+  let buys: Row[];
+  if (scan?.buys) {
+    buys = scan.buys.map((c) => ({ symbol: c.symbol, name: c.name, action: "BUY", tags: c.techniques, order: order(c.limit) }));
+  } else {
+    const bySymbol = new Map<string, Row>();
+    for (const g of scan?.groups ?? []) {
+      for (const c of g.candidates) {
+        const r = bySymbol.get(c.symbol);
+        if (r) r.tags.push(g.short ?? g.name);
+        else bySymbol.set(c.symbol, { symbol: c.symbol, name: c.name, action: "BUY", tags: [g.short ?? g.name], order: order(c.limit) });
+      }
+    }
+    buys = [...bySymbol.values()].sort((a, b) => b.tags.length - a.tags.length);
+  }
+  const buyCount = scan?.buyCount ?? buys.length;
+  const sellRows: Row[] = sells
+    .filter((s) => s.market === market)
+    .map((s) => ({
+      symbol: s.symbol,
+      name: s.name,
+      action: "SELL",
+      tags: s.techniques,
+      order: order(s.limit),
+      note: s.since ? `${md(s.since)} 매도 조건` : undefined,
+    }));
+  const shownBuys = all ? buys : buys.slice(0, SHOW);
+  const asOf = scan?.asOf ?? sells.find((s) => s.market === market)?.date;
 
   return (
     <Section
-      title="스윙 후보"
-      desc={`${scan.asOf?.slice(5).replace("-", "/") ?? ""} 마감 · 거래대금 상위 ${scan.scanned}종목 · 과거 성적을 통과한 기법만`}
+      title="스윙"
+      desc={`${asOf ? `${md(asOf)} 마감 · ` : ""}다음 거래일 주문`}
       right={
         markets.length > 1 ? (
           <Chips
             options={markets.map((m) => ({ key: m, label: m === "KR" ? "국내" : "미국" }))}
             value={market}
-            onChange={(m) => setMarket(m as "KR" | "US")}
+            onChange={(m) => {
+              setMarket(m as "KR" | "US");
+              setAll(false);
+            }}
           />
         ) : undefined
       }
     >
-      {scan.techniques.length === 0 ? (
-        <Text style={styles.note}>백테스트에서 그냥 보유보다 나은 기법이 없어 후보를 보여주지 않아요.</Text>
-      ) : scan.groups.length === 0 ? (
-        <Text style={styles.note}>오늘 조건에 맞는 종목이 없어요 ({scan.techniques.map((t) => t.name).join(" · ")}).</Text>
-      ) : (
-        [...scan.groups].sort((a, b) => b.record.edge - a.record.edge).map((g) => {
-          const all = open === g.key;
-          const shown = all ? g.candidates : g.candidates.slice(0, SHOW);
-          return (
-          <View key={g.key} style={styles.group}>
-            <Pressable
-              onPress={() => setOpen(all ? null : g.key)}
-              accessibilityRole="button"
-              accessibilityLabel={`${g.name} 후보 ${g.count}개, ${all ? "접기" : "더 보기"}`}
-            >
-              <Text style={styles.tech}>
-                {g.name} <Text style={styles.count}>{g.count}개 {g.candidates.length > SHOW ? (all ? "▴" : "▾") : ""}</Text>
-              </Text>
-            </Pressable>
-            <Text style={styles.record}>
-              과거 {g.record.trades.toLocaleString()}회 · 승률 {Math.round(g.record.win * 100)}% · 회당 {pct(g.record.avg)} (그냥 보유보다{" "}
-              {pct(g.record.edge, 2)}) · 평균 {g.record.days.toFixed(0)}일
-            </Text>
-            <Text style={styles.plan}>{g.plan}</Text>
-            {shown.map((c) => (
-              <Pressable
-                key={c.symbol}
-                style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
-                onPress={() => onOpen(c.symbol, c.name)}
-                accessibilityRole="button"
-                accessibilityLabel={`${c.name ?? c.symbol} ${g.name} 후보, 종가 ${fmtPrice(c.close, cur)}`}
-              >
-                <Avatar name={c.name ?? c.symbol} size={28} />
-                <Text style={styles.name} numberOfLines={1}>
-                  {c.name ?? c.symbol}
-                </Text>
-                <View style={styles.right}>
-                  <Text style={styles.price}>{fmtPrice(c.close, cur)}</Text>
-                  <Text style={styles.order}>{c.limit != null ? `지정가 ${fmtPrice(c.limit, cur)}` : "다음 날 시가"}</Text>
-                </View>
-              </Pressable>
-            ))}
-            {all && g.count > g.candidates.length && <Text style={styles.more}>거래대금 순 상위 {g.candidates.length}개만 표시</Text>}
-          </View>
-          );
-        })
+      <View style={styles.summary} accessible accessibilityLabel={`BUY ${buyCount}개, SELL ${sellRows.length}개`}>
+        <View style={styles.cell}>
+          <Text style={styles.label}>BUY</Text>
+          <Text style={[styles.count, buyCount > 0 && styles.countOn]}>{buyCount}</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.cell}>
+          <Text style={styles.label}>SELL</Text>
+          <Text style={[styles.count, sellRows.length > 0 && styles.countOn]}>{sellRows.length}</Text>
+        </View>
+      </View>
+
+      {sellRows.map((r) => (
+        <SwingRow key={`s-${r.symbol}`} row={r} onPress={() => onOpen(r.symbol, r.name)} />
+      ))}
+      {shownBuys.map((r) => (
+        <SwingRow key={`b-${r.symbol}`} row={r} onPress={() => onOpen(r.symbol, r.name)} />
+      ))}
+      {buys.length > SHOW && (
+        <Pressable
+          onPress={() => setAll(!all)}
+          hitSlop={10}
+          style={styles.moreBtn}
+          accessibilityRole="button"
+          accessibilityLabel={all ? "BUY 접기" : `BUY ${buys.length - SHOW}개 더 보기`}
+        >
+          <Text style={styles.more}>{all ? "접기 ▴" : `${buys.length - SHOW}개 더 ▾`}</Text>
+        </Pressable>
       )}
-      {scan.marketOk === false && scan.techniques.some((t) => t.needsMarket) && (
-        <Text style={styles.note}>
-          {scan.techniques.filter((t) => t.needsMarket).map((t) => t.name).join(", ")}: 지수가 오르는 50일선 위에 있을 때만 신호가 나와요 · 지금은 조건
-          밖이라 쉬는 중
-        </Text>
-      )}
-      <Text style={styles.note}>
-        학습한 기법 {scan.techniques.length + scan.excluded.length}개 중 {scan.excluded.length}개는 과거 성적 미달로 제외 · 현재 상장 종목만으로 검증해
-        성적이 실제보다 좋게 나왔을 수 있어요
-      </Text>
+      {all && buyCount > buys.length && <Text style={styles.more}>여러 기법이 겹친 순 · 상위 {buys.length}개</Text>}
+      {buys.length === 0 && sellRows.length === 0 && <Text style={styles.empty}>오늘은 신호가 없어요</Text>}
     </Section>
   );
 }
 
+function SwingRow({ row, onPress }: { row: Row; onPress: () => void }) {
+  const tags = row.note ? [row.note, ...row.tags] : row.tags;
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${row.name ?? row.symbol} ${row.action}, ${row.order}, ${tags.join(", ")}`}
+    >
+      <Avatar name={row.name ?? row.symbol} size={36} />
+      <View style={styles.mid}>
+        <Text style={styles.name} numberOfLines={1}>
+          {row.name ?? row.symbol}
+        </Text>
+        <Text style={styles.tags} numberOfLines={1}>
+          {tags.join(" · ")}
+        </Text>
+      </View>
+      <View style={styles.right}>
+        <SignalBadge action={row.action} />
+        <Text style={styles.order}>{row.order}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  note: { ...type.caption, color: colors.textMuted, marginTop: space.sm, lineHeight: 17 },
-  group: { marginBottom: space.lg },
-  tech: { ...type.body, fontFamily: fonts.sansBold, color: colors.text },
-  count: { fontFamily: fonts.sans, fontSize: 12, color: colors.textMuted },
-  record: { ...type.caption, color: colors.text, marginTop: 2 },
-  plan: { ...type.caption, color: colors.textMuted, marginTop: 2, lineHeight: 16 },
-  row: { flexDirection: "row", alignItems: "center", paddingVertical: space.sm, gap: space.sm },
-  name: { ...type.body, fontSize: 14, color: colors.text, flex: 1 },
-  right: { alignItems: "flex-end" },
-  price: { ...type.numStrong, fontSize: 13, color: colors.text },
+  summary: {
+    flexDirection: "row",
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    paddingVertical: space.md,
+    marginBottom: space.sm,
+  },
+  cell: { flex: 1, alignItems: "center" },
+  divider: { width: StyleSheet.hairlineWidth, backgroundColor: colors.hairline },
+  label: { fontFamily: fonts.monoBold, fontSize: 12, color: colors.textMuted },
+  count: { ...type.hero, fontSize: 30, color: colors.textMuted },
+  countOn: { color: colors.text },
+  row: { flexDirection: "row", alignItems: "center", paddingVertical: space.md },
+  mid: { flex: 1, marginLeft: space.md, marginRight: space.sm },
+  name: { ...type.body, fontFamily: fonts.sansBold, fontSize: 16, color: colors.text },
+  tags: { ...type.caption, fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  right: { alignItems: "flex-end", gap: 3 },
   order: { ...type.caption, fontSize: 11, color: colors.textMuted },
+  moreBtn: { alignSelf: "flex-start", paddingVertical: space.xs },
   more: { ...type.caption, color: colors.textMuted },
+  empty: { ...type.caption, color: colors.textMuted, textAlign: "center", marginTop: space.md },
 });

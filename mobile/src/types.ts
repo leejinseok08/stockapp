@@ -150,6 +150,17 @@ export type Signals = {
   bands: { min: number; action: string }[];
   generatedAt: string;
 };
+export type SwingSell = {
+  symbol: string;
+  name: string | null;
+  market: "KR" | "US";
+  close: number;
+  order: string;
+  limit: number | null;
+  since: string | null; // the rule already sold on this day and the position is still held
+  techniques: string[];
+  date: string;
+};
 
 export type RiskItem = {
   key: string;
@@ -426,14 +437,16 @@ export type SwingRecord = {
   portfolio?: { cagr: number; mdd: number; bhCagr: number; bhMdd: number } | null;
 };
 export type SwingCandidate = { symbol: string; name: string | null; close: number; order: string; limit: number | null; date: string };
-export type SwingGroup = { key: string; name: string; source: string; plan: string; record: SwingRecord; count: number; candidates: SwingCandidate[] };
+export type SwingGroup = { key: string; name: string; short?: string; source: string; plan: string; record: SwingRecord; count: number; candidates: SwingCandidate[] };
 export type SwingScan = {
   market: "KR" | "US";
   asOf: string | null;
   scanned: number;
   marketOk?: boolean | null;
-  techniques: { key: string; name: string; needsMarket?: boolean }[];
+  techniques: { key: string; name: string; short?: string; needsMarket?: boolean }[];
   excluded: { key: string; name: string; record?: SwingRecord | null }[];
   groups: SwingGroup[];
+  buyCount?: number; // stocks with at least one BUY; buys keeps the top ones (older scans lack both)
+  buys?: (SwingCandidate & { techniques: string[] })[];
   generatedAt: string;
 };

@@ -20,7 +20,7 @@ import yfinance as yf
 
 from ..db import get_state, put_state
 from .macro import KST
-from .swing import BY_KEY, TECHNIQUES, Bars, features
+from .swing import BY_KEY, TECHNIQUES, Bars, Pos, features
 from .universe import KR_MIN_VALUE, US_MIN_VALUE, get_universe
 
 log = logging.getLogger("stockapp.screener")
@@ -28,6 +28,7 @@ BACKTEST = Path(__file__).resolve().parent.parent / "data" / "swing_backtest.jso
 INDEX = {"KR": "^KS11", "US": "^GSPC"}
 MIN_VALUE = {"KR": KR_MIN_VALUE, "US": US_MIN_VALUE}
 PER_TECHNIQUE = 8  # most liquid candidates kept per technique
+BUYS_KEPT = 30  # stocks kept in the merged BUY list
 MIN_WIN = 0.5  # owner (2026-09-26): drop techniques that lose more often than they win
 _running: set[str] = set()
 
@@ -111,11 +112,18 @@ def scan(market: str) -> dict:
     for t in active:
         rows = sorted(found[t.key], key=lambda r: r["value20"], reverse=True)
         if rows:
-            groups.append({"key": t.key, "name": t.name, "source": t.source, "plan": t.plan, "record": rec[t.key],
+            groups.append({"key": t.key, "name": t.name, "short": t.short or t.name, "source": t.source, "plan": t.plan, "record": rec[t.key],
                            "count": len(rows), "candidates": rows[:PER_TECHNIQUE]})
+    # One BUY per stock: techniques that agree first, then the most liquid.
+    per: dict[str, dict] = {}
+    for t in active:
+        for r in found[t.key]:
+            e = per.setdefault(r["symbol"], {**r, "techniques": []})
+            e["techniques"].append(t.short or t.name)
+    buys = sorted(per.values(), key=lambda r: (-len(r["techniques"]), -r["value20"]))
     return {"market": market, "asOf": as_of.strftime("%Y-%m-%d") if as_of is not None else None,
-            "scanned": len(prices) - 1, "marketOk": market_ok,
-            "techniques": [{"key": t.key, "name": t.name, "needsMarket": t.needs_market} for t in active],
+            "scanned": len(prices) - 1, "marketOk": market_ok, "buyCount": len(buys), "buys": buys[:BUYS_KEPT],
+            "techniques": [{"key": t.key, "name": t.name, "short": t.short or t.name, "needsMarket": t.needs_market} for t in active],
             "excluded": [{"key": t.key, "name": t.name, "record": rec.get(t.key)} for t in TECHNIQUES if t not in active],
             "groups": groups, "generatedAt": datetime.now(KST).isoformat(timespec="minutes")}
 
@@ -145,4 +153,68 @@ def latest() -> dict:
         row = get_state(f"swing:{m}")
         if row:
             out[m] = json.loads(row.value)
+    return out
+
+
+# ---- SELL on holdings --------------------------------------------------------------------------------
+
+def market_of(symbol: str) -> str:
+    return "KR" if symbol.endswith((".KS", ".KQ")) else "US"
+
+
+def replay(b: Bars, tech, fill: int, entry_px: float) -> dict | None:
+    """Run tech's exit rule on a position filled at bar `fill` (signal the bar before), the way the
+    backtest does. Returns the sell order due now, or None while the rule still holds."""
+    pos = Pos(entry=entry_px, i=fill, sig=fill - 1)
+    h = b["h"]
+    for i in range(fill, b.n):
+        orders = tech.exit(b, i, pos)
+        if i == b.n - 1:
+            for kind, frac, *lvl in orders:
+                if frac >= pos.left - 1e-9 or kind == "mkt":
+                    return {"order": "지정가" if kind == "lmt" else "시가", "limit": float(lvl[0]) if lvl else None, "since": None}
+            return None
+        for kind, frac, *lvl in orders:
+            if kind == "mkt" or h[i + 1] >= lvl[0]:
+                pos.left -= min(frac, pos.left)
+                pos.sold += kind == "lmt"
+                if pos.left <= 1e-9:
+                    # The rule already sold on bar i+1 and the position is still held: sell at the open.
+                    return {"order": "시가", "limit": None, "since": b.index[i + 1].strftime("%Y-%m-%d")}
+    return None
+
+
+def sells(holdings: list[dict]) -> list[dict]:
+    """holdings: {symbol, buyPrice, buyDate}. A holding is a swing position when a passing technique
+    fired on the bar before its buy date; SELL when that technique's exit rule says so."""
+    rec = records()
+    held = [h for h in holdings if h.get("buyDate") and h.get("buyPrice")]
+    if not held:
+        return []
+    markets = {market_of(h["symbol"]) for h in held}
+    prices = _download([h["symbol"] for h in held] + [INDEX[m] for m in markets])
+    names = {u["symbol"]: u["name"] for u in get_universe()}
+    out = []
+    for hd in held:
+        s, mkt = hd["symbol"], market_of(hd["symbol"])
+        if s not in prices:
+            continue
+        idx = prices.get(INDEX[mkt], pd.DataFrame()).get("c")
+        b = Bars(features(prices[s], idx, lite=True))
+        fill = int(b.index.searchsorted(pd.Timestamp(hd["buyDate"])))
+        if fill < 1 or fill >= b.n:
+            continue
+        due = []
+        for t in TECHNIQUES:
+            if not rec.get(mkt, {}).get(t.key, {}).get("pass") or not t.entry(b, fill - 1):
+                continue
+            order = replay(b, t, fill, float(hd["buyPrice"]))
+            if order:
+                due.append((t, order))
+        if due:
+            # 시가 beats a limit (sell now); among limits the lowest price fills first.
+            t, order = min(due, key=lambda d: (d[1]["order"] != "시가", d[1]["limit"] or 0))
+            out.append({"symbol": s, "name": names.get(s), "market": mkt, "close": float(b["c"][b.n - 1]),
+                        **order, "techniques": [d[0].short or d[0].name for d in due],
+                        "date": b.index[b.n - 1].strftime("%Y-%m-%d")})
     return out
