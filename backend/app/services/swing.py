@@ -297,6 +297,15 @@ def band_exit(b, i, pos):
     return [("mkt", pos.left)] if p >= 80 or p < 0 or i - pos.i >= 20 else []
 
 
+def band_mid_exit(b, i, pos):
+    """Same entry and stops as band, but take the snap back to the 20-day line (the envelope/Bollinger
+    midline) with a limit order instead of waiting for 80 (owner, 2026-09-26: win rate >= 50%)."""
+    p = b["bandpos"][i]
+    if p >= 80 or p < 0 or i - pos.i >= 20:
+        return [("mkt", pos.left)]
+    return [("lmt", pos.left, b["ma20"][i])]
+
+
 def env_entry(b, i):
     r = row(b, i)
     lower = r("ma20") * 0.90
@@ -355,6 +364,16 @@ def mfi_entry(b, i):
 def mfi_exit(b, i, pos):
     r = row(b, i)
     return [("mkt", pos.left)] if r("stoch") >= 80 or r("c") < b["s2"][pos.sig] or i - pos.i >= 10 else []
+
+
+def mfi_mid_entry(b, i):
+    """mfi, only while the close is under the 20-day line so the midline is still above to sell into."""
+    return mfi_entry(b, i) if b["c"][i] < b["ma20"][i] else None
+
+
+def mfi_mid_exit(b, i, pos):
+    o = mfi_exit(b, i, pos)
+    return o or [("lmt", pos.left, b["ma20"][i])]
 
 
 def score_entry(b, i):
@@ -667,6 +686,10 @@ TECHNIQUES = [
               "20일 −5% 하락인데 OBV 상승 → 다음 날 시가 · 20일 고가 돌파 매도 · 저점 −3% 손절 · 최대 20일"),
     Technique("mfi", "스토캐스틱·MFI 다이버전스", "3480180071", mfi_entry, mfi_exit,
               "MFI가 스토캐스틱보다 20 이상 높음(스토캐스틱 50 미만) → 다음 날 시가 · 스토캐스틱 80 매도 · 최대 10일"),
+    Technique("band_mid", "밴드 합성 20 → 20일선 매도", "4030738378", band_entry, band_mid_exit,
+              "볼린저·엔벨로프 합성 위치 20 이하 → 다음 날 시가 · 20일선 지정가 매도 · 0 아래 손절 · 최대 20일"),
+    Technique("mfi_mid", "MFI 다이버전스 → 20일선 매도", "3480180071", mfi_mid_entry, mfi_mid_exit,
+              "20일선 아래에서 MFI가 스토캐스틱보다 20 이상 높음 → 다음 날 시가 · 20일선 지정가 매도 · 2차지지 손절 · 최대 10일"),
     Technique("score", "7조건 매매 확률 점수", "10325555927", score_entry, score_exit,
               "기술 7조건 중 5개 이상으로 올라선 날 → 다음 날 시가 · 3개 이하 또는 −8% 매도 · 최대 20일"),
     Technique("rsi_own", "종목별 RSI 과매도", "9959890244·9959902866", rsi_own_entry, rsi_own_exit,
