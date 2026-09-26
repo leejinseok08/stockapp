@@ -38,6 +38,7 @@ Owner's plan (KB증권 중개형 ISA, 일반형): same amount every month, S&P50
 
 ## Recurring checks
 - 2027-01: KB ISA fee event ends (0.005% → base 0.015%?). Update `backtest.COST`, rerun `python -m app.services.backtest summary`, commit the JSON.
+- 2027-01: 메리츠 Super365 free-fee event ends 2026-12-31 (as of 2026-09; it has been extended before). If not extended, judge swing techniques on the `after2026` cost in `screener.records()` (now `meritz`), check the new `band_mid`/`mfi_mid`, and update `docs/signal-research.md`. Under `after2026` only BNF (KR·US) and OBV (US) passed before.
 - ISA law: 2026 개편안 (연 4천만·총 2억·비과세 500만) not confirmed as of 2026-09; when it is, update `docs/isa.md` and the defaults in `mobile/src/components/IsaSection.tsx`.
 
 ## Production setup (done)
