@@ -86,6 +86,12 @@ export function SwingSection({
           );
         })
       )}
+      {scan.marketOk === false && scan.techniques.some((t) => t.needsMarket) && (
+        <Text style={styles.note}>
+          {scan.techniques.filter((t) => t.needsMarket).map((t) => t.name).join(", ")}: 지수가 오르는 50일선 위에 있을 때만 신호가 나와요 · 지금은 조건
+          밖이라 쉬는 중
+        </Text>
+      )}
       <Text style={styles.note}>
         학습한 기법 {scan.techniques.length + scan.excluded.length}개 중 {scan.excluded.length}개는 과거 성적 미달로 제외 · 현재 상장 종목만으로 검증해
         성적이 실제보다 좋게 나왔을 수 있어요

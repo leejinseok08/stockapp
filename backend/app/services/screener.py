@@ -102,6 +102,10 @@ def scan(market: str) -> dict:
                     "limit": float(order[1]) if order[0] == "lmt" else None,
                     "value20": float(b["value20"][i]), "date": b.index[i].strftime("%Y-%m-%d"),
                 })
+    market_ok = None
+    if idx is not None and len(idx) > 60:
+        m50 = idx.rolling(50).mean()
+        market_ok = bool(idx.iloc[-1] > m50.iloc[-1] and m50.iloc[-1] > m50.iloc[-11])
     groups = []
     for t in active:
         rows = sorted(found[t.key], key=lambda r: r["value20"], reverse=True)
@@ -109,7 +113,8 @@ def scan(market: str) -> dict:
             groups.append({"key": t.key, "name": t.name, "source": t.source, "plan": t.plan, "record": rec[t.key],
                            "count": len(rows), "candidates": rows[:PER_TECHNIQUE]})
     return {"market": market, "asOf": as_of.strftime("%Y-%m-%d") if as_of is not None else None,
-            "scanned": len(prices) - 1, "techniques": [{"key": t.key, "name": t.name} for t in active],
+            "scanned": len(prices) - 1, "marketOk": market_ok,
+            "techniques": [{"key": t.key, "name": t.name, "needsMarket": t.needs_market} for t in active],
             "excluded": [{"key": t.key, "name": t.name, "record": rec.get(t.key)} for t in TECHNIQUES if t not in active],
             "groups": groups, "generatedAt": datetime.now(KST).isoformat(timespec="minutes")}
 

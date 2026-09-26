@@ -431,7 +431,8 @@ export type SwingScan = {
   market: "KR" | "US";
   asOf: string | null;
   scanned: number;
-  techniques: { key: string; name: string }[];
+  marketOk?: boolean | null;
+  techniques: { key: string; name: string; needsMarket?: boolean }[];
   excluded: { key: string; name: string; record?: SwingRecord | null }[];
   groups: SwingGroup[];
   generatedAt: string;
