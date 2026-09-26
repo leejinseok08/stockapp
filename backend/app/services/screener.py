@@ -28,11 +28,12 @@ BACKTEST = Path(__file__).resolve().parent.parent / "data" / "swing_backtest.jso
 INDEX = {"KR": "^KS11", "US": "^GSPC"}
 MIN_VALUE = {"KR": KR_MIN_VALUE, "US": US_MIN_VALUE}
 PER_TECHNIQUE = 8  # most liquid candidates kept per technique
+MIN_WIN = 0.5  # owner (2026-09-26): drop techniques that lose more often than they win
 _running: set[str] = set()
 
 
 def records() -> dict:
-    """{market: {tech: record}} for techniques that pass in both periods."""
+    """{market: {tech: record}} for techniques that pass in both periods (edge, avg, pf, win rate)."""
     if not BACKTEST.exists():
         return {}
     d = json.loads(BACKTEST.read_text(encoding="utf-8"))
@@ -44,7 +45,7 @@ def records() -> dict:
             rows = [s for s in stats if s["market"] == mkt and s["tech"] == t.key]
             if len(rows) < 2:
                 continue
-            ok = all(r["edge"] > 0 and r["avg"] > 0 and (r["pf"] or 0) > 1 for r in rows)
+            ok = all(r["edge"] > 0 and r["avg"] > 0 and (r["pf"] or 0) > 1 and r["win"] >= MIN_WIN for r in rows)
             recent = next((r for r in rows if r["period"] == "2019~"), rows[-1])
             out.setdefault(mkt, {})[t.key] = {
                 "pass": ok, "trades": recent["trades"], "win": recent["win"], "avg": recent["avg"],

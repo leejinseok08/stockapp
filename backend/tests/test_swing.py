@@ -51,3 +51,13 @@ def test_records_pass_only_when_both_periods_beat_holding(tmp_path, monkeypatch)
     monkeypatch.setattr(screener, "BACKTEST", f)
     rec = screener.records()["KR"]
     assert rec["bnf"]["pass"] and not rec["breakout"]["pass"]
+
+
+def test_records_drop_techniques_that_win_less_than_half(tmp_path, monkeypatch):
+    stats = [{"cost": "meritz", "market": "US", "period": per, "tech": "oneil", "trades": 10, "win": win,
+              "avg": 0.02, "median": -0.01, "pf": 1.5, "days": 8, "edge": 0.003}
+             for per, win in (("2010~2018", 0.55), ("2019~", 0.43))]
+    f = tmp_path / "bt.json"
+    f.write_text(json.dumps({"stats": stats, "portfolio": []}), encoding="utf-8")
+    monkeypatch.setattr(screener, "BACKTEST", f)
+    assert not screener.records()["US"]["oneil"]["pass"]
