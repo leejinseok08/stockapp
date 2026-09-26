@@ -1,5 +1,5 @@
 // 스윙 on 오늘: only the conclusion. BUY = stocks where a technique that passed the backtest fired at
-// the last close (backend screener.scan); SELL = holdings bought on such a signal whose exit rule is
+// the last close (backend screener.scan, most volatile first; KR paused in an index uptrend); SELL = holdings bought on such a signal whose exit rule is
 // due (screener.sells). The techniques behind each one are small tags; no records or explanations.
 import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -40,8 +40,8 @@ export function SwingSection({
   const cur = market === "KR" ? "KRW" : "USD";
   const order = (limit: number | null) => (limit != null ? `지정가 ${fmtPrice(limit, cur)}` : "다음 날 시가");
 
-  // One BUY per stock, however many techniques fired on it (merged on the server; older scans are
-  // merged here from the per-technique groups).
+  // One BUY per stock, however many techniques fired on it (merged and ordered on the server; older
+  // scans are merged here from the per-technique groups).
   let buys: Row[];
   if (scan?.buys) {
     buys = scan.buys.map((c) => ({ symbol: c.symbol, name: c.name, action: "BUY", tags: c.techniques, order: order(c.limit) }));
@@ -126,8 +126,9 @@ export function SwingSection({
           <Text style={styles.more}>{all ? "접기 ▴" : `${buys.length - SHOW}개 더 ▾`}</Text>
         </Pressable>
       )}
-      {all && buyCount > buys.length && <Text style={styles.more}>여러 기법이 겹친 순 · 상위 {buys.length}개</Text>}
-      {buys.length === 0 && sellRows.length === 0 && <Text style={styles.empty}>오늘은 신호가 없어요</Text>}
+      {all && buyCount > buys.length && <Text style={styles.more}>상위 {buys.length}개</Text>}
+      {scan?.paused && <Text style={styles.empty}>지수 상승 추세라 BUY는 쉬어요</Text>}
+      {!scan?.paused && buys.length === 0 && sellRows.length === 0 && <Text style={styles.empty}>오늘은 신호가 없어요</Text>}
     </Section>
   );
 }

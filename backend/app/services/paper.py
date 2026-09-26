@@ -8,7 +8,8 @@ technique's rule, 메리츠 costs as in the backtest. A settled trade is frozen;
 return at the last close.
 
 The model account (per market, 10 equal slots, ₩1,000만 / $10,000) takes each day's fills in the
-order the app lists BUYs (more techniques agreeing first, then trading value), one slot per stock.
+order the app lists BUYs (screener: most volatile first), one slot per stock, skipping days the app
+paused (KR while KOSPI trends up). A stock fired by several techniques follows screener.EXIT_PRIORITY.
 """
 
 from collections import defaultdict
@@ -103,7 +104,7 @@ def save(market: str, updates: list[dict], signals: list[dict]) -> int:
             if (r["symbol"], r["tech"]) in busy or (r["symbol"], r["tech"], r["date"]) in seen:
                 continue
             s.add(PaperTrade(market=market, symbol=r["symbol"], name=r.get("name"), tech=r["tech"], signal_date=r["date"],
-                             rank=r["rank"], limit_px=r.get("limit"), status="pending"))
+                             rank=r["rank"], limit_px=r.get("limit"), pick=r.get("pick", True), status="pending"))
             busy.add((r["symbol"], r["tech"]))
             added += 1
         s.commit()
@@ -112,7 +113,10 @@ def save(market: str, updates: list[dict], signals: list[dict]) -> int:
 
 def account(trades: list[PaperTrade], market: str) -> dict:
     """The 10-slot model account over the logged trades. Open positions count at their last close."""
-    filled = [t for t in trades if t.status in ("open", "closed") and t.entry_date]
+    from .screener import EXIT_PRIORITY
+
+    prio = {k: n for n, k in enumerate(EXIT_PRIORITY)}
+    filled = [t for t in trades if t.status in ("open", "closed") and t.entry_date and t.pick]
     by_day: dict[str, list[PaperTrade]] = defaultdict(list)
     for t in filled:
         by_day[t.entry_date].append(t)
@@ -125,7 +129,7 @@ def account(trades: list[PaperTrade], market: str) -> dict:
         if day not in by_day:
             continue
         equity = cash + sum(a for a, _ in held.values())
-        for t in sorted(by_day[day], key=lambda t: (t.rank, t.tech)):
+        for t in sorted(by_day[day], key=lambda t: (t.rank, prio.get(t.tech, 99))):
             if len(held) >= SLOTS or t.symbol in held:
                 continue
             amt = min(cash, equity / SLOTS)

@@ -49,3 +49,11 @@ def test_account_takes_top_ranked_into_ten_slots():
     assert a["pnl"] == pytest.approx(1_000_000 * (5 * 0.10 - 5 * 0.05))  # S10, S11 missed out
     live = paper.account([t("A", 0, 0.02, "open")], "KR")
     assert live["pnl"] == pytest.approx(20_000) and live["holding"][0]["symbol"] == "A"
+
+
+def test_account_skips_paused_days_and_follows_exit_priority():
+    def t(sym, tech, ret, pick=True):
+        return PaperTrade(market="KR", symbol=sym, tech=tech, signal_date="2026-09-28", rank=0, pick=pick, status="closed",
+                          entry_date="2026-09-29", entry_px=1.0, exit_date="2026-10-02", ret=ret)
+    a = paper.account([t("A", "mfi_mid", -0.05), t("A", "bnf", 0.04), t("B", "bnf", 0.5, pick=False)], "KR")
+    assert a["trades"] == 1 and a["pnl"] == pytest.approx(1_000_000 * 0.04)

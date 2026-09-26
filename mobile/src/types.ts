@@ -452,6 +452,7 @@ export type SwingScan = {
   techniques: { key: string; name: string; short?: string; needsMarket?: boolean }[];
   excluded: { key: string; name: string; record?: SwingRecord | null }[];
   groups: SwingGroup[];
+  paused?: boolean; // KR: BUYs off while KOSPI is above a rising 50-day line (research 8차)
   buyCount?: number; // stocks with at least one BUY; buys keeps the top ones (older scans lack both)
   buys?: (SwingCandidate & { techniques: string[] })[];
   generatedAt: string;

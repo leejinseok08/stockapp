@@ -66,6 +66,7 @@ class PaperTrade(SQLModel, table=True):
     tech: str
     signal_date: str = Field(index=True)
     rank: int  # place in that day's BUY list (the app's order)
+    pick: bool = True  # False when the app paused BUYs that day (logged for the technique record only)
     limit_px: float | None = None
     status: str = Field(index=True)  # pending (not filled yet) · open · closed · void (limit never traded)
     entry_date: str | None = None

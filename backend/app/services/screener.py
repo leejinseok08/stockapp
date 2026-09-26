@@ -30,6 +30,12 @@ INDEX = {"KR": "^KS11", "US": "^GSPC"}
 MIN_VALUE = {"KR": KR_MIN_VALUE, "US": US_MIN_VALUE}
 PER_TECHNIQUE = 8  # most liquid candidates kept per technique
 BUYS_KEPT = 30  # stocks kept in the merged BUY list
+# Research 8차 (docs/signal-research.md), chosen on 2010~2018 and confirmed on 2019~: order BUYs by
+# volatility (14-day ATR / close, high first); in KR take none while KOSPI is above a rising 50-day
+# line (the dips then were worse than holding). When one stock fires several techniques, the exit
+# follows the first of EXIT_PRIORITY (higher per-trade edge in 2010~2018).
+PAUSE_IN_UPTREND = {"KR": True, "US": False}
+EXIT_PRIORITY = ["bnf", "envelope", "band_mid", "obv", "mfi_mid"]
 MIN_WIN = 0.5  # owner (2026-09-26): drop techniques that lose more often than they win
 _running: set[str] = set()
 
@@ -109,7 +115,8 @@ def scan(market: str) -> dict:
                     "symbol": u["symbol"], "name": names.get(u["symbol"]), "close": float(b["c"][i]),
                     "order": "지정가" if order[0] == "lmt" else "시가",
                     "limit": float(order[1]) if order[0] == "lmt" else None,
-                    "value20": float(b["value20"][i]), "date": b.index[i].strftime("%Y-%m-%d"),
+                    "value20": float(b["value20"][i]), "atrp": float(b["atr"][i] / b["c"][i]),
+                    "date": b.index[i].strftime("%Y-%m-%d"),
                 })
     market_ok = None
     if idx is not None and len(idx) > 60:
@@ -121,26 +128,28 @@ def scan(market: str) -> dict:
         if rows:
             groups.append({"key": t.key, "name": t.name, "short": t.short or t.name, "source": t.source, "plan": t.plan, "record": rec[t.key],
                            "count": len(rows), "candidates": rows[:PER_TECHNIQUE]})
-    # One BUY per stock: techniques that agree first, then the most liquid.
+    # One BUY per stock, most volatile first; none in a paused market.
     per: dict[str, dict] = {}
     for t in active:
         for r in found[t.key]:
             e = per.setdefault(r["symbol"], {**r, "techniques": []})
             e["techniques"].append(t.short or t.name)
-    buys = sorted(per.values(), key=lambda r: (-len(r["techniques"]), -r["value20"]))
+    buys = sorted(per.values(), key=lambda r: -(r["atrp"] if r["atrp"] == r["atrp"] else 0))
+    paused = bool(PAUSE_IN_UPTREND[market] and market_ok)
     # Paper log: stocks that left the universe still get replayed; then today's signals are logged.
     if followed:
         for sym, h in _download(list(followed)).items():
             updates += paper.update(Bars(features(h, idx, lite=True)), followed[sym], market)
     rank = {r["symbol"]: n for n, r in enumerate(buys)}
     signals = [{"symbol": r["symbol"], "name": r["name"], "tech": t.key, "date": r["date"], "rank": rank[r["symbol"]],
-                "limit": r["limit"]} for t in active for r in found[t.key]]
+                "limit": r["limit"], "pick": not paused} for t in active for r in found[t.key]]
     try:
         log.info("swing paper %s: %d replayed, %d new", market, len(updates), paper.save(market, updates, signals))
     except Exception as e:  # the scan result matters more than the log
         log.exception("swing paper %s failed: %s", market, e)
     return {"market": market, "asOf": as_of.strftime("%Y-%m-%d") if as_of is not None else None,
-            "scanned": len(prices) - 1, "marketOk": market_ok, "buyCount": len(buys), "buys": buys[:BUYS_KEPT],
+            "scanned": len(prices) - 1, "marketOk": market_ok, "paused": paused,
+            "buyCount": 0 if paused else len(buys), "buys": [] if paused else buys[:BUYS_KEPT],
             "techniques": [{"key": t.key, "name": t.name, "short": t.short or t.name, "needsMarket": t.needs_market} for t in active],
             "excluded": [{"key": t.key, "name": t.name, "record": rec.get(t.key)} for t in TECHNIQUES if t not in active],
             "groups": groups, "generatedAt": datetime.now(KST).isoformat(timespec="minutes")}
@@ -222,17 +231,12 @@ def sells(holdings: list[dict]) -> list[dict]:
         fill = int(b.index.searchsorted(pd.Timestamp(hd["buyDate"])))
         if fill < 1 or fill >= b.n:
             continue
-        due = []
-        for t in TECHNIQUES:
-            if not rec.get(mkt, {}).get(t.key, {}).get("pass") or not t.entry(b, fill - 1):
-                continue
-            order = replay(b, t, fill, float(hd["buyPrice"]))
-            if order:
-                due.append((t, order))
-        if due:
-            # 시가 beats a limit (sell now); among limits the lowest price fills first.
-            t, order = min(due, key=lambda d: (d[1]["order"] != "시가", d[1]["limit"] or 0))
+        fired = [t for t in TECHNIQUES if rec.get(mkt, {}).get(t.key, {}).get("pass") and t.entry(b, fill - 1)]
+        if not fired:
+            continue
+        t = min(fired, key=lambda t: EXIT_PRIORITY.index(t.key) if t.key in EXIT_PRIORITY else len(EXIT_PRIORITY))
+        order = replay(b, t, fill, float(hd["buyPrice"]))
+        if order:
             out.append({"symbol": s, "name": names.get(s), "market": mkt, "close": float(b["c"][b.n - 1]),
-                        **order, "techniques": [d[0].short or d[0].name for d in due],
-                        "date": b.index[b.n - 1].strftime("%Y-%m-%d")})
+                        **order, "techniques": [t.short or t.name], "date": b.index[b.n - 1].strftime("%Y-%m-%d")})
     return out
