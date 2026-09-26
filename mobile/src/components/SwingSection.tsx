@@ -3,9 +3,9 @@
 // due (screener.sells). The techniques behind each one are small tags; no records or explanations.
 import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { fmtPrice } from "../format";
-import { colors, fonts, space, type } from "../theme";
-import type { SwingScan, SwingSell } from "../types";
+import { fmtMoney, fmtPrice } from "../format";
+import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
+import type { SwingPaper, SwingScan, SwingSell } from "../types";
 import { SignalBadge } from "./SignalBadge";
 import { Avatar, Chips, Section } from "./ui";
 
@@ -24,10 +24,12 @@ type Row = {
 export function SwingSection({
   scans,
   sells,
+  paper,
   onOpen,
 }: {
   scans: Partial<Record<"KR" | "US", SwingScan>>;
   sells: SwingSell[];
+  paper: Partial<Record<"KR" | "US", SwingPaper>>;
   onOpen: (symbol: string, name?: string | null) => void;
 }) {
   const markets = (["KR", "US"] as const).filter((m) => scans[m] || sells.some((s) => s.market === m));
@@ -66,6 +68,7 @@ export function SwingSection({
       note: s.since ? `${md(s.since)} 매도 조건` : undefined,
     }));
   const shownBuys = all ? buys : buys.slice(0, SHOW);
+  const acct = paper[market]?.account;
   const asOf = scan?.asOf ?? sells.find((s) => s.market === market)?.date;
 
   return (
@@ -96,6 +99,15 @@ export function SwingSection({
           <Text style={[styles.count, sellRows.length > 0 && styles.countOn]}>{sellRows.length}</Text>
         </View>
       </View>
+      {acct && acct.trades > 0 && (
+        <Text style={styles.paper} accessibilityLabel={`모의 매매 ${md(paper[market]!.since)}부터 손익 ${fmtMoney(acct.pnl, cur)}`}>
+          모의 매매 {md(paper[market]!.since)}~ · 10칸{" "}
+          <Text style={{ color: trendColor(acct.pnl) }}>
+            {trendGlyph(acct.pnl)} {fmtMoney(Math.abs(acct.pnl), cur)} ({Math.abs(acct.ret * 100).toFixed(2)}%)
+          </Text>
+          {acct.win != null ? ` · 승률 ${Math.round(acct.win * 100)}%` : ""}
+        </Text>
+      )}
 
       {sellRows.map((r) => (
         <SwingRow key={`s-${r.symbol}`} row={r} onPress={() => onOpen(r.symbol, r.name)} />
@@ -159,6 +171,7 @@ const styles = StyleSheet.create({
   label: { fontFamily: fonts.monoBold, fontSize: 12, color: colors.textMuted },
   count: { ...type.hero, fontSize: 30, color: colors.textMuted },
   countOn: { color: colors.text },
+  paper: { ...type.caption, color: colors.textMuted, marginBottom: space.xs },
   row: { flexDirection: "row", alignItems: "center", paddingVertical: space.md },
   mid: { flex: 1, marginLeft: space.md, marginRight: space.sm },
   name: { ...type.body, fontFamily: fonts.sansBold, fontSize: 16, color: colors.text },

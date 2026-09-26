@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlmodel import Session, select
 
 from ..db import WatchlistItem, get_session
-from ..services import screener
+from ..services import paper, screener
 from ..services.market import _cached
 
 router = APIRouter(prefix="/swing", tags=["swing"])
@@ -23,6 +23,12 @@ def sells(session: Session = Depends(get_session)):
             for i in session.exec(select(WatchlistItem)).all() if i.buy_price and i.quantity and i.buy_date]
     key = "swing-sells:" + "|".join(f"{h['symbol']},{h['buyPrice']},{h['buyDate']}" for h in sorted(held, key=lambda h: h["symbol"]))
     return _cached(key, 20 * 60, lambda: screener.sells(held))
+
+
+@router.get("/paper")
+def paper_summary():
+    """Paper trading of the live signals since the first logged scan: model account and per technique."""
+    return paper.summary()
 
 
 @router.get("/records")

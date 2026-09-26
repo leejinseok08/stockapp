@@ -10,7 +10,7 @@ import { SwingSection } from "../components/SwingSection";
 import { Avatar, Section } from "../components/ui";
 import { fmtMoney, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
-import type { RiskGauge, RootStackParamList, SwingScan, SwingSell, Today, TodayItem, WatchlistEntry } from "../types";
+import type { RiskGauge, RootStackParamList, SwingPaper, SwingScan, SwingSell, Today, TodayItem, WatchlistEntry } from "../types";
 
 const CACHE_KEY = "today";
 const md = (d: string) => d.slice(5).replace("-", "/");
@@ -23,6 +23,7 @@ export default function TodayScreen() {
   const [risk, setRisk] = useState<RiskGauge | null>(null);
   const [swing, setSwing] = useState<Partial<Record<"KR" | "US", SwingScan>>>({});
   const [swingSells, setSwingSells] = useState<SwingSell[]>([]);
+  const [swingPaper, setSwingPaper] = useState<Partial<Record<"KR" | "US", SwingPaper>>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [staleMinutes, setStaleMinutes] = useState<number | null>(null);
@@ -40,6 +41,7 @@ export default function TodayScreen() {
       });
     api.swing().then(setSwing).catch(() => {});
     api.swingSells().then(setSwingSells).catch(() => {});
+    api.swingPaper().then(setSwingPaper).catch(() => {});
     api
       .watchlist()
       .then((w) => setHoldings(w.filter((i) => i.buyPrice && i.quantity)))
@@ -134,7 +136,7 @@ export default function TodayScreen() {
             )}
           </Section>
 
-          <SwingSection scans={swing} sells={swingSells} onOpen={(symbol, name) => open({ symbol, name })} />
+          <SwingSection scans={swing} sells={swingSells} paper={swingPaper} onOpen={(symbol, name) => open({ symbol, name })} />
 
 
           <Section title="실적 발표" desc="2주 안에 발표하는 종목">

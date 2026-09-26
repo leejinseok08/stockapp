@@ -19,6 +19,7 @@ import pandas as pd
 import yfinance as yf
 
 from ..db import get_state, put_state
+from . import paper
 from .macro import KST
 from .swing import BY_KEY, TECHNIQUES, Bars, Pos, features
 from .universe import KR_MIN_VALUE, US_MIN_VALUE, get_universe
@@ -86,11 +87,17 @@ def scan(market: str) -> dict:
     found: dict[str, list] = {t.key: [] for t in active}
     as_of = None
     log.info("swing scan %s: %d prices downloaded", market, len(prices))
+    followed = paper.unsettled(market)
+    updates: list[dict] = []
     for u in uni:
         h = prices.get(u["symbol"])
         if h is None:
             continue
         b = Bars(features(h, idx, lite=lite))
+        try:
+            updates += paper.update(b, followed.pop(u["symbol"], []), market)
+        except Exception as e:
+            log.warning("swing paper %s %s: %s", market, u["symbol"], e)
         i = b.n - 1
         as_of = max(as_of or b.index[i], b.index[i])
         if b["value20"][i] < MIN_VALUE[market]:
@@ -121,6 +128,17 @@ def scan(market: str) -> dict:
             e = per.setdefault(r["symbol"], {**r, "techniques": []})
             e["techniques"].append(t.short or t.name)
     buys = sorted(per.values(), key=lambda r: (-len(r["techniques"]), -r["value20"]))
+    # Paper log: stocks that left the universe still get replayed; then today's signals are logged.
+    if followed:
+        for sym, h in _download(list(followed)).items():
+            updates += paper.update(Bars(features(h, idx, lite=True)), followed[sym], market)
+    rank = {r["symbol"]: n for n, r in enumerate(buys)}
+    signals = [{"symbol": r["symbol"], "name": r["name"], "tech": t.key, "date": r["date"], "rank": rank[r["symbol"]],
+                "limit": r["limit"]} for t in active for r in found[t.key]]
+    try:
+        log.info("swing paper %s: %d replayed, %d new", market, len(updates), paper.save(market, updates, signals))
+    except Exception as e:  # the scan result matters more than the log
+        log.exception("swing paper %s failed: %s", market, e)
     return {"market": market, "asOf": as_of.strftime("%Y-%m-%d") if as_of is not None else None,
             "scanned": len(prices) - 1, "marketOk": market_ok, "buyCount": len(buys), "buys": buys[:BUYS_KEPT],
             "techniques": [{"key": t.key, "name": t.name, "short": t.short or t.name, "needsMarket": t.needs_market} for t in active],

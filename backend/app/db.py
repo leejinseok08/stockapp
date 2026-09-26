@@ -54,6 +54,27 @@ class AppState(SQLModel, table=True):
     updated: str
 
 
+class PaperTrade(SQLModel, table=True):
+    """One swing signal followed on paper (services/paper.py): logged at the scan, replayed daily."""
+
+    __table_args__ = (UniqueConstraint("market", "symbol", "tech", "signal_date"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    market: str = Field(index=True)
+    symbol: str = Field(index=True)
+    name: str | None = None
+    tech: str
+    signal_date: str = Field(index=True)
+    rank: int  # place in that day's BUY list (the app's order)
+    limit_px: float | None = None
+    status: str = Field(index=True)  # pending (not filled yet) · open · closed · void (limit never traded)
+    entry_date: str | None = None
+    entry_px: float | None = None
+    exit_date: str | None = None
+    ret: float | None = None  # after costs; for an open trade, at the last close
+    mark_date: str | None = None
+
+
 def put_state(key: str, value: str, updated: str) -> None:
     with Session(engine) as session:
         row = session.get(AppState, key) or AppState(key=key, value=value, updated=updated)

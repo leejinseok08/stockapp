@@ -150,6 +150,12 @@ export type Signals = {
   bands: { min: number; action: string }[];
   generatedAt: string;
 };
+export type SwingPaper = {
+  since: string;
+  signals: number;
+  asOf: string;
+  account: { capital: number; equity: number; pnl: number; ret: number; trades: number; closed: number; win: number | null };
+};
 export type SwingSell = {
   symbol: string;
   name: string | null;
