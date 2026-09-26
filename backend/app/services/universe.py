@@ -1,11 +1,13 @@
 """The whole-market list the swing screener scans: liquid stocks only (thin stocks lose their edge to
 the spread). Korea: every KOSPI/KOSDAQ common stock with today's trading value >= 50억 원.
-US: the 1,000 largest NASDAQ/NYSE stocks by market cap with trading value >= $50M.
+US: S&P 500 members only (owner, 2026-09-27: established companies), from app/data/sp500.json
+(Wikipedia's constituents table; refresh it when the index changes), with Korean names from Naver.
 Source: Naver Securities' market-cap listings (the same place the app gets names and logos)."""
 
 import json
 import logging
 import urllib.request
+from pathlib import Path
 
 from .market import _cached
 
@@ -14,6 +16,12 @@ log = logging.getLogger("stockapp.universe")
 KR_MIN_VALUE = 5_000_000_000  # KRW per day
 US_MIN_VALUE = 50_000_000  # USD per day
 US_TOP = 1000
+SP500_FILE = Path(__file__).resolve().parent.parent / "data" / "sp500.json"
+
+
+def sp500() -> dict[str, dict]:
+    """{symbol: {name, sector, added}} of the current members."""
+    return {m["symbol"]: m for m in json.loads(SP500_FILE.read_text(encoding="utf-8"))["members"]}
 
 
 def _get(url: str) -> dict:
@@ -59,8 +67,11 @@ def us_list() -> list[dict]:
                 volume = _num(s.get("accumulatedTradingVolume"))
                 out.append({"symbol": s["symbolCode"].replace(".", "-").replace(" ", "-"), "name": s.get("stockName"), "market": "US",
                             "exchange": ex, "tradingValue": price * volume, "cap": _num(s.get("marketValue"))})
-    out.sort(key=lambda s: s["cap"], reverse=True)
-    return [s for s in out[:US_TOP] if s["tradingValue"] >= US_MIN_VALUE]
+    members = sp500()
+    kept = {s["symbol"]: s for s in out if s["symbol"] in members}
+    for sym, m in members.items():  # a member missing from Naver's pages still gets scanned
+        kept.setdefault(sym, {"symbol": sym, "name": m["name"], "market": "US", "exchange": None, "tradingValue": None, "cap": None})
+    return list(kept.values())
 
 
 def get_universe() -> list[dict]:

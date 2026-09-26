@@ -1,5 +1,5 @@
 // 스윙 on 오늘: only the conclusion. BUY = stocks where a technique that passed the backtest fired at
-// the last close (backend screener.scan, most volatile first; KR paused in an index uptrend); SELL = holdings bought on such a signal whose exit rule is
+// the last close (backend screener.scan, calmest first; KR paused in an index uptrend); SELL = holdings bought on such a signal whose exit rule is
 // due (screener.sells). The techniques behind each one are small tags; no records or explanations.
 import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -101,7 +101,7 @@ export function SwingSection({
       </View>
       {acct && acct.trades > 0 && (
         <Text style={styles.paper} accessibilityLabel={`모의 매매 ${md(paper[market]!.since)}부터 손익 ${fmtMoney(acct.pnl, cur)}`}>
-          모의 매매 {md(paper[market]!.since)}~ · 10칸{" "}
+          모의 매매 {md(paper[market]!.since)}~ · {acct.slots ?? 10}칸{" "}
           <Text style={{ color: trendColor(acct.pnl) }}>
             {trendGlyph(acct.pnl)} {fmtMoney(Math.abs(acct.pnl), cur)} ({Math.abs(acct.ret * 100).toFixed(2)}%)
           </Text>

@@ -7,8 +7,8 @@ the stored signal date on the day's bars: fill at the next open (or the limit), 
 technique's rule, 메리츠 costs as in the backtest. A settled trade is frozen; an open one carries its
 return at the last close.
 
-The model account (per market, 10 equal slots, ₩1,000만 / $10,000) takes each day's fills in the
-order the app lists BUYs (screener: most volatile first), one slot per stock, skipping days the app
+The model account (per market, screener.SLOTS equal slots, ₩1,000만 / $10,000) takes each day's fills
+in the order the app lists BUYs (screener: calmest first), one slot per stock, skipping days the app
 paused (KR while KOSPI trends up). A stock fired by several techniques follows screener.EXIT_PRIORITY.
 """
 
@@ -25,7 +25,6 @@ from .swing import BY_KEY, Bars, Pos
 
 COSTS = {"KR": (0.0005, 0.0005 + 0.0020), "US": (0.0003, 0.0003)}  # swing_bt.COSTS["meritz"]
 CAPITAL = {"KR": 10_000_000.0, "US": 10_000.0}
-SLOTS = 10
 
 
 def settle(b: Bars, tech, sig: int, order: tuple, cost: tuple) -> dict:
@@ -113,8 +112,9 @@ def save(market: str, updates: list[dict], signals: list[dict]) -> int:
 
 def account(trades: list[PaperTrade], market: str) -> dict:
     """The 10-slot model account over the logged trades. Open positions count at their last close."""
-    from .screener import EXIT_PRIORITY
+    from .screener import EXIT_PRIORITY, SLOTS
 
+    slots = SLOTS[market]
     prio = {k: n for n, k in enumerate(EXIT_PRIORITY)}
     filled = [t for t in trades if t.status in ("open", "closed") and t.entry_date and t.pick]
     by_day: dict[str, list[PaperTrade]] = defaultdict(list)
@@ -130,9 +130,9 @@ def account(trades: list[PaperTrade], market: str) -> dict:
             continue
         equity = cash + sum(a for a, _ in held.values())
         for t in sorted(by_day[day], key=lambda t: (t.rank, prio.get(t.tech, 99))):
-            if len(held) >= SLOTS or t.symbol in held:
+            if len(held) >= slots or t.symbol in held:
                 continue
-            amt = min(cash, equity / SLOTS)
+            amt = min(cash, equity / slots)
             if amt <= 0:
                 break
             cash -= amt
@@ -143,7 +143,7 @@ def account(trades: list[PaperTrade], market: str) -> dict:
     value = cash + sum(a * (1 + (t.ret or 0)) for a, t in held.values())
     closed = [t for _, t in taken if t.status == "closed"]
     return {
-        "capital": CAPITAL[market], "equity": value, "pnl": value - CAPITAL[market], "ret": value / CAPITAL[market] - 1,
+        "capital": CAPITAL[market], "slots": slots, "equity": value, "pnl": value - CAPITAL[market], "ret": value / CAPITAL[market] - 1,
         "trades": len(taken), "closed": len(closed), "win": float(np.mean([t.ret > 0 for t in closed])) if closed else None,
         "holding": [{"symbol": t.symbol, "name": t.name, "tech": BY_KEY[t.tech].short or BY_KEY[t.tech].name,
                      "entryDate": t.entry_date, "ret": t.ret} for _, t in held.values()],

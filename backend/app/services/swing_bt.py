@@ -1,8 +1,9 @@
 """Backtest of every swing technique in swing.py on the liquid whole-market universe.
 
-Universe: today's liquid list (universe.py: KR >= 50억/day, US top 1,000 caps >= $50M/day); a signal
-only counts if the stock was liquid at that time too (20-day average trading value over the same
-threshold). This is today's survivors, which flatters buying in general.
+Universe: today's list (universe.py: KR >= 50억/day, US = today's S&P 500); a signal only counts if
+the stock was liquid at that time too (20-day average trading value over the threshold) and, in the
+US, only from the day it joined the index. Stocks that left the index or the market are missing:
+this is today's survivors, which flatters buying in general.
 
 Execution: signal at close i -> fill at bar i+1 (open, or a limit price if the bar trades through
 it). Exits the same way. Costs: 메리츠증권 Super365 (no fees through 2026; KR sell tax 0.20%) plus
@@ -31,7 +32,7 @@ import pandas as pd
 import yfinance as yf
 
 from .swing import BY_KEY, REFERENCE, TECHNIQUES, Bars, Pos, features
-from .universe import KR_MIN_VALUE, US_MIN_VALUE, get_universe
+from .universe import KR_MIN_VALUE, US_MIN_VALUE, get_universe, sp500
 
 CASH_RATE = 0.025
 PERIODS = {"2010~2018": ("2010-01-01", "2018-12-31"), "2019~": ("2019-01-01", None)}
@@ -131,6 +132,7 @@ def _hold_baseline(o: np.ndarray, lo: int, hi: int, k: int, cache: dict) -> floa
 
 def run(data: dict[str, tuple[str, Bars]], cost_name: str) -> pd.DataFrame:
     rows = []
+    added = {s: m["added"] for s, m in sp500().items()}
     for n, (sym, (mkt, b)) in enumerate(data.items()):
         if n % 100 == 0:
             print(f"simulating {n}/{len(data)}", flush=True)
@@ -140,8 +142,10 @@ def run(data: dict[str, tuple[str, Bars]], cost_name: str) -> pd.DataFrame:
             if hi - max(lo, 260) < 120:
                 continue
             base_cache: dict = {}
+            join = b.index.searchsorted(pd.Timestamp(added[sym])) if mkt == "US" and added.get(sym, "nan")[:1].isdigit() else 0
+            lo_sig = max(lo, join)  # holding baseline stays on the whole period
             for tech in TECHNIQUES + [REFERENCE]:
-                for e, x, r in simulate(b, tech, COSTS[cost_name][mkt], lo, hi, MIN_VALUE[mkt]):
+                for e, x, r in simulate(b, tech, COSTS[cost_name][mkt], lo_sig, hi, MIN_VALUE[mkt]) if hi - lo_sig > 1 else []:
                     k = x - e
                     rows.append((cost_name, mkt, pname, tech.key, sym, b.index[e], b.index[x], r, k,
                                  _hold_baseline(b["o"], lo, hi, k, base_cache)))

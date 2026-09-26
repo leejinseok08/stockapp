@@ -39,16 +39,17 @@ def test_save_skips_a_pair_that_is_still_open(db):
     assert paper.save("KR", [], [{**sig, "date": "2026-10-05"}]) == 1
 
 
-def test_account_takes_top_ranked_into_ten_slots():
+def test_account_takes_top_ranked_into_the_market_slots():
+    # US: 10 slots of $10,000 -> $1,000 each
     def t(sym, rank, ret, status="closed"):
-        return PaperTrade(market="KR", symbol=sym, tech="bnf", signal_date="2026-09-28", rank=rank, status=status,
+        return PaperTrade(market="US", symbol=sym, tech="bnf", signal_date="2026-09-28", rank=rank, status=status,
                           entry_date="2026-09-29", entry_px=1.0, exit_date="2026-10-02" if status == "closed" else None, ret=ret)
     trades = [t(f"S{n}", n, 0.10 if n % 2 == 0 else -0.05) for n in range(12)]  # 12 fills, 10 slots
-    a = paper.account(trades, "KR")
-    assert a["trades"] == 10 and a["closed"] == 10
-    assert a["pnl"] == pytest.approx(1_000_000 * (5 * 0.10 - 5 * 0.05))  # S10, S11 missed out
-    live = paper.account([t("A", 0, 0.02, "open")], "KR")
-    assert live["pnl"] == pytest.approx(20_000) and live["holding"][0]["symbol"] == "A"
+    a = paper.account(trades, "US")
+    assert a["trades"] == 10 and a["closed"] == 10 and a["slots"] == 10
+    assert a["pnl"] == pytest.approx(1_000 * (5 * 0.10 - 5 * 0.05))  # S10, S11 missed out
+    live = paper.account([t("A", 0, 0.02, "open")], "US")
+    assert live["pnl"] == pytest.approx(20) and live["holding"][0]["symbol"] == "A"
 
 
 def test_account_skips_paused_days_and_follows_exit_priority():
@@ -56,4 +57,4 @@ def test_account_skips_paused_days_and_follows_exit_priority():
         return PaperTrade(market="KR", symbol=sym, tech=tech, signal_date="2026-09-28", rank=0, pick=pick, status="closed",
                           entry_date="2026-09-29", entry_px=1.0, exit_date="2026-10-02", ret=ret)
     a = paper.account([t("A", "mfi_mid", -0.05), t("A", "bnf", 0.04), t("B", "bnf", 0.5, pick=False)], "KR")
-    assert a["trades"] == 1 and a["pnl"] == pytest.approx(1_000_000 * 0.04)
+    assert a["trades"] == 1 and a["pnl"] == pytest.approx(500_000 * 0.04)  # KR: 20 slots of ₩1,000만

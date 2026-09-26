@@ -30,12 +30,13 @@ INDEX = {"KR": "^KS11", "US": "^GSPC"}
 MIN_VALUE = {"KR": KR_MIN_VALUE, "US": US_MIN_VALUE}
 PER_TECHNIQUE = 8  # most liquid candidates kept per technique
 BUYS_KEPT = 30  # stocks kept in the merged BUY list
-# Research 8차 (docs/signal-research.md), chosen on 2010~2018 and confirmed on 2019~: order BUYs by
-# volatility (14-day ATR / close, high first); in KR take none while KOSPI is above a rising 50-day
-# line (the dips then were worse than holding). When one stock fires several techniques, the exit
+# Research 9차 (docs/signal-research.md, owner's choice 2026-09-27 to cut drawdown): order BUYs by
+# volatility (14-day ATR / close) LOW first; hold SLOTS stocks per market in equal weights; in KR take
+# none while KOSPI is above a rising 50-day line. When one stock fires several techniques, the exit
 # follows the first of EXIT_PRIORITY (higher per-trade edge in 2010~2018).
 PAUSE_IN_UPTREND = {"KR": True, "US": False}
-EXIT_PRIORITY = ["bnf", "envelope", "band_mid", "obv", "mfi_mid"]
+SLOTS = {"KR": 20, "US": 10}
+EXIT_PRIORITY = ["bnf", "envelope", "band_mid", "obv", "mfi_mid", "bb_mid"]
 MIN_WIN = 0.5  # owner (2026-09-26): drop techniques that lose more often than they win
 _running: set[str] = set()
 
@@ -128,13 +129,13 @@ def scan(market: str) -> dict:
         if rows:
             groups.append({"key": t.key, "name": t.name, "short": t.short or t.name, "source": t.source, "plan": t.plan, "record": rec[t.key],
                            "count": len(rows), "candidates": rows[:PER_TECHNIQUE]})
-    # One BUY per stock, most volatile first; none in a paused market.
+    # One BUY per stock, calmest first; none in a paused market.
     per: dict[str, dict] = {}
     for t in active:
         for r in found[t.key]:
             e = per.setdefault(r["symbol"], {**r, "techniques": []})
             e["techniques"].append(t.short or t.name)
-    buys = sorted(per.values(), key=lambda r: -(r["atrp"] if r["atrp"] == r["atrp"] else 0))
+    buys = sorted(per.values(), key=lambda r: r["atrp"] if r["atrp"] == r["atrp"] else 1.0)
     paused = bool(PAUSE_IN_UPTREND[market] and market_ok)
     # Paper log: stocks that left the universe still get replayed; then today's signals are logged.
     if followed:
@@ -148,7 +149,7 @@ def scan(market: str) -> dict:
     except Exception as e:  # the scan result matters more than the log
         log.exception("swing paper %s failed: %s", market, e)
     return {"market": market, "asOf": as_of.strftime("%Y-%m-%d") if as_of is not None else None,
-            "scanned": len(prices) - 1, "marketOk": market_ok, "paused": paused,
+            "scanned": len(prices) - 1, "marketOk": market_ok, "paused": paused, "slots": SLOTS[market],
             "buyCount": 0 if paused else len(buys), "buys": [] if paused else buys[:BUYS_KEPT],
             "techniques": [{"key": t.key, "name": t.name, "short": t.short or t.name, "needsMarket": t.needs_market} for t in active],
             "excluded": [{"key": t.key, "name": t.name, "record": rec.get(t.key)} for t in TECHNIQUES if t not in active],
