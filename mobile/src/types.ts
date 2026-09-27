@@ -457,3 +457,50 @@ export type SwingScan = {
   buys?: (SwingCandidate & { techniques: string[] })[];
   generatedAt: string;
 };
+
+export type RateItem = {
+  key: string;
+  label: string;
+  what: string;
+  source: string;
+  value: number;
+  change1m: number | null;
+  asOf: string;
+  history: { t: number; v: number }[];
+};
+
+export type Rates = {
+  items: RateItem[];
+  gaps: RateItem[];
+  failed: string[];
+  keyMissing: boolean;
+  generatedAt: string;
+};
+
+export type OutlookTone = "긍정" | "중립" | "신중";
+
+export type OutlookSource = { title: string; url: string; date: string; access: "원문" | "보도" };
+
+export type OutlookHouse = {
+  id: string;
+  name: string;
+  tone: OutlookTone | null;
+  view: string;
+  sources: OutlookSource[];
+};
+
+export type Outlook =
+  | { available: false }
+  | {
+      available: true;
+      week: string;
+      asOf: string;
+      author: "claude" | "codex";
+      stance: OutlookTone;
+      headline: string;
+      points: string[];
+      isa: string;
+      houses: OutlookHouse[];
+      watch: { date: string; event: string }[];
+      past: { week: string; stance: OutlookTone }[];
+    };

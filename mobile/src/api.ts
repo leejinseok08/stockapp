@@ -19,6 +19,8 @@ import type {
   PortfolioFields,
   Quote,
   Relative,
+  Outlook,
+  Rates,
   RiskGauge,
   Scan,
   Signals,
@@ -82,6 +84,10 @@ export const api = {
   isaPlan: () => client.get<IsaPlan>("/market/isa-plan", { timeout: 60000 }).then((r) => r.data),
 
   risk: () => client.get<RiskGauge>("/market/risk", { timeout: 45000 }).then((r) => r.data),
+
+  rates: () => client.get<Rates>("/market/rates", { timeout: 45000 }).then((r) => r.data),
+
+  outlook: () => client.get<Outlook>("/market/outlook", { timeout: 45000 }).then((r) => r.data),
 
   // Nine companies' statements on a cold server take a while.
   scan: (symbols?: string[]) =>

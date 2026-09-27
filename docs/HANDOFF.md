@@ -20,8 +20,10 @@ Weekly market view (주간 시황) + BOK ECOS rates, agreed with the owner 2026-
 ## Uncommitted
 None.
 
+- Done: 시장 tab `OutlookSection` (first) and `RatesSection` (before 통화 강세), render-checked with a sample file (deleted, never committed).
+
 ## Next up
-- 시장 tab: 이번 주 시황 section first, 금리 section before 통화 강세 → render check → deploy web.
+- Push, deploy web.
 - Claude routine (Sat 08:00 KST = `0 23 * * 5` UTC) running PROMPT.md; test run, check whether it can push to main.
 - Codex automation (Sat 12:00 KST) with the same prompt; the owner sets it up in the Codex app.
 

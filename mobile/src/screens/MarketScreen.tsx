@@ -6,16 +6,20 @@ import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { FlowBars } from "../components/FlowBars";
 import { Heatmap } from "../components/Heatmap";
+import { OutlookSection } from "../components/OutlookSection";
+import { RatesSection } from "../components/RatesSection";
 import { SignalRow } from "../components/SignalRow";
 import { DivergingBar, RangeBar } from "../components/charts";
 import { ChangePill, Chips, Section } from "../components/ui";
 import { fmtMoney, fmtNum, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
-import type { HeatmapData, InvestorFlows, MarketFlows, MarketOverview, RootStackParamList, Signals } from "../types";
+import type { HeatmapData, InvestorFlows, MarketFlows, MarketOverview, Outlook, Rates, RootStackParamList, Signals } from "../types";
 
 const CACHE_KEY = "market-overview";
 const SIGNALS_CACHE_KEY = "market-signals";
 const HEATMAP_CACHE_KEY = "market-heatmap";
+const RATES_CACHE_KEY = "market-rates";
+const OUTLOOK_CACHE_KEY = "market-outlook";
 
 // Fetch one section; on failure fall back to the last copy saved on the device.
 async function fetchOrCache<T>(fetcher: () => Promise<T>, key: string, set: (v: T) => void) {
@@ -41,6 +45,8 @@ export default function MarketScreen() {
   const [mapId, setMapId] = useState<"US" | "KR">("US");
   const [data, setData] = useState<MarketOverview | null>(null);
   const [signals, setSignals] = useState<Signals | null>(null);
+  const [rates, setRates] = useState<Rates | null>(null);
+  const [outlook, setOutlook] = useState<Outlook | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [staleMinutes, setStaleMinutes] = useState<number | null>(null);
@@ -48,6 +54,8 @@ export default function MarketScreen() {
   const loadSections = useCallback(() => {
     fetchOrCache(api.marketSignals, SIGNALS_CACHE_KEY, setSignals);
     fetchOrCache(api.heatmap, HEATMAP_CACHE_KEY, setHeatmap);
+    fetchOrCache(api.rates, RATES_CACHE_KEY, setRates);
+    fetchOrCache(api.outlook, OUTLOOK_CACHE_KEY, setOutlook);
   }, []);
 
   const load = useCallback(async () => {
@@ -111,8 +119,11 @@ export default function MarketScreen() {
         </Text>
       </View>
 
+      <Section first title="이번 주 시황" desc="JPM·BofA·골드만·씨티·연준·한은 리서치 종합 · 매주 토요일 · 참고용">
+        {outlook ? <OutlookSection outlook={outlook} /> : <Text style={styles.note}>불러오는 중…</Text>}
+      </Section>
+
       <Section
-        first
         title="스탁 히트맵"
         desc="대형주를 업종별로 · 크기 = 시가총액, 색 = 오늘 등락률"
       >
@@ -186,6 +197,10 @@ export default function MarketScreen() {
         )}
       </Section>
 
+      <Section title="금리" desc="한국·미국 기준금리와 10년물 · 금리 차는 원/달러에 영향">
+        {rates ? <RatesSection rates={rates} /> : <Text style={styles.note}>불러오는 중…</Text>}
+      </Section>
+
       <Section title="통화 강세" desc="달러 대비 1개월 · 오른쪽 = 해당 통화 강세">
         {(() => {
           const max = Math.max(...data.fx.currencies.map((c) => Math.abs(c.strength1m ?? 0)), 0.1);
@@ -208,7 +223,7 @@ export default function MarketScreen() {
       </Section>
 
       <Text style={styles.footnote}>
-        출처 Yahoo · FRED · Naver · KRX · 투자 권유 아님
+        출처 Yahoo · FRED · 한국은행 ECOS · Naver · KRX · 투자 권유 아님
       </Text>
     </ScrollView>
   );
