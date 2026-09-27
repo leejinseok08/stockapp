@@ -1,0 +1,94 @@
+{
+  "week": "2026-W39",
+  "asOf": "2026-09-27",
+  "author": "claude",
+  "stance": "신중",
+  "headline": "연준은 10월 추가 인상 쪽으로, BofA는 매도신호 유지, 씨티만 실적모멘텀에 긍정적",
+  "points": [
+    "바 이사 발언과 PMI 서프라이즈로 10월 추가 인상 기대가 71%까지 뛰며 연준 톤이 매워졌다.",
+    "BofA 불앤베어 지표는 9.3으로 소폭 낮아졌지만 여전히 매도신호권, 자금은 주식에서 채권·현금·금으로 이동했다.",
+    "씨티는 폭넓은 어닝 브레드스를 근거로 여전히 긍정적이라 연준·BofA와 시각차가 컸다.",
+    "한은은 10월 회의를 앞두고 금융안정회의에서 금융불균형 누증과 시장변동성 확대 위험을 짚었다.",
+    "추석을 앞두고 수출기업 달러매도로 원/달러는 1350원대로 소폭 강세, 9월 1~20일 반도체 수출은 259% 급증했다."
+  ],
+  "isa": "원/달러가 1350원대로 소폭 강세이나 연준 추가 인상 기대가 살아있어 환헤지 여부와 환율 변동을 계속 볼 것.",
+  "houses": [
+    {
+      "id": "fed",
+      "tone": "신중",
+      "view": "바 이사가 추가 인상 필요성을 강조하고 PMI가 5년 만에 최고치를 찍으며 10월 인상 기대가 71%로 뛰었다. 윌리엄스 뉴욕 연은 총재는 시장구조 개편에 집중했다.",
+      "sources": [
+        {
+          "title": "Market sees next Fed hike in October, following Barr comments and hot inflation reading",
+          "url": "https://www.cnbc.com/2026/09/23/market-sees-next-fed-hike-in-october-following-barr-comments-hot-inflation.html",
+          "date": "2026-09-23",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bok",
+      "tone": "신중",
+      "view": "10월 회의 전 금리 결정은 없었으나 금융안정회의에서 금융불균형 누증, 취약부문 부실 가능성, 금융·외환시장 변동성 확대 위험을 점검했다.",
+      "sources": [
+        {
+          "title": "한은, 2026년 9월 금융안정 상황 설명회",
+          "url": "https://www.newspim.com/news/view/20260922000792",
+          "date": "2026-09-22",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "jpm",
+      "tone": "중립",
+      "view": "주간 리캡에서 S&P500·나스닥은 소폭 상승, 다우는 하락으로 엇갈렸다. 연내 추가 한 차례 인상 가능성과 유가·관세·기술투자 불확실성을 언급했다.",
+      "sources": [
+        {
+          "title": "Weekly Market Recap | September 21, 2026",
+          "url": "https://www.krilogy.com/weekly-market-recap-september-21-2026/",
+          "date": "2026-09-21",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bofa",
+      "tone": "신중",
+      "view": "불앤베어 지표가 9.5에서 9.3으로 소폭 낮아졌지만 여전히 매도신호권이며, 자금은 주식에서 채권·현금·금으로 이동하는 위험회피 흐름이 뚜렷했다.",
+      "sources": [
+        {
+          "title": "BofA Flow Show: Bull & Bear indicator 9.3 (prev. 9.5)",
+          "url": "https://www.newsquawk.com/headlines/bofa-flow-show-bull--bear-indicator-93-prev-95",
+          "date": "2026-09-25",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "gs",
+      "tone": null,
+      "view": "이번 주 새 자료 없음",
+      "sources": []
+    },
+    {
+      "id": "citi",
+      "tone": "긍정",
+      "view": "씨티 웰스는 시장에 긍정적인 부분이 많고 실적 폭이 넓게 퍼졌다고 평가하며 실적 성장이 높아진 금리를 상쇄한다는 시각을 유지했다.",
+      "sources": [
+        {
+          "title": "A lot to like in the markets, and earnings breadth has been wide, says Citi's Olaolu Aganga",
+          "url": "https://www.cnbc.com/video/2026/09/22/a-lot-to-like-in-the-markets-and-earnings-breadth-has-been-wide-says-citis-olaolu-aganga.html",
+          "date": "2026-09-22",
+          "access": "보도"
+        }
+      ]
+    }
+  ],
+  "watch": [
+    {"date": "2026-10-02", "event": "미국 9월 비농업고용 발표 (전월 대비 둔화 예상)"},
+    {"date": "2026-10-02", "event": "한국 9월 수출입 실적 발표"},
+    {"date": "2026-10-22", "event": "한국은행 10월 금융통화위원회"},
+    {"date": "2026-10-28", "event": "FOMC 10월 회의 금리 결정"}
+  ]
+}
