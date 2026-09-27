@@ -26,6 +26,13 @@ research is only reachable through press coverage.
 Press coverage: Reuters, Bloomberg, CNBC, FT, WSJ, MarketWatch, 연합뉴스, 한국경제, 매일경제.
 
 Rules:
+- Originals first. For every free original in the table, open it (WebFetch) before looking for press.
+  `fed` and `bok` sources must be federalreserve.gov / bok.or.kr pages whenever the fact comes from them
+  (statement, speech, minutes, 보도자료); press is only for market pricing (e.g. futures odds) or when the
+  original truly can't be opened, and then say so in the view.
+- A house's source is the house itself or a news outlet. Never cite reposts on third-party sites (an
+  advisor's blog or newsletter copying JPM's recap, a Substack summarizing Hartnett, …).
+- Check each source's date is inside the window (a recap dated Monday usually covers the week before).
 - `access: "원문"` only when you actually opened the original. A claim you saw only in an article is
   `"보도"` with the article's URL, even if the article quotes the house.
 - Never invent a number, date or quote. If you can't find it, leave it out.
@@ -63,8 +70,9 @@ Korean, short, plain. UTF-8. Shape (limits are checked):
   "watch": [{"date": "2026-10-06", "event": "미국 9월 CPI (60자 이내)"}]
 }
 ```
-`author` is `"claude"` or `"codex"` (whoever you are). `watch`: next week's scheduled events that matter
-(FOMC, 금통위, CPI, 고용, 대형 실적), up to 8.
+`author` is `"claude"` or `"codex"` (whoever you are). `watch`: scheduled events in the next 7 days that matter
+(FOMC, 금통위, CPI, 고용, 대형 실적), up to 8; add a later FOMC or 금통위 only if nothing major falls
+in the next 7 days.
 
 ## 4. Check, commit, push
 1. `cd backend && python -m app.services.outlook check app/data/outlook/<week>.json` — fix every

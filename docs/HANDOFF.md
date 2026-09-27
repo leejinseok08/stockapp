@@ -10,24 +10,21 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 - Durable facts (rules, layout, recurring checks) go in `CLAUDE.md`, not here.
 
 ## Current task
-Weekly market view (주간 시황) + BOK ECOS rates, agreed with the owner 2026-09-27:
-- Sources: JPM, BofA, Goldman, Citi, Fed, 한국은행. Free originals: Fed/BOK documents, JPM AM (Guide to the Markets, Weekly Market Recap, Eye on the Market), Merrill/BofA Capital Market Outlook, GS insights, Citi Wealth Outlook. Paid research (JPM/GS/Citi Research, BofA FMS & Flow Show) only via press coverage, and the report must label which is which.
-- Context only, never a buy/sell call (backtests: nothing beats plain DCA).
-- Weekly scheduled task in BOTH Claude (cloud routine, Saturday morning KST) and Codex (a few hours later, only if that week's file is missing) writes a JSON into the repo (public), backend serves the latest, 시장 tab shows a card.
-- ECOS: key works and is set on Render as `ECOS_API_KEY` (never in the repo; locally `$env:ECOS_API_KEY`). Stat codes: 기준금리 722Y001/D/0101000, 국고채 3년 817Y002/D/010200000, 10년 817Y002/D/010210000. Plan: backend rates module + 시장 tab card (기준금리, 국고채, 한미 금리차).
-- Done: `services/rates.py` + `GET /market/rates`; `services/outlook.py` (schema check: `python -m app.services.outlook check <file>`) + `GET /market/outlook` reading `app/data/outlook/<ISO week>.json`; tests `tests/test_rates_outlook.py`; agent instructions `tools/outlook/PROMPT.md` (shared by both agents).
+None.
 
 ## Uncommitted
 None.
 
-- Done: 시장 tab `OutlookSection` (first) and `RatesSection` (before 통화 강세), render-checked with a sample file (deleted, never committed).
-
 ## Next up
-- Push, deploy web.
-- Claude routine (Sat 08:00 KST = `0 23 * * 5` UTC) running PROMPT.md; test run, check whether it can push to main.
-- Codex automation (Sat 12:00 KST) with the same prompt; the owner sets it up in the Codex app.
+- Owner: set up the Codex automation (Codex app → Automations, project folder stockapp, Saturday 12:00,
+  prompt: follow tools/outlook/PROMPT.md as author "codex", stop if the week exists; needs network access).
+- Next Saturday (2026-10-03): check W40 used originals for fed/bok and no third-party reposts (rules added
+  to PROMPT.md after W39 cited only press, including a blog repost of JPM's recap).
 
 ## Recently done
+- 2026-09-27 주간 시황 + 금리: `/market/rates` (ECOS + FRED), `/market/outlook`, 시장 tab sections, Claude
+  routine `stockapp 주간 시황` (trig_01D5yKfamn3gB5UQjpCm1uf2, Fri 23:00 UTC = Sat 08:00 KST, claude-sonnet-5;
+  pushes to main directly — verified). First real file: W39. Server and web deployed.
 - 2026-09-27 Swing: US scan limited to the S&P 500, calm stocks ranked first to cut drawdown (`bd06f6f`).
 - 2026-09-27 Swing: BUYs ranked by volatility, KR paused in an index uptrend (`4d308ab`).
 - 2026-09-27 Swing: paper-trades every live signal; model account P/L at `/swing/paper` (`866f0a2`).
