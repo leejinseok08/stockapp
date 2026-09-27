@@ -36,7 +36,7 @@ Rules:
 - `access: "원문"` only when you actually opened the original. A claim you saw only in an article is
   `"보도"` with the article's URL, even if the article quotes the house.
 - Never invent a number, date or quote. If you can't find it, leave it out.
-- A house with nothing new in the window: `"tone": null`, `"view": "이번 주 새 자료 없음"`, `"sources": []`.
+- A house with nothing new in the window: `"tone": null`, `"summary"` and `"detail"`: `"이번 주 새 자료 없음"`, `"sources": []`.
 - Older material (e.g. the quarterly Guide to the Markets) may be used only when it is still the house's
   latest view; give its real date.
 
@@ -52,7 +52,10 @@ Rules:
 - Where houses disagree, say so in `points`.
 
 ## 3. Write `backend/app/data/outlook/<week>.json`
-Korean, short, plain. UTF-8. Shape (limits are checked):
+Korean, plain. UTF-8. The 시장 tab shows only `stance` (as one color) and `headline`; tapping it opens a
+detail page with `reason`, `points`, `isa`, then each house's `summary` and `detail` with sources, then
+`watch`. So `headline` and `summary` are one glanceable line; `reason` and `detail` explain: what was
+said, the evidence (numbers with their dates), and why it leads to that tone. Shape (limits are checked):
 ```json
 {
   "week": "2026-W40",
@@ -60,10 +63,12 @@ Korean, short, plain. UTF-8. Shape (limits are checked):
   "author": "claude",
   "stance": "중립",
   "headline": "한 줄 결론 (80자 이내)",
+  "reason": "왜 이 판단인지: 기관들의 근거와 무게를 3~5문장으로 (600자 이내)",
   "points": ["핵심 2~5줄, 줄당 120자 이내", "기관 간 이견도 여기에"],
   "isa": "ISA 적립식 관점에서 이번 주 볼 것 한 줄 (120자 이내)",
   "houses": [
-    {"id": "fed", "tone": "중립", "view": "1~2문장 (160자 이내)",
+    {"id": "fed", "tone": "중립", "summary": "한 줄 요약 (50자 이내)",
+     "detail": "무엇을 말했나, 근거 수치와 날짜, 왜 이 톤인가: 2~5문장 (600자 이내)",
      "sources": [{"title": "FOMC statement", "url": "https://...", "date": "2026-09-30", "access": "원문"}]},
     {"id": "bok", ...}, {"id": "jpm", ...}, {"id": "bofa", ...}, {"id": "gs", ...}, {"id": "citi", ...}
   ],

@@ -34,13 +34,13 @@ def test_gap_only_on_shared_days():
 
 # ---- outlook -------------------------------------------------------------------------------------
 def _house(id_, tone="중립"):
-    return {"id": id_, "tone": tone, "view": "요약 한 줄",
+    return {"id": id_, "tone": tone, "summary": "요약 한 줄", "detail": "자세한 설명 두세 문장.",
             "sources": [{"title": "t", "url": "https://example.com", "date": "2026-09-25", "access": "원문"}]}
 
 
 GOOD = {
     "week": "2026-W39", "asOf": "2026-09-26", "author": "claude", "stance": "중립",
-    "headline": "금리 부담 속 중립", "points": ["하나", "둘"], "isa": "환노출 유지, 적립 그대로",
+    "headline": "금리 부담 속 중립", "reason": "왜 중립인지 설명.", "points": ["하나", "둘"], "isa": "환노출 유지, 적립 그대로",
     "houses": [_house(i) for i in outlook.HOUSES],
     "watch": [{"date": "2026-10-02", "event": "미국 고용"}],
 }
@@ -65,7 +65,7 @@ def test_validate_reports_each_problem():
 
 def test_validate_allows_quiet_house():
     doc = copy.deepcopy(GOOD)
-    doc["houses"] = [{"id": "citi", "tone": None, "view": "이번 주 새 자료 없음", "sources": []} if h["id"] == "citi" else h
+    doc["houses"] = [{"id": "citi", "tone": None, "summary": "이번 주 새 자료 없음", "detail": "이번 주 새 자료 없음", "sources": []} if h["id"] == "citi" else h
                      for h in doc["houses"]]
     assert outlook.validate(doc) == []
 
@@ -86,3 +86,16 @@ def test_this_week_uses_korean_date():
     # Friday 23:30 UTC is already Saturday in Korea; same ISO week as the Mon–Fri before it.
     assert outlook.this_week(datetime(2026, 10, 2, 23, 30, tzinfo=timezone.utc)) == ("2026-W40", "2026-10-03")
     assert outlook.this_week(datetime(2026, 9, 27, 3, 0, tzinfo=timezone.utc)) == ("2026-W39", "2026-09-27")
+
+
+def test_get_outlook_reads_old_view_files(tmp_path, monkeypatch):
+    monkeypatch.setattr(outlook, "DIR", tmp_path)
+    old = copy.deepcopy(GOOD)
+    old.pop("reason")
+    for h in old["houses"]:
+        h["view"] = h.pop("summary")
+        h.pop("detail")
+    (tmp_path / "2026-W39.json").write_text(json.dumps(old), encoding="utf-8")
+    got = outlook.get_outlook()
+    assert got["reason"] == ""
+    assert got["houses"][0]["summary"] == "요약 한 줄" and got["houses"][0]["detail"] == ""

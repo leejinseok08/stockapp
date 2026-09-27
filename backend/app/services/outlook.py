@@ -40,6 +40,7 @@ def validate(doc: dict) -> list[str]:
     if doc.get("stance") not in TONES:
         errs.append(f"stance: one of {TONES}")
     text(doc.get("headline"), "headline", 80)
+    text(doc.get("reason"), "reason", 600)
     points = doc.get("points")
     if not isinstance(points, list) or not 2 <= len(points) <= 5:
         errs.append("points: 2 to 5 lines")
@@ -61,7 +62,8 @@ def validate(doc: dict) -> list[str]:
         where = f"houses[{h.get('id')}]"
         if h.get("tone") is not None and h.get("tone") not in TONES:
             errs.append(f"{where}.tone: one of {TONES} or null when nothing new this week")
-        text(h.get("view"), f"{where}.view", 160)
+        text(h.get("summary"), f"{where}.summary", 50)
+        text(h.get("detail"), f"{where}.detail", 600)
         sources = h.get("sources")
         if not isinstance(sources, list):
             errs.append(f"{where}.sources: list (may be empty only when tone is null)")
@@ -113,9 +115,11 @@ def get_outlook() -> dict:
             past.append({"week": d["week"], "stance": d["stance"]})
         except Exception:
             continue
-    names = [HOUSES.get(h.get("id"), h.get("id")) for h in doc.get("houses", [])]
-    for h, name in zip(doc.get("houses", []), names):
-        h["name"] = name
+    doc.setdefault("reason", "")
+    for h in doc.get("houses", []):
+        h["name"] = HOUSES.get(h.get("id"), h.get("id"))
+        if "summary" not in h:  # files before 2026-09-27 had one `view` line per house
+            h["summary"], h["detail"] = h.pop("view", ""), ""
     return {"available": True, **doc, "past": past}
 
 
