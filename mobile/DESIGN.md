@@ -43,6 +43,25 @@ Tokens: `type.hero` (price), `type.title` (screen title), `type.section` (bold s
 | `down` | #5B8DEF | 하락 (blue is down) |
 | `accent` | #E8A33D | Actions and selection only. Never used for up/down. |
 
+| `tones.good` / `neutral` / `caution` | #3DBE7B / #8A919B / #F0524F | Signal scale (below) |
+
+## Signals (owner, 2026-09-27)
+
+Every signal uses one three-step scale, so the same meaning always has the same color. The mapping
+lives only in `src/signal.ts`; screens never pick a signal color themselves.
+
+| Tone | Color | Signals |
+|---|---|---|
+| good | green | BUY, 매수, 시황 긍정, 시장 온도 조정·공포 |
+| neutral | gray | 보유, 관망, 중립, 시장 온도 보통, 위험 게이지 평상 |
+| caution | red | SELL, 매도, 시황 신중, 시장 온도 과열, 위험 게이지 관찰·경계 |
+
+- Shown as `ToneTag` (dot + word on the tone's tint) or the word in the tone's color; the word is always
+  there. Red is shared with price-up by the owner's choice (traffic light); prices always carry ▲/▼,
+  signals never do, which keeps them apart.
+- Glance first, detail on tap: a tab shows the signal as one color and one line; the explanation opens
+  on its own screen (e.g. 시장 → 이번 주 시황 → OutlookScreen). Detail screens may use paragraphs.
+
 Rules:
 - Up/down is **never color alone**: always pair with ▲/▼ (`trendGlyph`). Red/blue is also safer than red/green for color-vision deficiency.
 - The accent marks what you can press or what is selected. Price lines are neutral (`text`), so the accent never implies a direction.

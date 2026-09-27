@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { GestureResponderEvent, View } from "react-native";
 import Svg, { Circle, Line, Polyline, Rect, Text as SvgText } from "react-native-svg";
 import { fmtPrice } from "../format";
-import { colors, fonts } from "../theme";
+import { colors, fonts, tones } from "../theme";
 
 type Props = {
   times: number[];
@@ -98,7 +98,7 @@ export function PriceChart({ times, closes, ma, marks, currency, width, height =
           key={`m${k}`}
           x={x(m.i)}
           y={m.type === "BUY" ? y(closes[m.i]) + 14 : y(closes[m.i]) - 6}
-          fill={colors.text}
+          fill={tones[m.type === "BUY" ? "good" : "caution"].fg}
           fontSize={11}
           fontFamily={fonts.monoBold}
           textAnchor="middle"

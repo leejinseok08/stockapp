@@ -1,6 +1,7 @@
 import React from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
-import { colors, fonts, space, type } from "../theme";
+import { riskTone } from "../signal";
+import { colors, fonts, space, tones, type } from "../theme";
 import type { RiskGauge } from "../types";
 import { Pips, Sparkline } from "./charts";
 
@@ -27,7 +28,7 @@ export function RiskSection({ risk }: { risk: RiskGauge }) {
       <View style={styles.summary}>
         <Text style={styles.hero}>
           {risk.lit}
-          <Text style={styles.heroOf}>/{risk.total}</Text> <Text style={styles.level}>{risk.level}</Text>
+          <Text style={styles.heroOf}>/{risk.total}</Text> <Text style={[styles.level, { color: tones[riskTone(risk.level)].fg }]}>{risk.level}</Text>
         </Text>
         <View style={{ flex: 1, marginLeft: space.lg }}>
           <Pips lit={risk.items.map((i) => i.lit)} total={risk.total} />

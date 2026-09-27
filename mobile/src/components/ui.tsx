@@ -2,7 +2,7 @@
 // between sections, change pills, letter avatars and pill chips. Colors are the app's own.
 import React, { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, fonts, radius, space, type } from "../theme";
+import { colors, fonts, radius, space, tones, type, type Tone } from "../theme";
 
 export function Section({
   title,
@@ -35,6 +35,24 @@ export function Section({
     </>
   );
 }
+
+// A signal: colored dot + word on its tone's tint (theme.tones, mapped in signal.ts). The word is
+// always there, so the meaning never rests on color alone.
+export function ToneTag({ tone, label, size = "sm" }: { tone: Tone; label: string; size?: "sm" | "md" | "lg" }) {
+  const t = tones[tone];
+  const s = TAG_SIZES[size];
+  return (
+    <View style={[styles.tag, { backgroundColor: t.soft, paddingHorizontal: s.px, paddingVertical: s.py }]} accessibilityLabel={label}>
+      <View style={{ width: s.dot, height: s.dot, borderRadius: s.dot / 2, backgroundColor: t.fg }} />
+      <Text style={{ fontFamily: fonts.sansBold, fontSize: s.font, color: t.fg }}>{label}</Text>
+    </View>
+  );
+}
+const TAG_SIZES = {
+  sm: { px: 7, py: 2, dot: 6, font: 11 },
+  md: { px: 10, py: 4, dot: 8, font: 14 },
+  lg: { px: 14, py: 6, dot: 10, font: 20 },
+};
 
 export function Band() {
   return <View style={styles.band} />;
@@ -114,6 +132,7 @@ export function Chips<T extends string>({
 }
 
 const styles = StyleSheet.create({
+  tag: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: radius.pill, alignSelf: "flex-start" },
   section: { paddingHorizontal: space.lg, paddingVertical: space.xl },
   titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   title: { ...type.section },

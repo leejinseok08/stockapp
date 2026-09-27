@@ -1,7 +1,8 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { fmtPrice } from "../format";
-import { colors, fonts, space, type } from "../theme";
+import { ratingTone } from "../signal";
+import { colors, fonts, space, tones, type } from "../theme";
 import type { Analysis } from "../types";
 import { ACTION_LABEL, SignalBadge } from "./SignalBadge";
 
@@ -18,7 +19,7 @@ export function ReportSection({ a }: { a: Analysis }) {
       <View style={styles.top}>
         <View style={{ flex: 1 }}>
           <Text style={styles.label}>의견</Text>
-          <Text style={styles.rating}>
+          <Text style={[styles.rating, a.rating != null && { color: tones[ratingTone(a.rating)].fg }]}>
             {a.rating ?? "판단 보류"}
             {a.conviction && <Text style={styles.conviction}>  확신 {a.conviction}</Text>}
           </Text>

@@ -21,6 +21,16 @@ export const colors = {
   band: "#060708",
 };
 
+// Signal scale (DESIGN.md "Signals"): every signal in the app maps to one of three tones, so the
+// same meaning always has the same color. Owner's choice (2026-09-27): traffic light. Red here means
+// caution; price moves still always carry ▲/▼ so a red price and a red signal never read alike alone.
+export type Tone = "good" | "neutral" | "caution";
+export const tones: Record<Tone, { fg: string; soft: string; word: string }> = {
+  good: { fg: "#3DBE7B", soft: "#10261B", word: "긍정" },
+  neutral: { fg: "#8A919B", soft: "#1C2026", word: "중립" },
+  caution: { fg: "#F0524F", soft: "#2B1618", word: "신중" },
+};
+
 export const radius = { sm: 8, md: 12, lg: 16, pill: 999 };
 
 export const fonts = {

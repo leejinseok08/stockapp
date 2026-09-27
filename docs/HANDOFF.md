@@ -22,6 +22,9 @@ None.
   to PROMPT.md after W39 cited only press, including a blog repost of JPM's recap).
 
 ## Recently done
+- 2026-09-27 Signal colors unified (green/gray/red via `mobile/src/signal.ts` + `ToneTag`); 시장 tab shows the
+  weekly view as one colored card, tap → `OutlookScreen` (reason, points, each house summary + detail +
+  sources). Outlook schema: `reason`, house `summary`/`detail` (old `view` files still load).
 - 2026-09-27 주간 시황 + 금리: `/market/rates` (ECOS + FRED), `/market/outlook`, 시장 tab sections, Claude
   routine `stockapp 주간 시황` (trig_01D5yKfamn3gB5UQjpCm1uf2, Fri 23:00 UTC = Sat 08:00 KST, claude-sonnet-5;
   pushes to main directly — verified). First real file: W39. Server and web deployed.

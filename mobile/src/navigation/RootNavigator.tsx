@@ -6,6 +6,7 @@ import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AccountScreen from "../screens/AccountScreen";
 import MarketScreen from "../screens/MarketScreen";
+import OutlookScreen from "../screens/OutlookScreen";
 import StockDetailScreen from "../screens/StockDetailScreen";
 import StocksScreen from "../screens/StocksScreen";
 import TodayScreen from "../screens/TodayScreen";
@@ -77,6 +78,7 @@ export default function RootNavigator() {
           component={StockDetailScreen}
           options={({ route }) => ({ title: route.params.symbol })}
         />
+        <Stack.Screen name="Outlook" component={OutlookScreen} options={{ title: "이번 주 시황" }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

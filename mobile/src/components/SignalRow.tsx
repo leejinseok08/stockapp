@@ -1,9 +1,11 @@
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { temperatureTone } from "../signal";
 import { colors, fonts, space, type } from "../theme";
 import type { SignalTarget } from "../types";
 import { BandMeter } from "./charts";
+import { ToneTag } from "./ui";
 
 const MISSING_LABELS: Record<string, string> = {
   flows: "외국인 수급 (KRX 로그인 필요)",
@@ -40,7 +42,13 @@ export function SignalRow({ target, meterWidth }: { target: SignalTarget; meterW
         </View>
         <View style={styles.right}>
           <Text style={[styles.score, target.reference && styles.muted]}>{score ?? "-"}</Text>
-          <Text style={styles.action}>{target.action ?? "-"}</Text>
+          {target.action ? (
+            <View style={{ marginTop: 2 }}>
+              <ToneTag tone={temperatureTone(target.action)} label={target.action} />
+            </View>
+          ) : (
+            <Text style={styles.action}>-</Text>
+          )}
         </View>
         <Feather name={open ? "chevron-up" : "chevron-down"} size={16} color={colors.textMuted} style={styles.chevron} />
       </Pressable>

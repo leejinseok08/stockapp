@@ -26,7 +26,7 @@ Without `EXPO_PUBLIC_API_URL` the app uses the deployed backend https://stockapp
 The owner continues in Codex when Claude credits run out (Codex reads `AGENTS.md`, which points here). Read `docs/HANDOFF.md` before starting and keep it current by its protocol: update after each finished step and commit small steps, since a session can stop without warning.
 
 ## Rules
-- All UI follows `mobile/DESIGN.md` (Toss-style layout on the app's dark palette: bold section titles, bands between sections, change pills, logo avatars, chips; red=up blue=down always with ▲▼, amber accent only for actions, one-line descriptions only, no emoji icons).
+- All UI follows `mobile/DESIGN.md` (Toss-style layout on the app's dark palette: bold section titles, bands between sections, change pills, logo avatars, chips; red=up blue=down always with ▲▼, amber accent only for actions, one-line descriptions only, no emoji icons). Signals use one scale everywhere: green 긍정 / gray 중립 / red 신중, mapped only in `mobile/src/signal.ts`.
 - Money: never sum or rank across currencies without converting. Use `fmtPrice` / `fmtMoney` in `mobile/src/format.ts` (KRW: no decimals, 억/조).
 - Charts: no smoothing, never draw values that don't exist (e.g. moving average before a full window).
 - Verify UI changes by rendering (`npm run web`), not only typecheck.

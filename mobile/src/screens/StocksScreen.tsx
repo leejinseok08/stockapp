@@ -6,9 +6,10 @@ import { ActivityIndicator, FlatList, Modal, Pressable, RefreshControl, SectionL
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { SignalBadge } from "../components/SignalBadge";
-import { Avatar, ChangePill, Chips } from "../components/ui";
+import { Avatar, ChangePill, Chips, ToneTag } from "../components/ui";
 import { fmtPrice } from "../format";
-import { colors, fonts, radius, space, type } from "../theme";
+import { ratingTone } from "../signal";
+import { colors, fonts, radius, space, tones, type } from "../theme";
 import type { ListRow, RootStackParamList, Ticker } from "../types";
 
 const CACHE_KEY = "stock-list";
@@ -251,7 +252,8 @@ const upText = (v: number | null | undefined) => (v == null ? "-" : `${v >= 0 ? 
 // The big number on the right is always the value the list is sorted by.
 function Metric({ row, sort }: { row: ListRow; sort: SortKey }) {
   if (sort === "signal") return <SignalBadge action={row.trend?.action} large />;
-  if (sort === "rating") return <Text style={styles.metricWord}>{row.rating?.rating ?? "-"}</Text>;
+  if (sort === "rating")
+    return row.rating?.rating ? <ToneTag tone={ratingTone(row.rating.rating)} label={row.rating.rating} size="md" /> : <Text style={styles.metricWord}>-</Text>;
   if (sort === "upside") return <Text style={styles.metric}>{upText(row.rating?.baseUpside)}</Text>;
   return <Text style={styles.metric}>{row.score != null ? Math.round(row.score) : "-"}</Text>;
 }
@@ -259,12 +261,14 @@ function Metric({ row, sort }: { row: ListRow; sort: SortKey }) {
 // Everything except the sorted-by value, which is shown big on the right.
 function Secondary({ row, sort }: { row: ListRow; sort: SortKey }) {
   const rating = row.rating?.rating ?? "-";
+  // The rating word keeps its signal tone wherever it appears (signal.ts).
+  const ratingWord = <Text style={{ color: row.rating?.rating ? tones[ratingTone(row.rating.rating)].fg : colors.textMuted }}>{rating}</Text>;
   const up = upText(row.rating?.baseUpside);
   const score = `재무 ${row.score != null ? Math.round(row.score) : "-"}`;
   if (sort === "signal")
     return (
       <>
-        <Text style={styles.rating}>{rating} <Text style={styles.upside}>{up}</Text></Text>
+        <Text style={styles.rating}>{ratingWord} <Text style={styles.upside}>{up}</Text></Text>
         <Text style={styles.upside}>{score}</Text>
       </>
     );
@@ -272,7 +276,7 @@ function Secondary({ row, sort }: { row: ListRow; sort: SortKey }) {
     <>
       <SignalBadge action={row.trend?.action} />
       <Text style={styles.upside}>
-        {sort === "rating" ? `${up} · ${score}` : sort === "upside" ? `${rating} · ${score}` : `${rating} ${up}`}
+        {sort === "rating" ? `${up} · ${score}` : sort === "upside" ? <>{ratingWord} · {score}</> : <>{ratingWord} {up}</>}
       </Text>
     </>
   );

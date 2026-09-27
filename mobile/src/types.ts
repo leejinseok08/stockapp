@@ -79,6 +79,7 @@ export type NewsItem = {
 export type RootStackParamList = {
   Tabs: undefined;
   StockDetail: { symbol: string; name?: string };
+  Outlook: { outlook: Extract<Outlook, { available: true }> };
 };
 
 export type TabParamList = {
@@ -485,7 +486,8 @@ export type OutlookHouse = {
   id: string;
   name: string;
   tone: OutlookTone | null;
-  view: string;
+  summary: string;
+  detail: string;
   sources: OutlookSource[];
 };
 
@@ -498,6 +500,7 @@ export type Outlook =
       author: "claude" | "codex";
       stance: OutlookTone;
       headline: string;
+      reason: string;
       points: string[];
       isa: string;
       houses: OutlookHouse[];
