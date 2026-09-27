@@ -25,18 +25,15 @@
       body {
         overflow: hidden;
       }
+      /* Pin the app to the screen's edges instead of trusting 100% / 100dvh, which an installed iOS
+         web app can size short of the screen (the gap under the tab bar). */
       #root {
         display: flex;
-        height: 100%;
-        flex: 1;
-      }
-      /* Size to the visible screen (100% can come out short in an installed iOS web app). */
-      @supports (height: 100dvh) {
-        html,
-        body,
-        #root {
-          height: 100dvh;
-        }
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
       }
     </style>
   </head>

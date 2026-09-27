@@ -40,6 +40,9 @@ function Tabs() {
   // Tab screens draw their own titles (no navigation header), so keep them below the status bar /
   // notch here once instead of in every screen.
   const insets = useSafeAreaInsets();
+  // On Face ID iPhones the home-indicator inset is 34pt; the full amount under the labels reads as an
+  // empty band. 20pt still keeps the labels clear of the indicator.
+  const tabPad = insets.bottom > 0 ? Math.max(insets.bottom - 14, 12) : 8;
   return (
     <Tab.Navigator
       sceneContainerStyle={{ paddingTop: insets.top, backgroundColor: colors.background }}
@@ -47,7 +50,13 @@ function Tabs() {
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: { backgroundColor: colors.background, borderTopColor: colors.hairline },
+        tabBarStyle: {
+          backgroundColor: colors.background,
+          borderTopColor: colors.hairline,
+          height: 54 + tabPad,
+          paddingTop: 6,
+          paddingBottom: tabPad,
+        },
         tabBarLabelStyle: { fontFamily: fonts.sansMedium, fontSize: 11 },
         tabBarIcon: ({ color, size }) => <Feather name={TAB_ICONS[route.name]} color={color} size={size - 4} />,
       })}
