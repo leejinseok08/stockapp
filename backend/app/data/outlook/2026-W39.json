@@ -1,65 +1,100 @@
 {
   "week": "2026-W39",
   "asOf": "2026-09-27",
-  "author": "claude",
-  "stance": "신중",
-  "headline": "연준은 10월 추가 인상 쪽으로, BofA는 매도신호 유지, 씨티만 실적모멘텀에 긍정적",
+  "author": "codex",
+  "stance": "중립",
+  "headline": "추가 긴축 부담과 AI·기업실적 개선이 맞서는 장세",
+  "reason": "9월 19~25일 공개 자료를 종합하면 금리 부담과 실적 지지가 공존한다. 바 연준 이사는 물가 위험을 들어 추가 정책 조정 필요성을 밝혔지만, 이는 개인 견해이며 10월 결정의 확정은 아니다. 씨티는 폭넓은 이익 증가를 근거로 주식에 긍정적이고, 골드만삭스의 AI 실적 분석도 이를 뒷받침한다. BofA 안에서도 자금흐름·과열 경고와 CIO의 중기 낙관이 엇갈리며, 한은은 금융시스템의 안정성과 잠재 위험을 함께 짚었다. 공식 원문에 무게를 두되 단일 자금흐름 지표로 시장 전체를 단정하지 않아 중립으로 판단한다.",
   "points": [
-    "바 이사 발언과 PMI 서프라이즈로 10월 추가 인상 기대가 71%까지 뛰며 연준 톤이 매워졌다.",
-    "BofA 불앤베어 지표는 9.3으로 소폭 낮아졌지만 여전히 매도신호권, 자금은 주식에서 채권·현금·금으로 이동했다.",
-    "씨티는 폭넓은 어닝 브레드스를 근거로 여전히 긍정적이라 연준·BofA와 시각차가 컸다.",
-    "한은은 10월 회의를 앞두고 금융안정회의에서 금융불균형 누증과 시장변동성 확대 위험을 짚었다.",
-    "추석을 앞두고 수출기업 달러매도로 원/달러는 1350원대로 소폭 강세, 9월 1~20일 반도체 수출은 259% 급증했다."
+    "연준 바 이사는 추가 정책 조정 필요성을 언급했다. 개인 발언을 10월 인상 확정이나 FOMC 전체의 약속으로 읽기는 어렵다.",
+    "BofA는 Flow Show의 과열·자금유출 경고와 CIO의 중기 낙관이 공존한다. 씨티는 폭넓은 실적 개선을 근거로 긍정적이다.",
+    "JPM은 AI 수혜가 반도체와 대형 기술기업 사이에서 다르게 나타난다고 분석했다. 골드만은 AI의 이익 성장 기여를 강조했다.",
+    "한은은 금융시스템이 대체로 안정적이라고 평가하면서 금융불균형과 취약부문 위험을 경계했다. 소비자심리는 전월보다 개선됐다.",
+    "다음 주 미국 PCE와 고용지표는 물가 압력·경기 체력을 함께 확인할 재료다. 발표 결과에 따라 금리 기대가 달라질 수 있다."
   ],
-  "isa": "원/달러가 1350원대로 소폭 강세이나 연준 추가 인상 기대가 살아있어 환헤지 여부와 환율 변동을 계속 볼 것.",
+  "isa": "정액 적립 관점에서는 9월 30일 PCE·10월 2일 고용 발표 전후 금리와 원/달러 변동, 환노출·환헤지 상품의 차이를 확인할 주간이다.",
   "houses": [
     {
       "id": "fed",
       "tone": "신중",
-      "view": "바 이사가 추가 인상 필요성을 강조하고 PMI가 5년 만에 최고치를 찍으며 10월 인상 기대가 71%로 뛰었다. 윌리엄스 뉴욕 연은 총재는 시장구조 개편에 집중했다.",
+      "summary": "바 이사, 물가 위험에 추가 정책 조정 필요성 언급",
+      "detail": "9월 23일 바 이사는 성장과 고용은 견조하지만 물가가 목표로 충분히 내려오지 않고 있다고 평가했다. 관세·전쟁·AI 투자 수요를 가격 압력의 배경으로 들며 직전 주 금리 인상을 지지했고, 기본 전망상 추가 정책 조정이 필요할 수 있다고 밝혔다. 위험자산에는 긴축 부담으로 읽히지만, 연설은 개인 견해이며 다음 인상의 시기·폭을 확정하지 않았다.",
       "sources": [
         {
-          "title": "Market sees next Fed hike in October, following Barr comments and hot inflation reading",
-          "url": "https://www.cnbc.com/2026/09/23/market-sees-next-fed-hike-in-october-following-barr-comments-hot-inflation.html",
+          "title": "A Long-Term View on the Costs of Shelter — Michael S. Barr",
+          "url": "https://www.federalreserve.gov/newsevents/speech/barr20260923a.htm",
           "date": "2026-09-23",
-          "access": "보도"
+          "access": "원문"
         }
       ]
     },
     {
       "id": "bok",
-      "tone": "신중",
-      "view": "10월 회의 전 금리 결정은 없었으나 금융안정회의에서 금융불균형 누증, 취약부문 부실 가능성, 금융·외환시장 변동성 확대 위험을 점검했다.",
+      "tone": "중립",
+      "summary": "금융시스템은 대체로 안정, 불균형·취약부문은 경계",
+      "detail": "9월 22일 금융안정 점검에서 양호한 금융기관 복원력과 대외지급능력을 바탕으로 시스템은 대체로 안정적이라고 평가했다. 동시에 금융불균형 누증, 취약부문 부실, 금융·외환시장 변동성 확대 가능성을 지적했다. 9월 23일 발표한 소비자심리지수는 106.6으로 전월보다 2.1포인트 상승했다. 안정성과 심리 개선, 잠재 위험이 함께 있어 중립으로 해석하며 이 자료를 새 금리 결정으로 보지는 않는다.",
       "sources": [
         {
-          "title": "한은, 2026년 9월 금융안정 상황 설명회",
-          "url": "https://www.newspim.com/news/view/20260922000792",
+          "title": "금융안정 상황(2026년 9월)",
+          "url": "https://www.bok.or.kr/portal/bbs/P0000559/view.do?depth=201263&depth2=200038&depth3=201263&menuNo=200690&nttId=11064952&oldMenuNo=201263&pageIndex=1&pageUnit=10&programType=newsData&searchCnd=1&searchKwd=",
           "date": "2026-09-22",
-          "access": "보도"
+          "access": "원문"
+        },
+        {
+          "title": "2026년 9월 소비자동향조사 결과",
+          "url": "https://www.bok.or.kr/portal/bbs/B0000501/view.do?depth=201264&menuNo=201264&nttId=11064975&programType=newsData&relate=Y",
+          "date": "2026-09-23",
+          "access": "원문"
+        },
+        {
+          "title": "한국은행 공식 홈페이지 — 금융안정 상황·9월 소비자심리 요약",
+          "url": "https://www.bok.or.kr/portal/main/main.do",
+          "date": "2026-09-23",
+          "access": "원문"
         }
       ]
     },
     {
       "id": "jpm",
       "tone": "중립",
-      "view": "주간 리캡에서 S&P500·나스닥은 소폭 상승, 다우는 하락으로 엇갈렸다. 연내 추가 한 차례 인상 가능성과 유가·관세·기술투자 불확실성을 언급했다.",
+      "summary": "AI 수혜의 구성 차이와 고금리의 신용 부담을 점검",
+      "detail": "9월 25일 자산운용 분석은 성장주·가치주 수익률 차이에 지수 재편과 AI 수혜기업 구성이 영향을 줬다고 설명했다. 상반기에는 반도체 등 설비 공급자와 투자비를 지출하는 대형 기술기업의 성과가 달랐다는 점을 짚었다. 9월 23일 별도 분석은 변동금리 대출의 수익 증가와 차입자의 이자 부담이 함께 커진다고 지적했다. AI 성장만 보거나 고금리를 일률적 악재로 보는 대신 구성과 신용 위험을 구분하는 중립적 시각이다.",
       "sources": [
         {
-          "title": "Weekly Market Recap | September 21, 2026",
-          "url": "https://www.krilogy.com/weekly-market-recap-september-21-2026/",
-          "date": "2026-09-21",
-          "access": "보도"
+          "title": "Why are Growth and Value diverging so much this year?",
+          "url": "https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/on-the-minds-of-investors/why-are-growth-and-value-diverging-so-much-this-year/",
+          "date": "2026-09-25",
+          "access": "원문"
+        },
+        {
+          "title": "How will higher rates affect private credit?",
+          "url": "https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/on-the-minds-of-investors/how-will-higher-rates-affect-private-credit/",
+          "date": "2026-09-23",
+          "access": "원문"
         }
       ]
     },
     {
       "id": "bofa",
-      "tone": "신중",
-      "view": "불앤베어 지표가 9.5에서 9.3으로 소폭 낮아졌지만 여전히 매도신호권이며, 자금은 주식에서 채권·현금·금으로 이동하는 위험회피 흐름이 뚜렷했다.",
+      "tone": "중립",
+      "summary": "자금흐름의 과열 경고와 CIO의 중기 낙관이 공존",
+      "detail": "9월 25일 Newsquawk 보도상 Flow Show의 불앤베어 지표는 9.5에서 9.3으로 낮아졌지만 높은 수준이며, 주식에서 102억 달러가 빠져나갔다. 반면 9월 21일 공식 CIO 전망은 유가·채권금리·정책금리 부담을 인정하면서 중간선거 이후의 역사적 성과를 들어 중기 기회를 강조했다. 서로 다른 부문의 관점이므로 기관 전체를 일괄 비관으로 보지 않는다. Reuters의 별도 Lipper 집계는 주식 순유입을 보여, 집계 범위·기준을 맞추지 않은 자금흐름 비교에도 주의가 필요하다.",
       "sources": [
+        {
+          "title": "Capital Market Outlook — September 21, 2026",
+          "url": "https://www.privatebank.bankofamerica.com/articles/capital-market-outlook-sep-21-2026.html",
+          "date": "2026-09-21",
+          "access": "원문"
+        },
         {
           "title": "BofA Flow Show: Bull & Bear indicator 9.3 (prev. 9.5)",
           "url": "https://www.newsquawk.com/headlines/bofa-flow-show-bull--bear-indicator-93-prev-95",
+          "date": "2026-09-25",
+          "access": "보도"
+        },
+        {
+          "title": "Reuters: Global equity funds snap two-week outflow as AI optimism returns",
+          "url": "https://www.marketscreener.com/news/global-equity-funds-snap-two-week-outflow-as-ai-optimism-returns-ce785adfdc8fff20",
           "date": "2026-09-25",
           "access": "보도"
         }
@@ -67,28 +102,45 @@
     },
     {
       "id": "gs",
-      "tone": null,
-      "view": "이번 주 새 자료 없음",
-      "sources": []
+      "tone": "긍정",
+      "summary": "AI 투자가 S&P500 이익 성장의 큰 몫을 뒷받침",
+      "detail": "9월 25일 Reuters는 골드만삭스 전략가들이 이번 주 AI 투자가 올해 S&P500 주당순이익 성장의 거의 절반을 이끈다고 평가했다고 보도했다. 실적 기반에 대한 긍정적 근거로 해석한다. 다만 유료 리서치 원문은 확인하지 못했고, 이 보도만으로 골드만의 시장 전체 전망이나 금리 위험에 대한 판단까지 확대하지 않는다.",
+      "sources": [
+        {
+          "title": "Reuters: Global equity funds snap two-week outflow as AI optimism returns",
+          "url": "https://www.marketscreener.com/news/global-equity-funds-snap-two-week-outflow-as-ai-optimism-returns-ce785adfdc8fff20",
+          "date": "2026-09-25",
+          "access": "보도"
+        }
+      ]
     },
     {
       "id": "citi",
       "tone": "긍정",
-      "view": "씨티 웰스는 시장에 긍정적인 부분이 많고 실적 폭이 넓게 퍼졌다고 평가하며 실적 성장이 높아진 금리를 상쇄한다는 시각을 유지했다.",
+      "summary": "고금리에도 폭넓은 실적 증가가 주식을 지지",
+      "detail": "9월 22일 공식 주간 전망은 세계 성장세가 중앙은행의 물가 대응 여력을 제공한다고 평가했다. 은행 대출 의지와 신용 공급이 개선되고 대형 기술기업의 레버리지는 낮다고 설명했다. 여러 업종의 실적 증가가 이어지는 만큼 주식에 대한 긍정적 시각을 유지했다. 실질금리 상승에 따른 가치평가 하락도 공포보다는 합리적 조정으로 해석해, 긴축 부담을 강조한 연준 발언과 시장 해석의 무게가 다르다.",
       "sources": [
         {
-          "title": "A lot to like in the markets, and earnings breadth has been wide, says Citi's Olaolu Aganga",
-          "url": "https://www.cnbc.com/video/2026/09/22/a-lot-to-like-in-the-markets-and-earnings-breadth-has-been-wide-says-citis-olaolu-aganga.html",
+          "title": "Higher Rates Are Here to Stay, and Earnings Keep Pace",
+          "url": "https://marketinsights.citi.com/Market-Commentary/Weekly-Market-Update/Higher-Rates-Are-Here-to-Stay-and-Earnings-Keep-Pace.html",
           "date": "2026-09-22",
-          "access": "보도"
+          "access": "원문"
         }
       ]
     }
   ],
   "watch": [
-    {"date": "2026-10-02", "event": "미국 9월 비농업고용 발표 (전월 대비 둔화 예상)"},
-    {"date": "2026-10-02", "event": "한국 9월 수출입 실적 발표"},
-    {"date": "2026-10-22", "event": "한국은행 10월 금융통화위원회"},
-    {"date": "2026-10-28", "event": "FOMC 10월 회의 금리 결정"}
+    {
+      "date": "2026-09-29",
+      "event": "미국 8월 구인·이직보고서(JOLTS), 미국 현지일 기준"
+    },
+    {
+      "date": "2026-09-30",
+      "event": "미국 8월 PCE 물가·개인소득·소비, 연례 개정"
+    },
+    {
+      "date": "2026-10-02",
+      "event": "미국 9월 고용보고서: 비농업고용·실업률·임금"
+    }
   ]
 }
