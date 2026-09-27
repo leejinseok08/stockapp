@@ -12,6 +12,8 @@ from ..db import IS_SQLITE, MarketSnapshot, engine, get_session
 from ..services.macro import get_overview, snapshot_rows
 from ..services.heatmap import get_heatmap
 from ..services.isa_plan import get_isa_plan
+from ..services.outlook import get_outlook
+from ..services.rates import get_rates
 from ..services.risk import get_risk, risk_rows
 from ..services.signals import get_signals, signal_rows
 
@@ -101,6 +103,18 @@ def startup_collect() -> None:
                  {r["symbol"]: ((r.get("trend") or {}).get("action"), (r.get("rating") or {}).get("rating")) for r in rows})
     except Exception:
         log.exception("startup data check failed")
+
+
+@router.get("/rates")
+def rates():
+    """Korean (ECOS) and US (FRED) policy and 10-year rates, and the KR−US gaps."""
+    return get_rates()
+
+
+@router.get("/outlook")
+def outlook():
+    """This week's view summed up from six houses' research (written weekly by a scheduled agent)."""
+    return get_outlook()
 
 
 @router.get("/isa-plan")

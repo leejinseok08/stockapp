@@ -15,13 +15,15 @@ Weekly market view (주간 시황) + BOK ECOS rates, agreed with the owner 2026-
 - Context only, never a buy/sell call (backtests: nothing beats plain DCA).
 - Weekly scheduled task in BOTH Claude (cloud routine, Saturday morning KST) and Codex (a few hours later, only if that week's file is missing) writes a JSON into the repo (public), backend serves the latest, 시장 tab shows a card.
 - ECOS: key works and is set on Render as `ECOS_API_KEY` (never in the repo; locally `$env:ECOS_API_KEY`). Stat codes: 기준금리 722Y001/D/0101000, 국고채 3년 817Y002/D/010200000, 10년 817Y002/D/010210000. Plan: backend rates module + 시장 tab card (기준금리, 국고채, 한미 금리차).
-- Done so far: nothing in code yet.
+- Done: `services/rates.py` + `GET /market/rates`; `services/outlook.py` (schema check: `python -m app.services.outlook check <file>`) + `GET /market/outlook` reading `app/data/outlook/<ISO week>.json`; tests `tests/test_rates_outlook.py`; agent instructions `tools/outlook/PROMPT.md` (shared by both agents).
 
 ## Uncommitted
 None.
 
 ## Next up
-- Build the above: ECOS rates module → weekly JSON schema + endpoint → 시장 tab card → Claude routine → Codex automation.
+- 시장 tab: 이번 주 시황 section first, 금리 section before 통화 강세 → render check → deploy web.
+- Claude routine (Sat 08:00 KST = `0 23 * * 5` UTC) running PROMPT.md; test run, check whether it can push to main.
+- Codex automation (Sat 12:00 KST) with the same prompt; the owner sets it up in the Codex app.
 
 ## Recently done
 - 2026-09-27 Swing: US scan limited to the S&P 500, calm stocks ranked first to cut drawdown (`bd06f6f`).
