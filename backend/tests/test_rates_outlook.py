@@ -79,3 +79,10 @@ def test_get_outlook_latest_with_past_stances(tmp_path, monkeypatch):
     assert got["week"] == "2026-W39"
     assert got["past"] == [{"week": "2026-W38", "stance": "신중"}]
     assert {h["name"] for h in got["houses"]} == set(outlook.HOUSES.values())
+
+
+def test_this_week_uses_korean_date():
+    from datetime import datetime, timezone
+    # Friday 23:30 UTC is already Saturday in Korea; same ISO week as the Mon–Fri before it.
+    assert outlook.this_week(datetime(2026, 10, 2, 23, 30, tzinfo=timezone.utc)) == ("2026-W40", "2026-10-03")
+    assert outlook.this_week(datetime(2026, 9, 27, 3, 0, tzinfo=timezone.utc)) == ("2026-W39", "2026-09-27")

@@ -5,10 +5,10 @@ Run by a Claude Code cloud routine (Saturday 08:00 KST) and, as the fallback, a 
 
 ## 0. Is this week already done?
 1. `git pull origin main`.
-2. This week = the ISO week of today in Asia/Seoul (e.g. Saturday 2026-10-03 → `2026-W40`, the
-   Mon–Fri that just ended). Get it with
-   `python -c "import datetime,zoneinfo;d=datetime.datetime.now(zoneinfo.ZoneInfo('Asia/Seoul')).date();y,w,_=d.isocalendar();print(f'{y}-W{w:02d}',d)"`.
-3. If `backend/app/data/outlook/<week>.json` already exists, stop and report "already written".
+2. `cd backend && python -m app.services.outlook week` prints this week (ISO week of today in Korea,
+   e.g. Saturday 2026-10-03 → `2026-W40`, the Mon–Fri that just ended), today's date, and whether
+   `backend/app/data/outlook/<week>.json` exists.
+3. If it says `exists`, stop and report "already written".
 
 ## 1. Research (the last 7 days: previous Saturday through Friday)
 Six houses. For each, find what it published or said in the window. Prefer originals; paid client

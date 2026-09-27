@@ -9,6 +9,7 @@ in docs/signal-research.md found no timing rule that beats plain DCA).
 import json
 import re
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 DIR = Path(__file__).resolve().parent.parent / "data" / "outlook"
@@ -88,6 +89,13 @@ def validate(doc: dict) -> list[str]:
     return errs
 
 
+def this_week(now: datetime | None = None) -> tuple[str, str]:
+    """ISO week and date in Korea. Fixed +9 offset: Windows Python has no tz database without tzdata."""
+    d = (now or datetime.now(timezone.utc)).astimezone(timezone(timedelta(hours=9))).date()
+    y, w, _ = d.isocalendar()
+    return f"{y}-W{w:02d}", d.isoformat()
+
+
 def _files() -> list[Path]:
     return sorted(DIR.glob("*-W*.json")) if DIR.exists() else []
 
@@ -112,8 +120,13 @@ def get_outlook() -> dict:
 
 
 if __name__ == "__main__":
+    if sys.argv[1:] == ["week"]:
+        week, day = this_week()
+        path = DIR / f"{week}.json"
+        print(f"{week} {day} {'exists' if path.exists() else 'missing'} {path.relative_to(DIR.parents[2])}")
+        sys.exit(0)
     if len(sys.argv) != 3 or sys.argv[1] != "check":
-        sys.exit("usage: python -m app.services.outlook check <file.json>")
+        sys.exit("usage: python -m app.services.outlook week | check <file.json>")
     path = Path(sys.argv[2])
     doc = json.loads(path.read_text(encoding="utf-8"))
     errors = validate(doc)
