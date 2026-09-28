@@ -2,16 +2,16 @@ import { Feather } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Modal, RefreshControl, SectionList, StyleSheet, Text, TextInput, View } from "react-native";
+import { Modal, RefreshControl, SectionList, StyleSheet, Text, TextInput, View } from "react-native";
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { SignalBadge } from "../components/SignalBadge";
-import { Avatar, ChangePill, Chips, ToneTag } from "../components/ui";
-import { fmtPrice } from "../format";
+import { Avatar, Band, ChangePill, Chips, ToneTag } from "../components/ui";
+import { fmtMoney, fmtPrice } from "../format";
 import { ratingTone } from "../signal";
-import { colors, fonts, radius, space, tones, type } from "../theme";
-import type { ListRow, RootStackParamList, Ticker } from "../types";
-import { Press } from "../components/motion";
+import { colors, fonts, radius, space, trendColor, trendGlyph, type } from "../theme";
+import type { ListRow, RootStackParamList, Ticker, WatchlistEntry } from "../types";
+import { FadeIn, Press, refreshMessage, ScreenSkeleton, useToast } from "../components/motion";
 
 const CACHE_KEY = "stock-list";
 
@@ -37,7 +37,8 @@ function sortRows(rows: ListRow[], key: SortKey): ListRow[] {
   return [...rows].sort(cmp[key]);
 }
 
-// 종목 tab: big-tech group + the watchlist, one line each (docs/app-design.md).
+// 종목 tab (redesign S1-S3): holdings on top with their value and return, then the rest; one line
+// each with a single value on the right that follows the sort. Search sits in the header.
 export default function StocksScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [rows, setRows] = useState<ListRow[]>([]);
@@ -49,6 +50,9 @@ export default function StocksScreen() {
   const [universe, setUniverse] = useState<Ticker[]>([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Ticker[] | null>(null);
+  const [held, setHeld] = useState<Map<string, WatchlistEntry>>(new Map());
+  const [searchFirst, setSearchFirst] = useState(false);
+  const [toast, toastEl] = useToast();
 
   // Any KOSPI/KOSDAQ/NYSE/NASDAQ listing, searched as you type (short pause first).
   useEffect(() => {
@@ -63,12 +67,26 @@ export default function StocksScreen() {
     return () => clearTimeout(id);
   }, [query]);
 
+  useEffect(() => {
+    readCache<ListRow[]>(CACHE_KEY).then((c) => {
+      if (c) {
+        setRows((r) => (r.length ? r : c.data));
+        setLoading(false);
+      }
+    });
+  }, []);
+
   const load = useCallback(async () => {
+    api
+      .watchlist()
+      .then((w) => setHeld(new Map(w.filter((i) => i.buyPrice && i.quantity).map((i) => [i.symbol, i]))))
+      .catch(() => {});
     try {
       const d = await api.list();
       setRows(d.rows);
       setStaleMinutes(null);
       writeCache(CACHE_KEY, d.rows);
+      return d.rows;
     } catch (e) {
       console.warn("list failed, falling back to cache", e);
       const cached = await readCache<ListRow[]>(CACHE_KEY);
@@ -76,6 +94,7 @@ export default function StocksScreen() {
         setRows(cached.data);
         setStaleMinutes(minutesAgo(cached.savedAt));
       }
+      return null;
     }
   }, []);
 
@@ -85,7 +104,8 @@ export default function StocksScreen() {
     }, [load])
   );
 
-  const openPicker = () => {
+  const openPicker = (search = false) => {
+    setSearchFirst(search);
     setPickerOpen(true);
     if (!universe.length) api.universe().then(setUniverse).catch(() => {});
   };
@@ -130,13 +150,41 @@ export default function StocksScreen() {
   const adding = Object.entries(override).filter(([s, on]) => on && !watched.has(s)).length;
 
   const sorted = useMemo(() => sortRows(rows, sort), [rows, sort]);
+  // S1: holdings first (their own section), then everything else in the chosen order.
+  const listSections = useMemo(() => {
+    const mine = sorted.filter((r) => held.has(r.symbol));
+    const rest = sorted.filter((r) => !held.has(r.symbol));
+    return [
+      ...(mine.length ? [{ key: "held", title: `보유 ${mine.length}`, data: mine }] : []),
+      { key: "watch", title: `관심 ${rest.length}`, data: rest },
+    ];
+  }, [sorted, held]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    const before = Object.fromEntries(rows.map((r) => [r.symbol, r.trend?.action ?? null]));
+    const next = await load();
+    setRefreshing(false);
+    if (next) toast(refreshMessage(rows.length ? before : null, Object.fromEntries(next.map((r) => [r.symbol, r.trend?.action ?? null]))));
+  };
 
   return (
+    <FadeIn>
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>종목</Text>
+        <View style={{ flex: 1 }} />
         <Press
-          onPress={openPicker}
+          onPress={() => openPicker(true)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="종목 검색"
+          style={styles.searchBtn}
+        >
+          <Feather name="search" size={17} color={colors.text} />
+        </Press>
+        <Press
+          onPress={() => openPicker(false)}
           hitSlop={10}
           accessibilityRole="button"
           accessibilityLabel="종목 추가"
@@ -152,32 +200,23 @@ export default function StocksScreen() {
       </View>
       {staleMinutes != null && <Text style={styles.stale}>오프라인 · {staleMinutes}분 전 데이터</Text>}
       {adding > 0 && <Text style={styles.stale}>{adding}개 추가 중 · 신호와 점수를 계산하고 있어요</Text>}
-      <View style={styles.colHead}>
-        <Text style={[styles.colText, { flex: 1 }]}>종목</Text>
-        <Text style={[styles.colText, { width: 100, textAlign: "right" }]}>그 밖의 값</Text>
-        <Text style={[styles.colText, styles.colActive]}>{SORTS.find((x) => x.key === sort)!.label}</Text>
-      </View>
-
       {loading && rows.length === 0 ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.accent} />
-          <Text style={styles.note}>9개 기업의 재무제표와 리포트를 만드는 중이에요 (처음엔 1분 정도)</Text>
-        </View>
+        <ScreenSkeleton hero={false} rows={7} />
       ) : (
-        <FlatList
-          data={sorted}
+        <SectionList
+          sections={listSections}
           keyExtractor={(r) => r.symbol}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={async () => {
-                setRefreshing(true);
-                await load();
-                setRefreshing(false);
-              }}
-              tintColor={colors.accent}
-            />
-          }
+          stickySectionHeadersEnabled={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
+          renderSectionHeader={({ section }) => (
+            <View>
+              {section.key === "watch" && listSections.length > 1 && <Band />}
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+              {section.key === "watch" && (
+                <Text style={styles.sectionDesc}>{SORTS.find((x) => x.key === sort)!.label} 순 · 누르면 리포트</Text>
+              )}
+            </View>
+          )}
           ListFooterComponent={
             <Text style={styles.footnote}>
               신호는 200일선·MACD 추세 규칙, 의견은 기본 목표가 상승 여력 ±15% 기준이에요. 재무 점수는 빅테크 9개 안의 순위라
@@ -185,7 +224,12 @@ export default function StocksScreen() {
             </Text>
           }
           renderItem={({ item }) => (
-            <Row row={item} sort={sort} onPress={() => navigation.navigate("StockDetail", { symbol: item.symbol, name: item.name })} />
+            <Row
+              row={item}
+              sort={sort}
+              held={held.get(item.symbol)}
+              onPress={() => navigation.navigate("StockDetail", { symbol: item.symbol, name: item.name })}
+            />
           )}
         />
       )}
@@ -199,6 +243,7 @@ export default function StocksScreen() {
             </Press>
           </View>
           <TextInput
+            autoFocus={searchFirst}
             style={styles.search}
             value={query}
             onChangeText={setQuery}
@@ -245,13 +290,15 @@ export default function StocksScreen() {
           />
         </View>
       </Modal>
+      {toastEl}
     </View>
+    </FadeIn>
   );
 }
 
 const upText = (v: number | null | undefined) => (v == null ? "-" : `${v >= 0 ? "+" : "−"}${Math.abs(v * 100).toFixed(0)}%`);
 
-// The big number on the right is always the value the list is sorted by.
+// The one value on the right follows the sort: signal, opinion, upside or financial score.
 function Metric({ row, sort }: { row: ListRow; sort: SortKey }) {
   if (sort === "signal") return <SignalBadge action={row.trend?.action} large />;
   if (sort === "rating")
@@ -260,58 +307,41 @@ function Metric({ row, sort }: { row: ListRow; sort: SortKey }) {
   return <Text style={styles.metric}>{row.score != null ? Math.round(row.score) : "-"}</Text>;
 }
 
-// Everything except the sorted-by value, which is shown big on the right.
-function Secondary({ row, sort }: { row: ListRow; sort: SortKey }) {
-  const rating = row.rating?.rating ?? "-";
-  // The rating word keeps its signal tone wherever it appears (signal.ts).
-  const ratingWord = <Text style={{ color: row.rating?.rating ? tones[ratingTone(row.rating.rating)].fg : colors.textMuted }}>{rating}</Text>;
-  const up = upText(row.rating?.baseUpside);
-  const score = `재무 ${row.score != null ? Math.round(row.score) : "-"}`;
-  if (sort === "signal")
-    return (
-      <>
-        <Text style={styles.rating}>{ratingWord} <Text style={styles.upside}>{up}</Text></Text>
-        <Text style={styles.upside}>{score}</Text>
-      </>
-    );
-  return (
-    <>
-      <SignalBadge action={row.trend?.action} />
-      <Text style={styles.upside}>
-        {sort === "rating" ? `${up} · ${score}` : sort === "upside" ? <>{ratingWord} · {score}</> : <>{ratingWord} {up}</>}
-      </Text>
-    </>
-  );
-}
-
-function Row({ row, sort, onPress }: { row: ListRow; sort: SortKey; onPress: () => void }) {
-  const r = row.rating;
-  const up = r?.baseUpside;
+function Row({ row, sort, held, onPress }: { row: ListRow; sort: SortKey; held?: WatchlistEntry; onPress: () => void }) {
+  const cur = row.quoteCurrency ?? held?.currency ?? "USD";
+  const value = held && held.quantity ? (row.price ?? held.price ?? held.buyPrice ?? 0) * held.quantity : null;
+  const ret = held?.buyPrice && row.price != null ? row.price / held.buyPrice - 1 : null;
   return (
     <Press
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+      style={styles.row}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${row.name ?? row.symbol}, 신호 ${row.trend?.action ?? "없음"}, 의견 ${r?.rating ?? "없음"}. 리포트 보기`}
+      accessibilityLabel={`${row.name ?? row.symbol}, ${fmtPrice(row.price, row.quoteCurrency)}${
+        value != null ? `, 평가 ${fmtMoney(value, cur)}` : `, 신호 ${row.trend?.action ?? "없음"}`
+      }. 리포트 보기`}
     >
-      <View style={styles.rowTop}>
-        <Avatar name={row.name ?? row.symbol} uri={row.logo} />
-        <View style={{ flex: 1, marginLeft: space.md }}>
-          <Text style={styles.name} numberOfLines={1}>
-            {row.name ?? row.symbol}
+      <Avatar name={row.name ?? row.symbol} uri={row.logo} />
+      <View style={styles.mid}>
+        <Text style={styles.name} numberOfLines={1}>
+          {row.name ?? row.symbol}
+        </Text>
+        <View style={styles.priceLine}>
+          <Text style={styles.price}>{fmtPrice(row.price, row.quoteCurrency)}</Text>
+          <ChangePill value={row.changePercent} />
+        </View>
+      </View>
+      {value != null ? (
+        <View style={styles.heldBox}>
+          <Text style={styles.heldValue}>{fmtMoney(value, cur)}</Text>
+          <Text style={[styles.heldRet, { color: trendColor(ret) }]}>
+            {trendGlyph(ret)} {ret != null ? `${Math.abs(ret * 100).toFixed(Math.abs(ret) >= 1 ? 0 : 2)}%` : "-"}
           </Text>
-          <View style={styles.priceLine}>
-            <Text style={styles.price}>{fmtPrice(row.price, row.quoteCurrency)}</Text>
-            <ChangePill value={row.changePercent} />
-          </View>
         </View>
-        <View style={styles.right}>
-          <Secondary row={row} sort={sort} />
-        </View>
+      ) : (
         <View style={styles.metricBox}>
           <Metric row={row} sort={sort} />
         </View>
-      </View>
+      )}
     </Press>
   );
 }
@@ -324,8 +354,14 @@ const styles = StyleSheet.create({
   addBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: colors.accent },
   sortRow: { paddingHorizontal: space.lg - 12, paddingTop: space.md, paddingBottom: space.xs },
   stale: { ...type.caption, color: colors.accent, paddingHorizontal: space.lg },
-  row: { paddingVertical: 14, paddingHorizontal: space.lg },
-  rowPressed: { backgroundColor: colors.surface, borderRadius: radius.md },
+  row: { flexDirection: "row", alignItems: "center", paddingVertical: 12, paddingHorizontal: space.lg, borderRadius: radius.md },
+  mid: { flex: 1, marginLeft: space.md },
+  heldBox: { alignItems: "flex-end", gap: 3 },
+  heldValue: { ...type.numStrong, fontSize: 15, color: colors.text },
+  heldRet: { ...type.numStrong, fontSize: 12 },
+  searchBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface, marginRight: space.sm },
+  sectionTitle: { ...type.section, color: colors.text, paddingHorizontal: space.lg, paddingTop: space.xl, paddingBottom: space.xs },
+  sectionDesc: { ...type.caption, color: colors.textMuted, paddingHorizontal: space.lg, paddingBottom: space.sm },
   priceLine: { flexDirection: "row", alignItems: "center", gap: space.sm, marginTop: 3 },
   price: { ...type.num, fontSize: 13, color: colors.textMuted },
   rowTop: { flexDirection: "row", alignItems: "center" },
@@ -337,7 +373,7 @@ const styles = StyleSheet.create({
   right: { alignItems: "flex-end", marginLeft: space.sm, width: 100, gap: 4 },
   rating: { fontFamily: fonts.sansBold, fontSize: 13, color: colors.text },
   upside: { ...type.num, fontSize: 12, color: colors.textMuted },
-  metricBox: { width: 68, alignItems: "flex-end", marginLeft: space.sm },
+  metricBox: { minWidth: 68, alignItems: "flex-end", marginLeft: space.sm },
   metric: { ...type.display, fontSize: 20, color: colors.text, textAlign: "right" },
   metricWord: { fontFamily: fonts.sansBold, fontSize: 16, color: colors.text },
   colHead: { flexDirection: "row", paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.xs },
