@@ -93,7 +93,8 @@ matter (FOMC, 금통위, CPI, 고용, 대형 실적), up to 8, dropping ones tha
 1. `cd backend && python -m app.services.outlook check app/data/outlook/<slot>.json` — fix every
    reported problem until it prints `ok`. (Only the standard library is needed.)
 2. Commit only that file: `git add backend/app/data/outlook/<slot>.json` and
-   `git commit -m "Outlook <slot>"`.
+   `git commit -m "Outlook <slot> [skip render]"`. Keep `[skip render]`: it stops Render from redeploying
+   (and cold-starting) the server for every update; the server reads new files from GitHub itself.
 3. `git pull --rebase origin main`. If `<slot>.json` now exists from someone else, drop your commit and
    report a duplicate; otherwise `git push origin main`. If pushing to main is refused, push a branch
    `outlook/<slot>` instead and say so in your final message.

@@ -77,3 +77,30 @@ def test_replay_gives_the_limit_for_midline_exits():
     b = _bars([100.0] * 300 + [89.0, 88.0])
     order = screener.replay(b, BY_KEY["envelope"], 301, 88.0)
     assert order["order"] == "지정가" and abs(order["limit"] - b["ma20"][b.n - 1]) < 1e-9
+
+
+def test_swing_response_drops_groups_when_buys_exist():
+    from app.routers.swing import slim
+    new = {"buys": [], "groups": [{"x": 1}], "excluded": [1], "paused": False}
+    assert slim(new) == {"buys": [], "paused": False}
+    old = {"groups": [{"x": 1}]}
+    assert slim(old) == old
+
+
+def test_cache_drops_expired_and_oldest(monkeypatch):
+    from app.services import market
+    monkeypatch.setattr(market, "_CACHE", type(market._CACHE)())
+    monkeypatch.setattr(market, "MAX_ENTRIES", 3)
+    clock = [1000.0]
+    monkeypatch.setattr(market.time, "time", lambda: clock[0])
+    monkeypatch.setattr(market, "_last_sweep", 0.0)
+    market._cached("short", 10, lambda: "s")
+    market._cached("a", 1e6, lambda: 1)
+    clock[0] += 100  # "short" has expired; the next insert sweeps it
+    market._cached("b", 1e6, lambda: 2)
+    assert "short" not in market._CACHE
+    market._cached("a", 1e6, lambda: "never")  # a hit refreshes recency
+    market._cached("c", 1e6, lambda: 3)
+    market._cached("d", 1e6, lambda: 4)  # over 3: the least recently used ("b") goes
+    assert list(market._CACHE) == ["a", "c", "d"]
+    assert market._cached("a", 1e6, lambda: "never") == 1

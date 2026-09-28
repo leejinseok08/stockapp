@@ -9,6 +9,7 @@ periods. Every candidate carries that record.
 POST /swing/run?market=KR|US (cron) -> runs in a background thread and stores AppState "swing:<market>".
 """
 
+import gc
 import json
 import logging
 import threading
@@ -87,38 +88,54 @@ def scan(market: str) -> dict:
     rec = records().get(market, {})
     active = [t for t in TECHNIQUES if rec.get(t.key, {}).get("pass")]
     uni = [u for u in get_universe() if u["market"] == market]
-    prices = _download([u["symbol"] for u in uni] + [INDEX[market]])
-    idx = prices.get(INDEX[market], pd.DataFrame()).get("c")
+    idx = _download([INDEX[market]]).get(INDEX[market], pd.DataFrame()).get("c")
     names = {u["symbol"]: u["name"] for u in uni}
     lite = not any(t.key in ("rsi_own", "trend") for t in active)
     found: dict[str, list] = {t.key: [] for t in active}
     as_of = None
-    log.info("swing scan %s: %d prices downloaded", market, len(prices))
     followed = paper.unsettled(market)
     updates: list[dict] = []
-    for u in uni:
-        h = prices.get(u["symbol"])
-        if h is None:
-            continue
-        b = Bars(features(h, idx, lite=lite))
-        try:
-            updates += paper.update(b, followed.pop(u["symbol"], []), market)
-        except Exception as e:
-            log.warning("swing paper %s %s: %s", market, u["symbol"], e)
-        i = b.n - 1
-        as_of = max(as_of or b.index[i], b.index[i])
-        if b["value20"][i] < MIN_VALUE[market]:
-            continue
-        for t in active:
-            order = t.entry(b, i)
-            if order:
-                found[t.key].append({
-                    "symbol": u["symbol"], "name": names.get(u["symbol"]), "close": float(b["c"][i]),
-                    "order": "지정가" if order[0] == "lmt" else "시가",
-                    "limit": float(order[1]) if order[0] == "lmt" else None,
-                    "value20": float(b["value20"][i]), "atrp": float(b["atr"][i] / b["c"][i]),
-                    "date": b.index[i].strftime("%Y-%m-%d"),
-                })
+    scanned = 0
+    # 100 symbols at a time, each batch dropped before the next: holding the whole market's 18 months
+    # at once pushed the 512MB server over its limit after a scan.
+    for k in range(0, len(uni), 100):
+        batch = uni[k:k + 100]
+        prices = _download([u["symbol"] for u in batch])
+        scanned += len(prices)
+        for u in batch:
+            h = prices.get(u["symbol"])
+            if h is None:
+                continue
+            _scan_one(u, h, idx, lite, active, found, followed, updates, names, market)
+            as_of = max(as_of or h.index[-1], h.index[-1])
+        del prices
+        gc.collect()
+    log.info("swing scan %s: %d prices downloaded", market, scanned)
+    return _finish(market, rec, active, found, idx, as_of, scanned, followed, updates)
+
+
+def _scan_one(u, h, idx, lite, active, found, followed, updates, names, market) -> None:
+    b = Bars(features(h, idx, lite=lite))
+    try:
+        updates += paper.update(b, followed.pop(u["symbol"], []), market)
+    except Exception as e:
+        log.warning("swing paper %s %s: %s", market, u["symbol"], e)
+    i = b.n - 1
+    if b["value20"][i] < MIN_VALUE[market]:
+        return
+    for t in active:
+        order = t.entry(b, i)
+        if order:
+            found[t.key].append({
+                "symbol": u["symbol"], "name": names.get(u["symbol"]), "close": float(b["c"][i]),
+                "order": "지정가" if order[0] == "lmt" else "시가",
+                "limit": float(order[1]) if order[0] == "lmt" else None,
+                "value20": float(b["value20"][i]), "atrp": float(b["atr"][i] / b["c"][i]),
+                "date": b.index[i].strftime("%Y-%m-%d"),
+            })
+
+
+def _finish(market, rec, active, found, idx, as_of, scanned, followed, updates) -> dict:
     market_ok = None
     if idx is not None and len(idx) > 60:
         m50 = idx.rolling(50).mean()
@@ -149,7 +166,7 @@ def scan(market: str) -> dict:
     except Exception as e:  # the scan result matters more than the log
         log.exception("swing paper %s failed: %s", market, e)
     return {"market": market, "asOf": as_of.strftime("%Y-%m-%d") if as_of is not None else None,
-            "scanned": len(prices) - 1, "marketOk": market_ok, "paused": paused, "slots": SLOTS[market],
+            "scanned": scanned, "marketOk": market_ok, "paused": paused, "slots": SLOTS[market],
             "buyCount": 0 if paused else len(buys), "buys": [] if paused else buys[:BUYS_KEPT],
             "techniques": [{"key": t.key, "name": t.name, "short": t.short or t.name, "needsMarket": t.needs_market} for t in active],
             "excluded": [{"key": t.key, "name": t.name, "record": rec.get(t.key)} for t in TECHNIQUES if t not in active],

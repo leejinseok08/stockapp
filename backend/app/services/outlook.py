@@ -8,12 +8,23 @@ docs/signal-research.md found no timing rule that beats plain DCA).
 """
 
 import json
+import logging
+import os
 import re
 import sys
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 DIR = Path(__file__).resolve().parent.parent / "data" / "outlook"
+log = logging.getLogger("stockapp.outlook")
+
+# New updates are pushed with "[skip render]" so they don't redeploy (and cold-start) the server; the
+# server reads them straight from GitHub instead, falling back to the files it was deployed with.
+REPO = os.getenv("OUTLOOK_REPO", "leejinseok08/stockapp")
+LIST_URL = f"https://api.github.com/repos/{REPO}/contents/backend/app/data/outlook?ref=main"
+LIST_TTL = 300  # seconds between directory listings (GitHub allows 60 unauthenticated calls an hour)
+_remote: dict[str, dict] = {}  # slot -> document; a slot's file never changes once written
 KST = timezone(timedelta(hours=9))  # fixed offset: Windows Python has no tz database without tzdata
 
 TONES = ("긍정", "중립", "신중")
@@ -108,19 +119,53 @@ def _files() -> list[Path]:
     return sorted(p for p in DIR.glob("*.json") if SLOT.match(p.stem)) if DIR.exists() else []
 
 
-def get_outlook() -> dict:
-    """The latest update plus the tone of the ones before it (so a change of tone shows)."""
-    files = _files()
-    if not files:
-        return {"available": False}
-    doc = json.loads(files[-1].read_text(encoding="utf-8"))
-    past = []
-    for f in files[-(PAST + 1):-1]:
+def _fetch_json(url: str):
+    req = urllib.request.Request(url, headers={"User-Agent": "stockapp", "Accept": "application/vnd.github+json"})
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def _remote_docs() -> list[dict]:
+    """The newest PAST+1 documents on GitHub main, oldest first. Raises when GitHub can't be reached."""
+    from .market import _cached
+
+    listing = _cached("outlook:list", LIST_TTL, lambda: [
+        (f["name"][:-5], f["download_url"]) for f in _fetch_json(LIST_URL)
+        if f.get("name", "").endswith(".json") and SLOT.match(f["name"][:-5])
+    ])
+    wanted = sorted(listing)[-(PAST + 1):]
+    for slot, url in wanted:
+        if slot not in _remote:
+            _remote[slot] = _fetch_json(url)
+    for old in [k for k in _remote if k not in dict(wanted)]:
+        del _remote[old]
+    return [_remote[slot] for slot, _ in wanted]
+
+
+def _local_docs() -> list[dict]:
+    docs = []
+    for f in _files()[-(PAST + 1):]:
         try:
-            d = json.loads(f.read_text(encoding="utf-8"))
-            past.append({"slot": d["slot"], "stance": d["stance"]})
+            docs.append(json.loads(f.read_text(encoding="utf-8")))
         except Exception:
             continue
+    return docs
+
+
+def get_outlook() -> dict:
+    """The latest update plus the tone of the ones before it (so a change of tone shows)."""
+    try:
+        docs = _remote_docs()
+    except Exception as e:
+        log.warning("outlook from GitHub failed, using deployed files: %s", e)
+        docs = []
+    local = _local_docs()
+    if not docs or (local and local[-1].get("slot", "") > docs[-1].get("slot", "")):
+        docs = local
+    if not docs:
+        return {"available": False}
+    doc = json.loads(json.dumps(docs[-1]))  # a copy: the cached original stays untouched
+    past = [{"slot": d["slot"], "stance": d["stance"]} for d in docs[:-1] if "slot" in d and "stance" in d]
     doc.setdefault("reason", "")
     for h in doc.get("houses", []):
         h["name"] = HOUSES.get(h.get("id"), h.get("id"))

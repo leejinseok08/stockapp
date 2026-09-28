@@ -10,7 +10,11 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 - Durable facts (rules, layout, recurring checks) go in `CLAUDE.md`, not here.
 
 ## Current task
-None.
+Latency + 시황 detail (owner approved all, 2026-09-28). Measured: warm APIs <1s (swing 2.2s/65KB);
+slowness = restarts with cold caches: 5 OOM kills in 4 days (512MB, _CACHE never evicts) and a redeploy
+at every 09:00/22:30 outlook push. Steps: [x] P1 bounded cache (+ swing scan in 100-symbol batches)  [x] P2 outlook commits carry [skip render];
+backend reads them from GitHub (no redeploy)  [x] P3 slimmer /swing (?full=1 for everything)  [ ] O1-O6 시황 detail
+(Figma frame "07 시황 상세 · 제안") + shorter points in PROMPT.md.
 
 ## Uncommitted
 None.

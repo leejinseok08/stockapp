@@ -1,20 +1,41 @@
 import time
+from collections import OrderedDict
 from typing import Any
 
 import pandas as pd
 import yfinance as yf
 
-_CACHE: dict[str, tuple[float, Any]] = {}
+# key -> (stored at, ttl, value), least recently used first. The free server has 512MB and was being
+# OOM-killed (5 times in 4 days by 2026-09-28) because expired entries were never dropped: every symbol,
+# search and range ever asked for stayed in memory. Now expired entries are swept once a minute and the
+# oldest go past MAX_ENTRIES.
+_CACHE: "OrderedDict[str, tuple[float, float, Any]]" = OrderedDict()
+MAX_ENTRIES = 300
+SWEEP_EVERY = 60.0
+_last_sweep = 0.0
 
 
 def _cached(key: str, ttl: float, fn):
     now = time.time()
     hit = _CACHE.get(key)
     if hit and now - hit[0] < ttl:
-        return hit[1]
+        _CACHE.move_to_end(key)
+        return hit[2]
     value = fn()
-    _CACHE[key] = (now, value)
+    _CACHE[key] = (now, ttl, value)
+    _CACHE.move_to_end(key)
+    _trim(now)
     return value
+
+
+def _trim(now: float) -> None:
+    global _last_sweep
+    if now - _last_sweep >= SWEEP_EVERY:
+        _last_sweep = now
+        for k in [k for k, (t, ttl, _) in _CACHE.items() if now - t >= ttl]:
+            del _CACHE[k]
+    while len(_CACHE) > MAX_ENTRIES:
+        _CACHE.popitem(last=False)
 
 
 def _num(value) -> float | None:

@@ -11,9 +11,17 @@ router = APIRouter(prefix="/swing", tags=["swing"])
 
 
 @router.get("")
-def latest():
-    """The latest stored scan per market (KR after 16:40 KST, US after 07:10 KST)."""
-    return screener.latest()
+def latest(full: bool = False):
+    """The latest stored scan per market (KR after 16:40 KST, US after 07:10 KST). The app reads only
+    the merged BUY list, so the per-technique groups and excluded records (most of the 65KB) are left
+    out unless ?full=1."""
+    return screener.latest() if full else {m: slim(s) for m, s in screener.latest().items()}
+
+
+def slim(scan: dict) -> dict:
+    if scan.get("buys") is None:  # a scan stored before the merged list existed still needs its groups
+        return scan
+    return {k: v for k, v in scan.items() if k not in ("groups", "excluded")}
 
 
 @router.get("/sells")

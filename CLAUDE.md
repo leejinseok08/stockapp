@@ -40,7 +40,7 @@ Owner's plan (KB증권 중개형 ISA, 일반형): same amount every month, S&P50
 4. ✅ Individual stocks, first group = Magnificent 7 + 삼성전자 + SK하이닉스 (`tickers.BIGTECH`).
 
 ## Recurring checks
-- Every day at 09:00 and 22:30 KST: the 시황 is written by Claude Code routines or, if that slot's file is missing an hour later, a Codex automation (`tools/outlook/CODEX_AUTOMATION.md`), all following `tools/outlook/PROMPT.md`. Each run pushes to main, so Render redeploys twice a day. If an update is missing in the 시장 tab, check the routines' runs.
+- Every day at 09:00 and 22:30 KST: the 시황 is written by Claude Code routines or, if that slot's file is missing an hour later, a Codex automation (`tools/outlook/CODEX_AUTOMATION.md`), all following `tools/outlook/PROMPT.md`. Each run pushes to main with `[skip render]` (no redeploy); the server reads the files from GitHub (`outlook.py`, 5-minute listing cache) and falls back to the deployed copies. If an update is missing in the 시장 tab, check the routines' runs.
 - 2027-01: KB ISA fee event ends (0.005% → base 0.015%?). Update `backtest.COST`, rerun `python -m app.services.backtest summary`, commit the JSON.
 - 2027-01: 메리츠 Super365 free-fee event ends 2026-12-31 (as of 2026-09; it has been extended before). If not extended, judge swing techniques on the `after2026` cost in `screener.records()` (now `meritz`), check the new `band_mid`/`mfi_mid`, and update `docs/signal-research.md`. Under `after2026` only BNF (KR·US) and OBV (US) passed before.
 - Whenever the S&P 500 changes (quarterly rebalances): refresh `backend/app/data/sp500.json` from Wikipedia's constituents table (keep `added`).

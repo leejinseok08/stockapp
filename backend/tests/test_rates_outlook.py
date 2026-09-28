@@ -76,6 +76,45 @@ def test_validate_allows_quiet_house():
     assert outlook.validate(doc) == []
 
 
+@pytest.fixture(autouse=True)
+def no_github(monkeypatch):
+    """Tests read local files unless they stand in for GitHub themselves."""
+    def offline(url):
+        raise OSError("offline in tests")
+    monkeypatch.setattr(outlook, "_fetch_json", offline)
+    from app.services import market
+    market._CACHE.pop("outlook:list", None)
+    outlook._remote.clear()
+
+
+def test_get_outlook_prefers_github_and_keeps_local_fallback(tmp_path, monkeypatch):
+    monkeypatch.setattr(outlook, "DIR", tmp_path)
+    (tmp_path / "2026-09-27-pm.json").write_text(json.dumps({**GOOD, "slot": "2026-09-27-pm", "stance": "신중"}), encoding="utf-8")
+    files = {
+        "LIST": [{"name": n + ".json", "download_url": "U" + n} for n in ("2026-09-27-pm", "2026-09-28-am", "2026-09-28-pm")]
+        + [{"name": ".gitkeep", "download_url": "x"}],
+        "U2026-09-27-pm": {**GOOD, "slot": "2026-09-27-pm", "stance": "신중"},
+        "U2026-09-28-am": {**GOOD, "slot": "2026-09-28-am", "stance": "긍정"},
+        "U2026-09-28-pm": {**GOOD, "slot": "2026-09-28-pm", "stance": "중립"},
+    }
+    calls = []
+    def fake(url):
+        calls.append(url)
+        return files["LIST" if url == outlook.LIST_URL else url]
+    monkeypatch.setattr(outlook, "_fetch_json", fake)
+    got = outlook.get_outlook()
+    assert got["slot"] == "2026-09-28-pm" and got["past"][-1] == {"slot": "2026-09-28-am", "stance": "긍정"}
+    n = len(calls)
+    outlook.get_outlook()
+    assert len(calls) == n  # listing cached, documents kept
+    # GitHub down: the deployed file is still served
+    from app.services import market
+    market._CACHE.pop("outlook:list", None)
+    outlook._remote.clear()
+    monkeypatch.setattr(outlook, "_fetch_json", lambda url: (_ for _ in ()).throw(OSError("down")))
+    assert outlook.get_outlook()["slot"] == "2026-09-27-pm"
+
+
 def test_get_outlook_latest_with_past_stances(tmp_path, monkeypatch):
     monkeypatch.setattr(outlook, "DIR", tmp_path)
     assert outlook.get_outlook() == {"available": False}
