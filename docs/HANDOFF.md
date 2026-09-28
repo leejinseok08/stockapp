@@ -10,7 +10,15 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 - Durable facts (rules, layout, recurring checks) go in `CLAUDE.md`, not here.
 
 ## Current task
-None.
+Toss-style redesign, step 1 (owner chose "오늘 + 리포트 + 공통 인터랙션 first", 2026-09-28).
+- Diagnosis: A1 오늘 hides my holdings mid-page, empty 신호 변경 on top; A2 swing jargon (BNF 이격도);
+  A3 종목 rows too dense ("그 밖의 값"); A4 시장 7 sections, 수급 shows "KRX 로그인 설정 필요";
+  A5 계좌 3 repeated cards; A6 report chart after long text (3,000pt). B1 only 9/24 Pressables
+  have pressed feedback; B2 full-screen spinners, no skeletons; B3 no animation; B4 no refresh
+  feedback; B5 haptics impossible in iOS PWA.
+- Figma file (owner's drafts): https://www.figma.com/design/FU9m15qEPcvcalRN8hwaPe — frames
+  "01 오늘 · 제안", "02 종목 리포트 · 제안", "03 공통 인터랙션 · 제안" with yellow notes.
+- WAITING for the owner's approval per item. Do not change app code before approval.
 
 ## Uncommitted
 None.
