@@ -19,6 +19,7 @@ from pathlib import Path
 import pandas as pd
 import yfinance as yf
 
+from .market import _CACHE, _cached
 from ..db import get_state, put_state
 from . import paper
 from .macro import KST
@@ -182,6 +183,7 @@ def run_async(market: str) -> bool:
         try:
             result = scan(market)
             put_state(f"swing:{market}", json.dumps(result, ensure_ascii=False), result["generatedAt"])
+            _CACHE.pop("swing:latest", None)  # the next /swing reads the new scan
             log.info("swing scan %s: %d groups", market, len(result["groups"]))
         except Exception as e:
             log.exception("swing scan %s failed: %s", market, e)
@@ -193,6 +195,12 @@ def run_async(market: str) -> bool:
 
 
 def latest() -> dict:
+    """Both markets' stored scans. Held in memory between scans: each database read costs about a
+    second from the free server, and the result only changes twice a day."""
+    return _cached("swing:latest", 3600, _latest)
+
+
+def _latest() -> dict:
     out = {}
     for m in ("KR", "US"):
         row = get_state(f"swing:{m}")
