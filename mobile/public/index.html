@@ -9,9 +9,10 @@
     <meta name="theme-color" content="#0B0D10" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <!-- "black", not "black-translucent": translucent draws the page under the iOS status bar, which
-         hid the screen titles and left a gap under the tab bar in the installed app. -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <!-- "black-translucent": the page covers the whole screen and the app pads its top by the safe-area
+         inset (RootNavigator Tabs, stack headers). With "black", iOS starts the page below the status bar
+         but sizes it as if it didn't, which left a status-bar-tall (62pt) band under the tab bar. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="StockApp" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
