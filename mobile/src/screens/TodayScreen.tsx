@@ -1,7 +1,7 @@
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { RiskSection } from "../components/RiskSection";
@@ -11,6 +11,7 @@ import { Avatar, Section } from "../components/ui";
 import { fmtMoney, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
 import type { RiskGauge, RootStackParamList, SwingPaper, SwingScan, SwingSell, Today, TodayItem, WatchlistEntry } from "../types";
+import { Press } from "../components/motion";
 
 const CACHE_KEY = "today";
 const md = (d: string) => d.slice(5).replace("-", "/");
@@ -147,7 +148,7 @@ export default function TodayScreen() {
               </Text>
             ) : (
               data.earnings.map((e) => (
-                <Pressable
+                <Press
                   key={e.symbol + e.date}
                   style={({ pressed }) => [styles.line, pressed && styles.pressed]}
                   onPress={() => open(e)}
@@ -157,7 +158,7 @@ export default function TodayScreen() {
                   <Text style={styles.date}>{md(e.date)}</Text>
                   <Avatar name={e.name ?? e.symbol} uri={e.logo} size={28} />
                   <Text style={[styles.name, { marginLeft: space.sm }]}>{e.name ?? e.symbol}</Text>
-                </Pressable>
+                </Press>
               ))
             )}
           </Section>
@@ -165,7 +166,7 @@ export default function TodayScreen() {
           {!!data.dividends?.length && (
             <Section title="배당 일정" desc="30일 안 배당락일 · 예상 = 지난 지급 간격으로 계산">
               {data.dividends.map((d) => (
-                <Pressable
+                <Press
                   key={d.symbol + d.date}
                   style={({ pressed }) => [styles.line, pressed && styles.pressed]}
                   onPress={() => open(d)}
@@ -178,7 +179,7 @@ export default function TodayScreen() {
                   <Text style={styles.divMeta}>
                     {d.estimated ? "예상 · " : ""}직전 {fmtPrice(d.amount, d.currency)}
                   </Text>
-                </Pressable>
+                </Press>
               ))}
             </Section>
           )}
@@ -221,7 +222,7 @@ export default function TodayScreen() {
 
 function SignalItem({ item, onPress }: { item: TodayItem; onPress: () => void }) {
   return (
-    <Pressable
+    <Press
       style={({ pressed }) => [styles.line, pressed && styles.pressed]}
       onPress={onPress}
       accessibilityRole="button"
@@ -233,7 +234,7 @@ function SignalItem({ item, onPress }: { item: TodayItem; onPress: () => void })
         <Text style={styles.sub}>{item.since ? `${md(item.since)}부터` : ""}</Text>
       </View>
       <SignalBadge action={item.action} />
-    </Pressable>
+    </Press>
   );
 }
 

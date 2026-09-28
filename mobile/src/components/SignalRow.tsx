@@ -1,11 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { temperatureTone } from "../signal";
 import { colors, fonts, space, type } from "../theme";
 import type { SignalTarget } from "../types";
 import { BandMeter } from "./charts";
 import { ToneTag } from "./ui";
+import { Press } from "./motion";
 
 const MISSING_LABELS: Record<string, string> = {
   flows: "외국인 수급 (KRX 로그인 필요)",
@@ -29,7 +30,7 @@ export function SignalRow({ target, meterWidth }: { target: SignalTarget; meterW
 
   return (
     <View style={styles.wrap}>
-      <Pressable
+      <Press
         style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
         onPress={() => setOpen((o) => !o)}
         accessibilityRole="button"
@@ -51,7 +52,7 @@ export function SignalRow({ target, meterWidth }: { target: SignalTarget; meterW
           )}
         </View>
         <Feather name={open ? "chevron-up" : "chevron-down"} size={16} color={colors.textMuted} style={styles.chevron} />
-      </Pressable>
+      </Press>
       {meterWidth != null && (
         <View style={{ marginBottom: space.md }}>
           <BandMeter value={target.score} bands={BANDS} width={meterWidth} />

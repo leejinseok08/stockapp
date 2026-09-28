@@ -94,7 +94,15 @@ Rules:
 
 - Icons: Feather (`@expo/vector-icons`), line style. **No emoji as icons.**
 - Every `Pressable` has `accessibilityRole` and `accessibilityLabel`; small targets get `hitSlop` so the touch area is at least 44pt.
-- Motion: subtle only (≤250ms), nothing that loops.
+- Motion: subtle only (≤250ms). The one loop is the skeleton pulse, and only while loading.
+- Every tappable thing is a `Press` (`src/components/motion.tsx`): 98% scale + one-step-lighter
+  background while held (`pressedBg={false}` where the background is itself data or a filled button).
+- Loading: show the cached copy at once and update in place; `ScreenSkeleton` only when nothing is
+  cached. No full-screen spinners.
+- Sections that hold detail are `Collapsible` (title + one-line preview, body fades in). Tab content
+  fades in on focus (`FadeIn`). After a pull-to-refresh, `useToast` says what changed and `Flash`
+  tints a changed number (red up, blue down) for 0.8s.
+- No haptics: an installed iOS web app can't vibrate.
 
 ## Anti-patterns (don't ship)
 

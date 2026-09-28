@@ -1,8 +1,9 @@
 // Shared building blocks for the Toss-style layout (DESIGN.md): bold section titles, thick bands
 // between sections, change pills, letter avatars and pill chips. Colors are the app's own.
 import React, { useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { colors, fonts, radius, space, tones, type, type Tone } from "../theme";
+import { Press } from "./motion";
 
 export function Section({
   title,
@@ -114,7 +115,7 @@ export function Chips<T extends string>({
       {options.map((o) => {
         const on = o.key === value;
         return (
-          <Pressable
+          <Press
             key={o.key}
             onPress={() => onChange(o.key)}
             hitSlop={6}
@@ -124,7 +125,7 @@ export function Chips<T extends string>({
             style={[styles.chip, on && styles.chipOn]}
           >
             <Text style={[styles.chipText, on && styles.chipTextOn]}>{o.label}</Text>
-          </Pressable>
+          </Press>
         );
       })}
     </View>

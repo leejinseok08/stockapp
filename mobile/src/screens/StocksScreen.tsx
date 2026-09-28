@@ -2,7 +2,7 @@ import { Feather } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Modal, Pressable, RefreshControl, SectionList, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, FlatList, Modal, RefreshControl, SectionList, StyleSheet, Text, TextInput, View } from "react-native";
 import { api } from "../api";
 import { minutesAgo, readCache, writeCache } from "../cache";
 import { SignalBadge } from "../components/SignalBadge";
@@ -11,6 +11,7 @@ import { fmtPrice } from "../format";
 import { ratingTone } from "../signal";
 import { colors, fonts, radius, space, tones, type } from "../theme";
 import type { ListRow, RootStackParamList, Ticker } from "../types";
+import { Press } from "../components/motion";
 
 const CACHE_KEY = "stock-list";
 
@@ -134,15 +135,16 @@ export default function StocksScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>종목</Text>
-        <Pressable
+        <Press
           onPress={openPicker}
           hitSlop={10}
           accessibilityRole="button"
           accessibilityLabel="종목 추가"
+          pressedBg={false}
           style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.6 }]}
         >
           <Feather name="plus" size={18} color={colors.onAccent} />
-        </Pressable>
+        </Press>
       </View>
 
       <View style={styles.sortRow}>
@@ -192,9 +194,9 @@ export default function StocksScreen() {
         <View style={styles.modal}>
           <View style={styles.modalHeader}>
             <Text style={styles.title}>종목 추가</Text>
-            <Pressable onPress={() => setPickerOpen(false)} accessibilityRole="button" accessibilityLabel="닫기" hitSlop={12}>
+            <Press onPress={() => setPickerOpen(false)} accessibilityRole="button" accessibilityLabel="닫기" hitSlop={12}>
               <Text style={styles.close}>닫기</Text>
-            </Pressable>
+            </Press>
           </View>
           <TextInput
             style={styles.search}
@@ -218,7 +220,7 @@ export default function StocksScreen() {
               const on = isOn(item.symbol);
               const fixed = groupSymbols.has(item.symbol); // big-tech 9 are always listed
               return (
-                <Pressable
+                <Press
                   style={styles.pickerRow}
                   onPress={() => !fixed && toggle(item.symbol)}
                   disabled={fixed}
@@ -237,7 +239,7 @@ export default function StocksScreen() {
                   ) : (
                     <Feather name={on ? "check-circle" : "plus-circle"} size={20} color={on ? colors.accent : colors.textMuted} />
                   )}
-                </Pressable>
+                </Press>
               );
             }}
           />
@@ -286,7 +288,7 @@ function Row({ row, sort, onPress }: { row: ListRow; sort: SortKey; onPress: () 
   const r = row.rating;
   const up = r?.baseUpside;
   return (
-    <Pressable
+    <Press
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       onPress={onPress}
       accessibilityRole="button"
@@ -310,7 +312,7 @@ function Row({ row, sort, onPress }: { row: ListRow; sort: SortKey; onPress: () 
           <Metric row={row} sort={sort} />
         </View>
       </View>
-    </Pressable>
+    </Press>
   );
 }
 

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { api } from "../api";
 import { readSetting, writeSetting } from "../cache";
 import { fmtMoney } from "../format";
 import { colors, fonts, space, type } from "../theme";
 import type { IsaPlan } from "../types";
+import { Press } from "./motion";
 
 const mdd = (d?: string) => (d ? d.slice(5).replace("-", "/") : "");
 
@@ -146,12 +147,12 @@ export function IsaSection({ gainKRW }: { gainKRW?: number | null }) {
           <Field label="연 납입한도 (원)" value={s.annualLimit} onChange={(v) => setS({ ...s, annualLimit: v })} numeric />
           <Field label="총 납입한도 (원)" value={s.totalLimit} onChange={(v) => setS({ ...s, totalLimit: v })} numeric />
           <Field label="비과세 한도 (원)" value={s.taxFree} onChange={(v) => setS({ ...s, taxFree: v })} numeric />
-          <Pressable style={styles.saveBtn} onPress={save} accessibilityRole="button" accessibilityLabel="ISA 설정 저장">
+          <Press pressedBg={false} style={styles.saveBtn} onPress={save} accessibilityRole="button" accessibilityLabel="ISA 설정 저장">
             <Text style={styles.saveText}>저장</Text>
-          </Pressable>
+          </Press>
         </View>
       ) : (
-        <Pressable
+        <Press
           onPress={() => setEditing(true)}
           hitSlop={10}
           style={styles.editLink}
@@ -159,7 +160,7 @@ export function IsaSection({ gainKRW }: { gainKRW?: number | null }) {
           accessibilityLabel="ISA 설정 편집"
         >
           <Text style={styles.editText}>설정 편집</Text>
-        </Pressable>
+        </Press>
       )}
 
     </View>

@@ -19,6 +19,9 @@ export const colors = {
   downSoft: "#16203A",
   // Thick band between sections (Toss-style grouping instead of a hairline under every row).
   band: "#060708",
+  // Pressed rows/cards (one step lighter than surface) and loading placeholders.
+  pressed: "#1E2227",
+  skeleton: "#1A1D22",
 };
 
 // Signal scale (DESIGN.md "Signals"): every signal in the app maps to one of three tones, so the

@@ -2,12 +2,13 @@
 // the last close (backend screener.scan, calmest first; KR paused in an index uptrend); SELL = holdings bought on such a signal whose exit rule is
 // due (screener.sells). The techniques behind each one are small tags; no records or explanations.
 import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { fmtMoney, fmtPrice } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
 import type { SwingPaper, SwingScan, SwingSell } from "../types";
 import { SignalBadge } from "./SignalBadge";
 import { Avatar, Chips, Section } from "./ui";
+import { Press } from "./motion";
 
 const SHOW = 5;
 const md = (d: string) => d.slice(5).replace("-", "/");
@@ -116,7 +117,7 @@ export function SwingSection({
         <SwingRow key={`b-${r.symbol}`} row={r} onPress={() => onOpen(r.symbol, r.name)} />
       ))}
       {buys.length > SHOW && (
-        <Pressable
+        <Press
           onPress={() => setAll(!all)}
           hitSlop={10}
           style={styles.moreBtn}
@@ -124,7 +125,7 @@ export function SwingSection({
           accessibilityLabel={all ? "BUY 접기" : `BUY ${buys.length - SHOW}개 더 보기`}
         >
           <Text style={styles.more}>{all ? "접기 ▴" : `${buys.length - SHOW}개 더 ▾`}</Text>
-        </Pressable>
+        </Press>
       )}
       {all && buyCount > buys.length && <Text style={styles.more}>상위 {buys.length}개</Text>}
       {scan?.paused && <Text style={styles.empty}>지수 상승 추세라 BUY는 쉬어요</Text>}
@@ -136,7 +137,7 @@ export function SwingSection({
 function SwingRow({ row, onPress }: { row: Row; onPress: () => void }) {
   const tags = row.note ? [row.note, ...row.tags] : row.tags;
   return (
-    <Pressable
+    <Press
       style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
       onPress={onPress}
       accessibilityRole="button"
@@ -155,7 +156,7 @@ function SwingRow({ row, onPress }: { row: Row; onPress: () => void }) {
         <SignalBadge action={row.action} />
         <Text style={styles.order}>{row.order}</Text>
       </View>
-    </Pressable>
+    </Press>
   );
 }
 

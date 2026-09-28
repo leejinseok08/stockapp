@@ -1,7 +1,7 @@
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { api } from "../api";
 import { IsaSection } from "../components/IsaSection";
 import { Section } from "../components/ui";
@@ -9,6 +9,7 @@ import { disablePush, enablePush, pushState, type PushState } from "../push";
 import { fmtMoney, fmtNum, fmtPrice, fmtTrendPct } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
 import type { Performance, RootStackParamList, WatchlistEntry } from "../types";
+import { Press } from "../components/motion";
 
 const PUSH_TEXT: Record<PushState, string> = {
   unsupported: "이 브라우저는 알림을 지원하지 않아요",
@@ -141,7 +142,7 @@ export default function AccountScreen() {
             const pl = value - cost;
             const plPct = cost > 0 ? (pl / cost) * 100 : null;
             return (
-              <Pressable
+              <Press
                 key={item.symbol}
                 style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
                 onPress={() => navigation.navigate("StockDetail", { symbol: item.symbol, name: item.name })}
@@ -168,7 +169,7 @@ export default function AccountScreen() {
                   <Text style={styles.value}>{fmtMoney(value, item.currency)}</Text>
                   <Text style={[styles.pl, { color: trendColor(pl) }]}>{fmtTrendPct(plPct)}</Text>
                 </View>
-              </Pressable>
+              </Press>
             );
           })}
         </>
@@ -182,7 +183,8 @@ export default function AccountScreen() {
         <View style={styles.pushRow}>
           <Text style={styles.pushText}>{push ? PUSH_TEXT[push] : "확인 중…"}</Text>
           {(push === "on" || push === "off") && (
-            <Pressable
+            <Press
+              pressedBg={false}
               style={({ pressed }) => [styles.pushBtn, push === "on" && styles.pushBtnOff, (pressed || pushBusy) && { opacity: 0.7 }]}
               onPress={togglePush}
               disabled={pushBusy}
@@ -192,7 +194,7 @@ export default function AccountScreen() {
               <Text style={[styles.pushBtnText, push === "on" && styles.pushBtnTextOff]}>
                 {pushBusy ? "…" : push === "on" ? "끄기" : "켜기"}
               </Text>
-            </Pressable>
+            </Press>
           )}
         </View>
       </Section>

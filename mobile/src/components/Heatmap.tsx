@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { colors, fonts } from "../theme";
 import type { HeatmapMarket } from "../types";
+import { Press } from "./motion";
 
 type Rect = { x: number; y: number; w: number; h: number };
 
@@ -103,7 +104,8 @@ export function Heatmap({
             const label = market.id === "KR" ? c.name : c.symbol;
             const pct = c.change == null ? "-" : `${c.change > 0 ? "▲" : c.change < 0 ? "▼" : ""}${Math.abs(c.change).toFixed(1)}%`;
             return (
-              <Pressable
+              <Press
+                pressedBg={false}
                 key={c.symbol}
                 onPress={() => onPress(c.symbol, c.name)}
                 accessibilityRole="button"
@@ -119,7 +121,7 @@ export function Heatmap({
                   </Text>
                 )}
                 {big && <Text style={styles.pct}>{pct}</Text>}
-              </Pressable>
+              </Press>
             );
           })}
         </React.Fragment>

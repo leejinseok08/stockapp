@@ -1,12 +1,13 @@
 import { Feather } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React from "react";
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, ScrollView, StyleSheet, Text, View } from "react-native";
 import { md, slotLabel } from "../components/OutlookSection";
 import { Section, ToneTag } from "../components/ui";
 import { outlookTone } from "../signal";
 import { colors, fonts, radius, space, tones, type } from "../theme";
 import type { OutlookHouse, RootStackParamList } from "../types";
+import { Press } from "../components/motion";
 
 // The latest view in full (opened from the 시장 tab card): why the overall tone, the key points, each
 // house's one-line summary + explanation + sources, and next week's events. Detail pages may carry
@@ -85,7 +86,7 @@ function House({ house }: { house: OutlookHouse }) {
           <Text style={styles.summary}>{house.summary}</Text>
           {!!house.detail && <Text style={styles.detail}>{house.detail}</Text>}
           {house.sources.map((s) => (
-            <Pressable
+            <Press
               key={s.url}
               onPress={() => Linking.openURL(s.url)}
               accessibilityRole="link"
@@ -98,7 +99,7 @@ function House({ house }: { house: OutlookHouse }) {
                 {s.title} <Text style={styles.stamp}>{md(s.date)}</Text>
               </Text>
               <Feather name="external-link" size={13} color={colors.textMuted} />
-            </Pressable>
+            </Press>
           ))}
         </>
       )}

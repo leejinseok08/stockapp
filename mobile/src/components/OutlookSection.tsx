@@ -2,11 +2,12 @@ import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { outlookTone } from "../signal";
 import { colors, fonts, radius, space, tones, type } from "../theme";
 import type { Outlook, RootStackParamList } from "../types";
 import { ToneTag } from "./ui";
+import { Press } from "./motion";
 
 export const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`;
 // "2026-09-28-am" → "9/28 오전", "-pm" → "9/28 밤" (the 09:00 and 22:30 updates).
@@ -21,7 +22,7 @@ export function OutlookSection({ outlook }: { outlook: Outlook }) {
   }
   const t = tones[outlookTone(outlook.stance)];
   return (
-    <Pressable
+    <Press
       onPress={() => navigation.navigate("Outlook", { outlook })}
       accessibilityRole="button"
       accessibilityLabel={`시황 ${outlook.stance}. ${outlook.headline}. 눌러서 기관별 자세히 보기`}
@@ -35,7 +36,7 @@ export function OutlookSection({ outlook }: { outlook: Outlook }) {
       <Text style={styles.stamp}>
         {slotLabel(outlook.slot)} 업데이트 · 기관별 자세히 보기
       </Text>
-    </Pressable>
+    </Press>
   );
 }
 

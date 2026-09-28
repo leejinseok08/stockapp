@@ -1,13 +1,14 @@
 // Sections of the stock report that come from filings and the payment record:
 // the 5-axis snowflake (DART / SEC 10-K only), recent DART disclosures and the dividend schedule.
 import React, { useState } from "react";
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, ScrollView, StyleSheet, Text, View } from "react-native";
 import { fmtMoney, fmtPrice } from "../format";
 import { colors, fonts, space, type } from "../theme";
 import type { Disclosure, Dividends, Snowflake } from "../types";
 import { Pips } from "./charts";
 import { RadarChart } from "./RadarChart";
 import { Section } from "./ui";
+import { Press } from "./motion";
 
 const AXES = ["value", "growth", "past", "health", "dividend"] as const;
 const SHORT: Record<(typeof AXES)[number], string> = { value: "가치", growth: "성장", past: "실적", health: "건전성", dividend: "배당" };
@@ -54,7 +55,7 @@ export function SnowflakeSection({ data }: { data: Snowflake | null }) {
         const isOpen = open === k;
         return (
           <View key={k}>
-            <Pressable
+            <Press
               style={styles.axisRow}
               onPress={() => setOpen(isOpen ? null : k)}
               accessibilityRole="button"
@@ -66,7 +67,7 @@ export function SnowflakeSection({ data }: { data: Snowflake | null }) {
               </View>
               <Text style={styles.axisScore}>{a.score}/6</Text>
               <Text style={styles.chev}>{isOpen ? "▴" : "▾"}</Text>
-            </Pressable>
+            </Press>
             {isOpen &&
               a.checks.map((c) => (
                 <View key={c.label} style={styles.check}>
@@ -151,9 +152,9 @@ export function SnowflakeSection({ data }: { data: Snowflake | null }) {
           ))}
         </View>
       </ScrollView>
-      <Pressable onPress={() => Linking.openURL(data.sourceUrl)} accessibilityRole="link">
+      <Press onPress={() => Linking.openURL(data.sourceUrl)} accessibilityRole="link">
         <Text style={styles.source}>출처: {data.source} ↗ · 가격: {data.priceSource} · 최근 성장 = 최근 공시 기준(예측 아님)</Text>
-      </Pressable>
+      </Press>
     </Section>
   );
 }
@@ -163,14 +164,14 @@ export function DisclosureSection({ items }: { items: Disclosure[] }) {
   return (
     <Section title="공시" desc="DART 최근 90일">
       {items.slice(0, 8).map((d) => (
-        <Pressable key={d.url} style={styles.row} onPress={() => Linking.openURL(d.url)} accessibilityRole="link" accessibilityLabel={d.title}>
+        <Press key={d.url} style={styles.row} onPress={() => Linking.openURL(d.url)} accessibilityRole="link" accessibilityLabel={d.title}>
           <Text style={styles.rowTitle} numberOfLines={2}>
             {d.title}
           </Text>
           <Text style={styles.rowMeta}>
             {d.date} · {d.filer}
           </Text>
-        </Pressable>
+        </Press>
       ))}
     </Section>
   );

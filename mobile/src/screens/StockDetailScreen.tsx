@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Dimensions,
   Linking,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -33,6 +32,7 @@ import type {
   Snowflake,
   TrendChart,
 } from "../types";
+import { Press } from "../components/motion";
 
 const LINE_LABELS: [FinancialLineKey, string][] = [
   ["revenue", "매출"],
@@ -179,7 +179,7 @@ export default function StockDetailScreen({ route, navigation }: Props) {
       // Big-tech 9 stay on the list regardless, so only stocks the owner added get 삭제.
       headerRight: inWatchlist && fin && !fin.inGroup
         ? () => (
-            <Pressable
+            <Press
               onPress={remove}
               disabled={deleting}
               hitSlop={10}
@@ -190,7 +190,7 @@ export default function StockDetailScreen({ route, navigation }: Props) {
               <Text style={[styles.deleteText, confirmDelete && styles.deleteArmed]}>
                 {deleting ? "삭제 중…" : confirmDelete ? "삭제 확인" : "삭제"}
               </Text>
-            </Pressable>
+            </Press>
           )
         : undefined,
     });
@@ -391,7 +391,7 @@ export default function StockDetailScreen({ route, navigation }: Props) {
           {news.length > 0 && (
             <Section title="뉴스">
               {news.map((n, i) => (
-                <Pressable
+                <Press
                   key={i}
                   style={styles.newsRow}
                   onPress={() => n.url && Linking.openURL(n.url)}
@@ -400,7 +400,7 @@ export default function StockDetailScreen({ route, navigation }: Props) {
                 >
                   <Text style={styles.newsTitle}>{n.title}</Text>
                   {!!n.publisher && <Text style={styles.newsMeta}>{n.publisher}</Text>}
-                </Pressable>
+                </Press>
               ))}
             </Section>
           )}
@@ -434,7 +434,8 @@ export default function StockDetailScreen({ route, navigation }: Props) {
               multiline
               accessibilityLabel="메모"
             />
-            <Pressable
+            <Press
+              pressedBg={false}
               style={({ pressed }) => [styles.saveBtn, (pressed || saving) && { opacity: 0.7 }]}
               onPress={savePosition}
               disabled={saving}
@@ -442,7 +443,7 @@ export default function StockDetailScreen({ route, navigation }: Props) {
               accessibilityLabel="포지션과 메모 저장"
             >
               <Text style={styles.saveBtnText}>{saving ? "저장 중…" : saved ? "저장됨" : "저장"}</Text>
-            </Pressable>
+            </Press>
           </Section>
 
         </>
