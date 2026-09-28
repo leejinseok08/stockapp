@@ -23,6 +23,10 @@ None.
 - Owner: confirm on the iPhone that the band under the tab bar is gone (status bar now black-translucent).
 
 ## Recently done
+- 2026-09-28 Swipes: tabs sideways, back from the left edge (gestures.tsx, DOM touch events, data-noswipe on
+  charts/tables). Memory: 2 more OOM kills after the KR scan left ~510MB -> malloc_trim after scan batches and
+  cache sweeps + MALLOC_ARENA_MAX=2 on Render. Check Render events for OOM over the next days. Docs-only
+  commits: add [skip render].
 - 2026-09-28 Latency: bounded self-sweeping cache (300 entries), swing scan in 100-symbol batches, outlook
   commits with [skip render] read from GitHub, slim /swing. 시황 detail O1-O6 (tone strip, 3-line reason,
   3 points, ISA card, houses fold). Points now ≤70 chars. Watch Render events for further OOM kills.
