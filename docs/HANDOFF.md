@@ -10,14 +10,17 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 - Durable facts (rules, layout, recurring checks) go in `CLAUDE.md`, not here.
 
 ## Current task
-None.
+Codex Saturday automation: settings and prompt prepared in `tools/outlook/CODEX_AUTOMATION.md`.
+Registration is still pending: this session has no scheduled-task creation tool or supported CLI
+management command. Register in the desktop app, Saturday 12:00 Asia/Seoul, isolated worktree.
+Do not report this task as active until the app confirms registration and the next run.
 
 ## Uncommitted
-None.
+Existing owner/other-agent change: `backend/app/services/outlook.py` adds `history()`; untouched.
 
 ## Next up
 - Owner: set up the Codex automation (Codex app → Automations, project folder stockapp, Saturday 12:00,
-  prompt: follow tools/outlook/PROMPT.md as author "codex", stop if the week exists; needs network access).
+  copy settings/prompt from `tools/outlook/CODEX_AUTOMATION.md`; needs network access).
 - Next Saturday (2026-10-03): check W40 used originals for fed/bok and no third-party reposts (rules added
   to PROMPT.md after W39 cited only press, including a blog repost of JPM's recap).
 
