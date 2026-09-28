@@ -16,20 +16,31 @@ const SHORT: Record<(typeof AXES)[number], string> = { value: "가치", growth: 
 const pct = (v: number | null | undefined) => (v != null ? `${(v * 100).toFixed(1)}%` : "-");
 const times = (v: number | null | undefined) => (v != null ? `${v.toFixed(1)}배` : "-");
 
-export function SnowflakeSection({ data }: { data: Snowflake | null }) {
+// bare: the report shows these inside a Collapsible that already carries the title.
+function Box({ bare, title, desc, children }: { bare?: boolean; title: string; desc?: string; children: React.ReactNode }) {
+  if (!bare) return <Section title={title} desc={desc}>{children}</Section>;
+  return (
+    <View>
+      {!!desc && <Text style={{ ...type.caption, color: colors.textMuted, marginBottom: space.sm }}>{desc}</Text>}
+      {children}
+    </View>
+  );
+}
+
+export function SnowflakeSection({ data, bare }: { data: Snowflake | null; bare?: boolean }) {
   const [open, setOpen] = useState<string | null>(null);
   if (!data) {
     return (
-      <Section title="펀더멘털 스노우플레이크" desc="사업보고서·10-K 공시 기준 5개 축 × 6개 체크">
+      <Box bare={bare} title="펀더멘털 스노우플레이크" desc="사업보고서·10-K 공시 기준 5개 축 × 6개 체크">
         <Text style={styles.muted}>공시를 불러오는 중이에요…</Text>
-      </Section>
+      </Box>
     );
   }
   if (!data.available) {
     return (
-      <Section title="펀더멘털 스노우플레이크" desc="사업보고서·10-K 공시 기준 5개 축 × 6개 체크">
+      <Box bare={bare} title="펀더멘털 스노우플레이크" desc="사업보고서·10-K 공시 기준 5개 축 × 6개 체크">
         <Text style={styles.muted}>공시 데이터 없음 · {data.reason}</Text>
-      </Section>
+      </Box>
     );
   }
   const m = data.metrics;
@@ -38,7 +49,7 @@ export function SnowflakeSection({ data }: { data: Snowflake | null }) {
   // Newest first, so the latest filing is visible without scrolling sideways.
   const cols = [...years].reverse();
   return (
-    <Section title="펀더멘털 스노우플레이크" desc={`${data.source} · ${years[0]?.year}~${years[years.length - 1]?.year}년 · 축별 0~6점`}>
+    <Box bare={bare} title="펀더멘털 스노우플레이크" desc={`${data.source} · ${years[0]?.year}~${years[years.length - 1]?.year}년 · 축별 0~6점`}>
       <View style={styles.hero}>
         <Text style={styles.heroNum}>
           {data.total}
@@ -155,14 +166,14 @@ export function SnowflakeSection({ data }: { data: Snowflake | null }) {
       <Press onPress={() => Linking.openURL(data.sourceUrl)} accessibilityRole="link">
         <Text style={styles.source}>출처: {data.source} ↗ · 가격: {data.priceSource} · 최근 성장 = 최근 공시 기준(예측 아님)</Text>
       </Press>
-    </Section>
+    </Box>
   );
 }
 
-export function DisclosureSection({ items }: { items: Disclosure[] }) {
+export function DisclosureSection({ items, bare }: { items: Disclosure[]; bare?: boolean }) {
   if (!items.length) return null;
   return (
-    <Section title="공시" desc="DART 최근 90일">
+    <Box bare={bare} title="공시" desc="DART 최근 90일">
       {items.slice(0, 8).map((d) => (
         <Press key={d.url} style={styles.row} onPress={() => Linking.openURL(d.url)} accessibilityRole="link" accessibilityLabel={d.title}>
           <Text style={styles.rowTitle} numberOfLines={2}>
@@ -173,14 +184,14 @@ export function DisclosureSection({ items }: { items: Disclosure[] }) {
           </Text>
         </Press>
       ))}
-    </Section>
+    </Box>
   );
 }
 
-export function DividendSection({ d }: { d: Dividends | null }) {
+export function DividendSection({ d, bare }: { d: Dividends | null; bare?: boolean }) {
   if (!d || !d.pays) return null;
   return (
-    <Section title="배당 · 분배금" desc="지급 기록 기준 · 다음 배당락일">
+    <Box bare={bare} title="배당 · 분배금" desc="지급 기록 기준 · 다음 배당락일">
       <Text style={styles.cellLabel}>다음 배당락{d.nextEstimated ? " · 예상" : ""}</Text>
       <Text style={styles.nextDate}>{d.nextExDate ?? "-"}</Text>
       <View style={styles.grid}>
@@ -200,7 +211,7 @@ export function DividendSection({ d }: { d: Dividends | null }) {
         ))}
       </View>
       {d.nextEstimated && <Text style={styles.source}>예상: 회사 발표 전이라 지난 지급 간격으로 계산했어요</Text>}
-    </Section>
+    </Box>
   );
 }
 

@@ -8,6 +8,8 @@ type Props = {
   times: number[];
   closes: number[];
   ma?: (number | null)[];
+  // Extra average lines (report toggles), each drawn from its first full window onward.
+  lines?: { values: (number | null)[]; color: string }[];
   // Trade days to mark: index into closes. ▲ below the line for BUY, ▼ above it for SELL.
   marks?: { i: number; type: "BUY" | "SELL" }[];
   currency?: string | null;
@@ -19,7 +21,7 @@ const GUTTER_BOTTOM = 18;
 const PAD_TOP = 8;
 
 // Unsmoothed line: straight segments between real closes, no interpolated prices.
-export function PriceChart({ times, closes, ma, marks, currency, width, height = 190 }: Props) {
+export function PriceChart({ times, closes, ma, lines, marks, currency, width, height = 190 }: Props) {
   // Crosshair: touch (or hover on web) shows that day's date and close; release hides it.
   const [hover, setHover] = useState<number | null>(null);
   if (closes.length < 2) return null;
@@ -28,7 +30,7 @@ export function PriceChart({ times, closes, ma, marks, currency, width, height =
   const GUTTER_RIGHT = Math.max(56, fmtPrice(Math.max(...closes), currency).length * 6.4 + 10);
   const plotW = width - GUTTER_RIGHT;
   const plotH = height - GUTTER_BOTTOM - PAD_TOP;
-  const values = [...closes, ...((ma ?? []).filter((v) => v != null) as number[])];
+  const values = [...closes, ...([ma ?? [], ...(lines ?? []).map((l) => l.values)].flat().filter((v) => v != null) as number[])];
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = max - min || 1;
@@ -90,6 +92,11 @@ export function PriceChart({ times, closes, ma, marks, currency, width, height =
       {maValues.length > 1 && (
         <Polyline points={pts(maValues, maStart)} fill="none" stroke={colors.accent} strokeWidth={1} />
       )}
+      {(lines ?? []).map((l, k) => {
+        const start = l.values.findIndex((v) => v != null);
+        const vals = start >= 0 ? (l.values.slice(start) as number[]) : [];
+        return vals.length > 1 ? <Polyline key={`l${k}`} points={pts(vals, start)} fill="none" stroke={l.color} strokeWidth={1.2} /> : null;
+      })}
       <Polyline points={pts(closes)} fill="none" stroke={colors.text} strokeWidth={1.5} strokeLinejoin="round" />
       <Circle cx={x(closes.length - 1)} cy={y(last)} r={3} fill={colors.text} />
 

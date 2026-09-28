@@ -277,7 +277,7 @@ export type TrendBacktest = {
 export type TrendChart = {
   symbol: string;
   maWindow: number;
-  points: { t: number; close: number; sma: number | null }[];
+  points: { t: number; close: number; sma: number | null; ma5?: number | null; ma20?: number | null; ma50?: number | null; ma200?: number | null }[];
   marks: { t: number; type: "BUY" | "SELL"; price: number }[];
 };
 

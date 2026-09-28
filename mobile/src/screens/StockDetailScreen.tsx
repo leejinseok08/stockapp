@@ -13,10 +13,21 @@ import {
 import { api } from "../api";
 import { PriceChart } from "../components/PriceChart";
 import { DisclosureSection, DividendSection, SnowflakeSection } from "../components/FilingsSections";
-import { ReportSection } from "../components/ReportSection";
-import { Avatar, Band, Chips, Section } from "../components/ui";
+import {
+  Catalysts,
+  ModelVsStreet,
+  modelPreview,
+  ReportTiles,
+  Risks,
+  ScenarioBar,
+  SignalBasis,
+  signalBasisPreview,
+  Thesis,
+} from "../components/ReportSection";
+import { Avatar, Band, Chips, ToneTag } from "../components/ui";
+import { readSetting, writeSetting } from "../cache";
 import { fmtMoney, fmtNum, fmtPrice, fmtTrendPct } from "../format";
-import { colors, fonts, space, trendColor, type } from "../theme";
+import { colors, fonts, space, tones, trendColor, type } from "../theme";
 import type {
   Analysis,
   Disclosure,
@@ -32,7 +43,7 @@ import type {
   Snowflake,
   TrendChart,
 } from "../types";
-import { Press } from "../components/motion";
+import { Collapsible, Flash, Press, Skeleton } from "../components/motion";
 
 const LINE_LABELS: [FinancialLineKey, string][] = [
   ["revenue", "매출"],
@@ -52,6 +63,13 @@ const RANGES: { key: string; label: string }[] = [
 ];
 
 const MA_WINDOW = 20;
+
+// Sessions shown per daily range, cut from the trend chart's last year.
+const DAILY_SESSIONS: Record<string, number> = { "1mo": 22, "6mo": 126, "1y": 260 };
+// R5 toggles. Red/blue/green are taken by price and signals, so the averages use other hues;
+// 200 keeps the accent it always had.
+const MA_OPTIONS = [5, 20, 50, 200] as const;
+const MA_COLORS: Record<number, string> = { 5: "#A594F9", 20: "#4FD1C5", 50: "#F2C94C", 200: colors.accent };
 
 function sma(values: number[], window: number): (number | null)[] {
   return values.map((_, i) => {
@@ -88,6 +106,18 @@ export default function StockDetailScreen({ route, navigation }: Props) {
   const [inWatchlist, setInWatchlist] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [mas, setMas] = useState<number[]>([200]);
+
+  // The chosen averages are remembered on the device.
+  useEffect(() => {
+    readSetting<number[]>("chart-ma").then((v) => v && setMas(v));
+  }, []);
+  const toggleMa = (w: number) =>
+    setMas((cur) => {
+      const next = cur.includes(w) ? cur.filter((x) => x !== w) : [...cur, w];
+      writeSetting("chart-ma", next);
+      return next;
+    });
 
   useEffect(() => {
     api
@@ -241,213 +271,318 @@ export default function StockDetailScreen({ route, navigation }: Props) {
   const plPercent = hasPosition && currentPrice != null ? ((currentPrice - buyPriceNum) / buyPriceNum) * 100 : null;
 
   const screenWidth = Dimensions.get("window").width;
+  const chartWidth = screenWidth - space.lg * 2;
+
+  // Daily ranges come from the trend chart (3 years behind it, so every average is real from the
+  // first shown day); 1일/5일 are intraday bars without day averages.
+  const daily = range === "1mo" || range === "6mo" || range === "1y";
+  const tcPoints = trendChart?.points ?? [];
+  const shown = daily && tcPoints.length > 1 ? tcPoints.slice(-(DAILY_SESSIONS[range] ?? tcPoints.length)) : null;
+  const firstT = shown?.[0]?.t ?? 0;
+  const shownCloses = shown ? shown.map((p) => p.close) : chart.closes;
+  const periodChange =
+    shownCloses.length > 1 && shownCloses[0] ? ((shownCloses[shownCloses.length - 1] - shownCloses[0]) / shownCloses[0]) * 100 : null;
+  const swing = route.params.swing;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: space.xxl * 2 }}>
       <View style={styles.headerBlock}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
           <Avatar name={name || fundamentals?.name || symbol} uri={analysis?.logo} size={32} />
-          <Text style={styles.name}>{fundamentals?.name || name || symbol}</Text>
+          <Text style={styles.name} numberOfLines={1}>
+            {fundamentals?.name || name || symbol}
+          </Text>
+          {!!fundamentals?.industry && (
+            <Text style={styles.sector} numberOfLines={1}>
+              {fundamentals.industry}
+            </Text>
+          )}
         </View>
-        {!!(fundamentals?.sector || fundamentals?.industry) && (
-          <Text style={styles.sector}>
-            {[fundamentals?.sector, fundamentals?.industry].filter(Boolean).join(" · ")}
+        <Flash value={currentPrice} style={{ alignSelf: "flex-start", marginTop: space.md }}>
+          <Text style={styles.price}>{fmtPrice(currentPrice, currency)}</Text>
+        </Flash>
+        <View style={styles.changes}>
+          {quote?.changePercent != null && (
+            <Text style={[styles.periodChange, { color: trendColor(quote.changePercent) }]}>
+              {fmtTrendPct(quote.changePercent)} <Text style={styles.periodLabel}>오늘</Text>
+            </Text>
+          )}
+          <Text style={[styles.periodChange, { color: trendColor(periodChange) }]}>
+            {fmtTrendPct(periodChange)} <Text style={styles.periodLabel}>{RANGES.find((x) => x.key === range)?.label}</Text>
           </Text>
-        )}
-        <Text style={styles.price}>{fmtPrice(currentPrice, currency)}</Text>
-        {quote?.changePercent != null && (
-          <Text style={[styles.periodChange, { color: trendColor(quote.changePercent) }]}>
-            {fmtTrendPct(quote.changePercent)}
-            <Text style={styles.periodLabel}>  오늘</Text>
-          </Text>
-        )}
-        <Text style={[styles.periodChange, { color: trendColor(chart.periodChange) }]}>
-          {fmtTrendPct(chart.periodChange)}
-          <Text style={styles.periodLabel}>  {RANGES.find((x) => x.key === range)?.label} 기준</Text>
-        </Text>
+        </View>
       </View>
 
+      {swing && (
+        <View style={styles.swingCard} accessible accessibilityLabel={`스윙 ${swing.action}, ${swing.techniques.join(", ")}, ${swing.order}`}>
+          <ToneTag tone={swing.action === "BUY" ? "good" : "caution"} label={`스윙 ${swing.action}`} />
+          <Text style={styles.swingText}>
+            {swing.techniques.join(" · ")}
+            {swing.note ? ` · ${swing.note}` : ""} · {swing.order}
+          </Text>
+        </View>
+      )}
+
+      {/* R1: the chart right under the price */}
+      <View style={styles.chartWrap}>
+        {loading && !shown ? (
+          <Skeleton width={chartWidth} height={190} />
+        ) : shown ? (
+          <PriceChart
+            times={shown.map((p) => p.t)}
+            closes={shownCloses}
+            lines={MA_OPTIONS.filter((w) => mas.includes(w)).map((w) => ({
+              values: shown.map((p) => (p[`ma${w}` as const] ?? null) as number | null),
+              color: MA_COLORS[w],
+            }))}
+            marks={(trendChart?.marks ?? [])
+              .filter((m) => m.t >= firstT)
+              .map((m) => ({ i: shown.findIndex((p) => p.t === m.t), type: m.type }))
+              .filter((m) => m.i >= 0)}
+            currency={currency}
+            width={chartWidth}
+          />
+        ) : (
+          chart.closes.length > 1 && <PriceChart times={chart.times} closes={chart.closes} currency={currency} width={chartWidth} />
+        )}
+        <View style={styles.rangeRow}>
+          <Chips options={RANGES} value={range} onChange={setRange} labelFor={(l) => `${l} 차트`} />
+        </View>
+        {/* R5: moving averages on/off (daily ranges) */}
+        {daily && shown && (
+          <View style={styles.maRow}>
+            <Text style={styles.maTitle}>이동평균</Text>
+            {MA_OPTIONS.map((w) => {
+              const on = mas.includes(w);
+              return (
+                <Press
+                  key={w}
+                  onPress={() => toggleMa(w)}
+                  hitSlop={4}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: on }}
+                  accessibilityLabel={`${w}일 이동평균 ${on ? "켜짐" : "꺼짐"}`}
+                  style={[styles.maChip, on && { borderColor: MA_COLORS[w], backgroundColor: colors.surface }]}
+                >
+                  <View style={[styles.maSwatch, { backgroundColor: MA_COLORS[w], opacity: on ? 1 : 0.35 }]} />
+                  <Text style={[styles.maText, on && styles.maTextOn]}>{w}일</Text>
+                </Press>
+              );
+            })}
+          </View>
+        )}
+        {shown && (
+          <Text style={styles.legend}>
+            ━ 가격 <Text style={{ color: tones.good.fg }}>▲ BUY</Text> <Text style={{ color: tones.caution.fg }}>▼ SELL</Text> (신호 다음 거래일) ·
+            이동평균은 기간이 다 찬 날부터
+          </Text>
+        )}
+      </View>
+
+      {/* R2 + R3 */}
       <View style={styles.report}>
         {analysis ? (
-          <ReportSection a={analysis} />
+          <>
+            <ReportTiles a={analysis} />
+            <ScenarioBar a={analysis} />
+          </>
+        ) : analysisFailed ? (
+          <Text style={styles.note}>리포트를 만들지 못했어요.</Text>
         ) : (
-          <Text style={styles.note}>{analysisFailed ? "리포트를 만들지 못했어요." : "리포트를 만드는 중이에요…"}</Text>
+          <View style={{ flexDirection: "row", gap: space.sm }}>
+            <Skeleton width="32%" height={86} r={14} />
+            <Skeleton width="32%" height={86} r={14} />
+            <Skeleton width="32%" height={86} r={14} />
+          </View>
         )}
       </View>
 
       <Band />
-      <View style={styles.rangeRow}>
-        <Chips options={RANGES} value={range} onChange={setRange} labelFor={(l) => `${l} 차트`} />
-      </View>
 
-      {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.accent} />
-        </View>
-      ) : (
-        <>
-          {range === "1y" && trendChart && trendChart.points.length > 1 ? (
-            <View style={styles.chartWrap}>
-              <PriceChart
-                times={trendChart.points.map((p) => p.t)}
-                closes={trendChart.points.map((p) => p.close)}
-                ma={trendChart.points.map((p) => p.sma)}
-                marks={trendChart.marks
-                  .map((m) => ({ i: trendChart.points.findIndex((p) => p.t === m.t), type: m.type }))
-                  .filter((m) => m.i >= 0)}
-                currency={currency}
-                width={screenWidth - space.lg * 2}
-              />
-              <Text style={styles.maLabel}>
-                ━ {trendChart.maWindow}일선 · ▲ BUY ▼ SELL (신호 다음 거래일) · 최근 1년 {trendChart.marks.length}회
-              </Text>
-            </View>
-          ) : chart.closes.length > 1 && (
-            <View style={styles.chartWrap}>
-              <PriceChart
-                times={chart.times}
-                closes={chart.closes}
-                ma={chart.ma}
-                currency={currency}
-                width={screenWidth - space.lg * 2}
-              />
-              {chart.maLast != null && (
-                <Text style={styles.maLabel}>
-                  ━ {MA_WINDOW}{range === "1d" || range === "5d" ? "봉" : "일"} 이동평균 {fmtPrice(chart.maLast, currency)}
-                </Text>
-              )}
-            </View>
-          )}
+      {/* R4: everything else as one-line previews that open */}
+      <View style={styles.details}>
+        {analysis && analysis.thesis.length > 0 && (
+          <Collapsible title="핵심 논거" preview={`${analysis.thesis.length}가지`} initiallyOpen>
+            <Thesis a={analysis} />
+          </Collapsible>
+        )}
+        {analysis && (
+          <Collapsible title="신호 근거" preview={signalBasisPreview(analysis)}>
+            <SignalBasis a={analysis} />
+          </Collapsible>
+        )}
+        {analysis && (
+          <Collapsible
+            title="촉매"
+            preview={analysis.catalysts[0] ? `${analysis.catalysts[0].date} ${analysis.catalysts[0].text}` : "확인된 일정 없음"}
+          >
+            <Catalysts a={analysis} />
+          </Collapsible>
+        )}
+        {analysis && analysis.risks.length > 0 && (
+          <Collapsible title="리스크" preview={`${analysis.risks.length}가지 · 논거가 깨지는 조건`}>
+            <Risks a={analysis} />
+          </Collapsible>
+        )}
+        {analysis && (
+          <Collapsible title="자체 추정 vs 컨센서스" preview={modelPreview(analysis)}>
+            <ModelVsStreet a={analysis} />
+            <Text style={styles.note}>규칙 기반 자동 분석이며 투자 권유가 아닙니다. 경영진 면담·통화 내용은 반영하지 못해요.</Text>
+          </Collapsible>
+        )}
 
-
-          {relative && relative.series.length > 1 && (
-            <Section title={`지수 대비 상대강도 · ${relative.benchmarkName}`}>
-              <PriceChart
-                times={relative.series.map((p) => p.t)}
-                closes={relative.series.map((p) => p.ratio)}
-                ma={relative.series.map((p) => p.ma)}
-                width={screenWidth - space.lg * 2}
-              />
-              <Text style={styles.maLabel}>━ {relative.maWindow}일 평균 · 1년 전 = 100 · 선이 오르면 지수보다 강함</Text>
-              {!!relative.verdict && <Text style={styles.verdict}>{relative.verdict}</Text>}
-              <Ledger
-                rows={[
-                  [
-                    "현재",
-                    relative.aboveMa == null
-                      ? "-"
-                      : `비율이 ${relative.maWindow}일 평균 ${relative.aboveMa ? "위" : "아래"}${relative.since ? ` (${relative.since}~)` : ""}`,
-                  ],
-                  ["초과 수익률 1개월", `${fmtTrendPct(relative.excess1m, 1)}p`],
-                  ["초과 수익률 3개월", `${fmtTrendPct(relative.excess3m, 1)}p`],
-                  ["초과 수익률 6개월", `${fmtTrendPct(relative.excess6m, 1)}p`],
-                ]}
-              />
-              <Text style={styles.note}>
-                투자총론 4편: 시장이 내릴 때 지수보다 더 빠지는 종목은 회복탄력성을 잃고 있을 가능성이 높아요. 지수보다 덜
-                빠졌다면 손절하지 않는 게 원칙이에요.
-              </Text>
-            </Section>
-          )}
-
-          {fin && (
-            <Section title={`재무 변화율 · ${fin.row.quarter ?? "-"} 분기`}>
-              <Ledger
-                rows={[
-                  ...LINE_LABELS.map(([key, label]): [string, string] => {
-                    const l = fin.row.lines[key];
-                    return [`${label} 전분기비 · 전년비`, `${fmtTrendPct(l?.qoq, 1)} · ${fmtTrendPct(l?.yoy, 1)}`];
-                  }),
-                  ["시가총액 / 영업이익(4분기)", fmtNum(fin.row.capToOpIncome, 1)],
-                  ...(fin.inGroup
-                    ? ([["빅테크 9개 중 재무 점수", fin.row.score != null ? String(Math.round(fin.row.score)) : "-"]] as [string, string][])
-                    : []),
-                ]}
-              />
-              {fin.row.ocfNegativeTtm && (
-                <Text style={styles.verdict}>최근 4분기 영업현금흐름 합계가 적자예요 (TIP 9: 걸러야 할 회사).</Text>
-              )}
-              <Text style={styles.note}>
-                절대값보다 변화율을 봐요(TIP 30). 시가총액/영업이익은 낮을수록 영업이익 대비 싸다는 뜻이고, 추세가 줄어드는지가
-                중요해요.
-              </Text>
-            </Section>
-          )}
-
-          <SnowflakeSection data={snowflake} />
-          <DividendSection d={dividends} />
-          <DisclosureSection items={disclosures} />
-
-          <StatementSection title="손익계산서" rows={fundamentals?.income ?? []} currency={fundamentals?.financialCurrency} />
-          <StatementSection title="재무상태표" rows={fundamentals?.balance ?? []} currency={fundamentals?.financialCurrency} />
-          <StatementSection title="현금흐름표" rows={fundamentals?.cashflow ?? []} currency={fundamentals?.financialCurrency} />
-
-          {!!fundamentals?.summary && (
-            <Section title="기업 개요">
-              <Text style={styles.summaryText}>{fundamentals.summary}</Text>
-            </Section>
-          )}
-
-          {news.length > 0 && (
-            <Section title="뉴스">
-              {news.map((n, i) => (
-                <Press
-                  key={i}
-                  style={styles.newsRow}
-                  onPress={() => n.url && Linking.openURL(n.url)}
-                  accessibilityRole="link"
-                  accessibilityLabel={n.title}
-                >
-                  <Text style={styles.newsTitle}>{n.title}</Text>
-                  {!!n.publisher && <Text style={styles.newsMeta}>{n.publisher}</Text>}
-                </Press>
-              ))}
-            </Section>
-          )}
-
-          <Section title="내 포지션">
-            <View style={styles.positionRow}>
-              <Field label="매수가" value={buyPriceText} onChangeText={setBuyPriceText} />
-              <Field label="수량" value={quantityText} onChangeText={setQuantityText} />
-            </View>
-            <Text style={styles.fieldLabel}>매수일 (YYYY-MM-DD, 지수 비교용)</Text>
-            <TextInput
-              style={[styles.input, styles.numInput]}
-              value={buyDateText}
-              onChangeText={setBuyDateText}
-              placeholder="2026-01-02"
-              placeholderTextColor={colors.textMuted}
-              accessibilityLabel="매수일"
+        {relative && relative.series.length > 1 && (
+          <Collapsible title="지수 대비" preview={`${relative.benchmarkName} · 3개월 ${fmtTrendPct(relative.excess3m, 1)}p`}>
+            <PriceChart
+              times={relative.series.map((p) => p.t)}
+              closes={relative.series.map((p) => p.ratio)}
+              ma={relative.series.map((p) => p.ma)}
+              width={chartWidth}
             />
-            {plPercent != null && (
-              <Text style={[styles.plPreview, { color: trendColor(plPercent) }]}>
-                평가 수익률 {fmtTrendPct(plPercent)}
-              </Text>
-            )}
-            <Text style={styles.fieldLabel}>메모</Text>
-            <TextInput
-              style={[styles.input, styles.noteInput]}
-              value={noteText}
-              onChangeText={setNoteText}
-              placeholder="매수 이유, 목표가, 체크할 점"
-              placeholderTextColor={colors.textMuted}
-              multiline
-              accessibilityLabel="메모"
+            <Text style={styles.maLabel}>━ {relative.maWindow}일 평균 · 1년 전 = 100 · 선이 오르면 지수보다 강함</Text>
+            {!!relative.verdict && <Text style={styles.verdict}>{relative.verdict}</Text>}
+            <Ledger
+              rows={[
+                [
+                  "현재",
+                  relative.aboveMa == null
+                    ? "-"
+                    : `비율이 ${relative.maWindow}일 평균 ${relative.aboveMa ? "위" : "아래"}${relative.since ? ` (${relative.since}~)` : ""}`,
+                ],
+                ["초과 수익률 1개월", `${fmtTrendPct(relative.excess1m, 1)}p`],
+                ["초과 수익률 3개월", `${fmtTrendPct(relative.excess3m, 1)}p`],
+                ["초과 수익률 6개월", `${fmtTrendPct(relative.excess6m, 1)}p`],
+              ]}
             />
-            <Press
-              pressedBg={false}
-              style={({ pressed }) => [styles.saveBtn, (pressed || saving) && { opacity: 0.7 }]}
-              onPress={savePosition}
-              disabled={saving}
-              accessibilityRole="button"
-              accessibilityLabel="포지션과 메모 저장"
+            <Text style={styles.note}>
+              투자총론 4편: 시장이 내릴 때 지수보다 더 빠지는 종목은 회복탄력성을 잃고 있을 가능성이 높아요. 지수보다 덜 빠졌다면
+              손절하지 않는 게 원칙이에요.
+            </Text>
+          </Collapsible>
+        )}
+
+        {fin && (
+          <Collapsible title="재무 변화" preview={`${fin.row.quarter ?? "-"} · 매출 전년비 ${fmtTrendPct(fin.row.lines.revenue?.yoy, 1)}`}>
+            <Ledger
+              rows={[
+                ...LINE_LABELS.map(([key, label]): [string, string] => {
+                  const l = fin.row.lines[key];
+                  return [`${label} 전분기비 · 전년비`, `${fmtTrendPct(l?.qoq, 1)} · ${fmtTrendPct(l?.yoy, 1)}`];
+                }),
+                ["시가총액 / 영업이익(4분기)", fmtNum(fin.row.capToOpIncome, 1)],
+                ...(fin.inGroup
+                  ? ([["빅테크 9개 중 재무 점수", fin.row.score != null ? String(Math.round(fin.row.score)) : "-"]] as [string, string][])
+                  : []),
+              ]}
+            />
+            {fin.row.ocfNegativeTtm && <Text style={styles.verdict}>최근 4분기 영업현금흐름 합계가 적자예요 (TIP 9: 걸러야 할 회사).</Text>}
+            <Text style={styles.note}>
+              절대값보다 변화율을 봐요(TIP 30). 시가총액/영업이익은 낮을수록 영업이익 대비 싸다는 뜻이고, 추세가 줄어드는지가 중요해요.
+            </Text>
+          </Collapsible>
+        )}
+
+        {snowflake && (
+          <Collapsible title="펀더멘털 스노우플레이크" preview={snowflake.available ? "공시 기준 5개 축" : "공시 데이터 없음"}>
+            <SnowflakeSection data={snowflake} bare />
+          </Collapsible>
+        )}
+        {dividends?.pays && (
+          <Collapsible
+            title="배당"
+            preview={
+              dividends.nextExDate
+                ? `다음 ${dividends.nextExDate.slice(5).replace("-", "/")}${dividends.nextEstimated ? " (예상)" : ""}`
+                : "지급 기록 있음"
+            }
+          >
+            <DividendSection d={dividends} bare />
+          </Collapsible>
+        )}
+        {disclosures.length > 0 && (
+          <Collapsible title="공시" preview={disclosures[0].title}>
+            <DisclosureSection items={disclosures} bare />
+          </Collapsible>
+        )}
+
+        {(
+          [
+            ["손익계산서", fundamentals?.income],
+            ["재무상태표", fundamentals?.balance],
+            ["현금흐름표", fundamentals?.cashflow],
+          ] as const
+        ).map(([title, rows]) =>
+          rows && rows.length ? (
+            <Collapsible
+              key={title}
+              title={title}
+              preview={`${Object.keys(rows[0].values)[0]?.slice(0, 7) ?? ""} · ${fundamentals?.financialCurrency ?? ""}`}
             >
-              <Text style={styles.saveBtnText}>{saving ? "저장 중…" : saved ? "저장됨" : "저장"}</Text>
-            </Press>
-          </Section>
+              <StatementTable rows={rows} currency={fundamentals?.financialCurrency} />
+            </Collapsible>
+          ) : null
+        )}
 
-        </>
-      )}
+        {!!fundamentals?.summary && (
+          <Collapsible title="기업 개요" preview={fundamentals.summary}>
+            <Text style={styles.summaryText}>{fundamentals.summary}</Text>
+          </Collapsible>
+        )}
+
+        {news.length > 0 && (
+          <Collapsible title="뉴스" preview={news[0].title}>
+            {news.map((n, i) => (
+              <Press
+                key={i}
+                style={styles.newsRow}
+                onPress={() => n.url && Linking.openURL(n.url)}
+                accessibilityRole="link"
+                accessibilityLabel={n.title}
+              >
+                <Text style={styles.newsTitle}>{n.title}</Text>
+                {!!n.publisher && <Text style={styles.newsMeta}>{n.publisher}</Text>}
+              </Press>
+            ))}
+          </Collapsible>
+        )}
+
+        <Collapsible title="내 포지션" preview={hasPosition ? `${quantityText}주 · 평단 ${fmtPrice(buyPriceNum, currency)}` : "매수가·수량 입력"}>
+          <View style={styles.positionRow}>
+            <Field label="매수가" value={buyPriceText} onChangeText={setBuyPriceText} />
+            <Field label="수량" value={quantityText} onChangeText={setQuantityText} />
+          </View>
+          <Text style={styles.fieldLabel}>매수일 (YYYY-MM-DD, 지수 비교용)</Text>
+          <TextInput
+            style={[styles.input, styles.numInput]}
+            value={buyDateText}
+            onChangeText={setBuyDateText}
+            placeholder="2026-01-02"
+            placeholderTextColor={colors.textMuted}
+            accessibilityLabel="매수일"
+          />
+          {plPercent != null && <Text style={[styles.plPreview, { color: trendColor(plPercent) }]}>평가 수익률 {fmtTrendPct(plPercent)}</Text>}
+          <Text style={styles.fieldLabel}>메모</Text>
+          <TextInput
+            style={[styles.input, styles.noteInput]}
+            value={noteText}
+            onChangeText={setNoteText}
+            placeholder="매수 이유, 목표가, 체크할 점"
+            placeholderTextColor={colors.textMuted}
+            multiline
+            accessibilityLabel="메모"
+          />
+          <Press
+            pressedBg={false}
+            style={({ pressed }) => [styles.saveBtn, (pressed || saving) && { opacity: 0.7 }]}
+            onPress={savePosition}
+            disabled={saving}
+            accessibilityRole="button"
+            accessibilityLabel="포지션과 메모 저장"
+          >
+            <Text style={styles.saveBtnText}>{saving ? "저장 중…" : saved ? "저장됨" : "저장"}</Text>
+          </Press>
+        </Collapsible>
+      </View>
     </ScrollView>
   );
 }
@@ -482,67 +617,63 @@ function Ledger({ rows }: { rows: [string, string][] }) {
   );
 }
 
-function StatementSection({
-  title,
-  rows,
-  currency,
-}: {
-  title: string;
-  rows: Fundamentals["income"];
-  currency?: string | null;
-}) {
-  if (!rows.length) return null;
+// The Collapsible carries the title; this is just the four latest periods.
+function StatementTable({ rows, currency }: { rows: Fundamentals["income"]; currency?: string | null }) {
   const periods = Object.keys(rows[0].values).slice(0, 4);
   return (
-    <Section title={currency ? `${title} · ${currency}` : title}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View>
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCell, styles.tableItemCell]} />
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <View>
+        <View style={styles.tableRow}>
+          <Text style={[styles.tableCell, styles.tableItemCell]} />
+          {periods.map((p) => (
+            <Text key={p} style={[styles.tableCell, styles.tableHeaderCell]}>
+              {p.slice(0, 7)}
+            </Text>
+          ))}
+        </View>
+        {rows.map((row) => (
+          <View style={styles.tableRow} key={row.item}>
+            <Text style={[styles.tableCell, styles.tableItemCell]}>{row.item}</Text>
             {periods.map((p) => (
-              <Text key={p} style={[styles.tableCell, styles.tableHeaderCell]}>
-                {p.slice(0, 7)}
+              <Text key={p} style={styles.tableCell}>
+                {fmtMoney(row.values[p] ?? null, currency)}
               </Text>
             ))}
           </View>
-          {rows.map((row) => (
-            <View style={styles.tableRow} key={row.item}>
-              <Text style={[styles.tableCell, styles.tableItemCell]}>{row.item}</Text>
-              {periods.map((p) => (
-                <Text key={p} style={styles.tableCell}>
-                  {fmtMoney(row.values[p] ?? null, currency)}
-                </Text>
-              ))}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-    </Section>
+        ))}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   center: { padding: space.xxl, alignItems: "center" },
-  headerBlock: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.lg },
+  headerBlock: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.md },
   name: { ...type.body, fontFamily: fonts.sansMedium, color: colors.text },
-  sector: { ...type.caption, color: colors.textMuted, marginTop: 2 },
-  price: { ...type.hero, color: colors.text, marginTop: space.md },
+  sector: { ...type.caption, color: colors.textMuted, flexShrink: 1 },
+  changes: { flexDirection: "row", gap: space.md, marginTop: 4 },
+  swingCard: { marginHorizontal: space.lg, marginBottom: space.md, flexDirection: "row", alignItems: "center", gap: space.sm, backgroundColor: colors.surface, borderRadius: 12, padding: space.md },
+  swingText: { flex: 1, ...type.caption, color: colors.text },
+  maRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: space.sm, flexWrap: "wrap" },
+  maTitle: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.textMuted, marginRight: 2 },
+  maChip: { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1, borderColor: colors.hairline, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
+  maSwatch: { width: 12, height: 3, borderRadius: 2 },
+  maText: { fontFamily: fonts.sansMedium, fontSize: 12, color: colors.textMuted },
+  maTextOn: { fontFamily: fonts.sansBold, color: colors.text },
+  legend: { ...type.caption, fontSize: 11, color: colors.textMuted, marginTop: space.sm },
+  details: { paddingHorizontal: space.lg },
+  price: { ...type.hero, color: colors.text },
   periodChange: { ...type.numStrong, fontSize: 14, marginTop: 2 },
   periodLabel: { fontFamily: fonts.sans, fontSize: 11, color: colors.textMuted },
-  rangeRow: {
-    flexDirection: "row",
-    paddingHorizontal: space.lg,
-    gap: space.lg,
-    marginBottom: space.sm,
-  },
+  rangeRow: { flexDirection: "row", marginTop: space.md },
   rangeBtn: { paddingVertical: space.xs, alignItems: "center" },
   rangeText: { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.textMuted },
   rangeTextActive: { color: colors.text },
   rangeUnderline: { height: 2, alignSelf: "stretch", backgroundColor: colors.accent, marginTop: 4 },
   chartWrap: { paddingHorizontal: space.lg, marginTop: space.sm },
-  maLabel: { ...type.num, fontSize: 11, color: colors.accent, marginTop: space.xs },
-  report: { paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.xl },
+  maLabel: { ...type.num, fontSize: 11, color: colors.textMuted, marginTop: space.xs },
+  report: { paddingHorizontal: space.lg, paddingTop: space.xl, paddingBottom: space.xl },
   newsRow: { paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
   newsTitle: { ...type.body, fontSize: 13, color: colors.text, lineHeight: 19 },
   newsMeta: { ...type.caption, color: colors.textMuted, marginTop: 2 },

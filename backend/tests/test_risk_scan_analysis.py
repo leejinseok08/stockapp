@@ -252,3 +252,15 @@ def test_risk_items_carry_weekly_history_and_danger_zones():
     assert item["zones"] == [{"from": None, "to": 0.0}]
     v = risk.vix(pd.Series(np.full(300, 20.0), index=days[-300:]))
     assert {(z["from"], z["to"]) for z in v["zones"]} == {(30.0, None), (None, 12.0)}
+
+
+def test_trend_chart_moving_averages_use_history_before_the_window():
+    prices = pd.Series(np.arange(1, 401, dtype=float), index=pd.bdate_range("2024-01-01", periods=400))
+    c = stockscan.trend_chart(prices, days=100)
+    first = c["points"][0]
+    # 300 sessions precede the window, so even the 200-day average exists on its first day
+    assert first["ma200"] == pytest.approx(np.mean(np.arange(102, 302)))
+    assert first["ma5"] == pytest.approx(np.mean(np.arange(297, 302)))
+    short = stockscan.trend_chart(prices.iloc[:150], days=150)
+    assert short["points"][0]["ma200"] is None and short["points"][-1]["ma200"] is None
+    assert short["points"][3]["ma5"] is None and short["points"][4]["ma5"] == pytest.approx(3.0)

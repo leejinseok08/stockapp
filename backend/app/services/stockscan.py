@@ -99,6 +99,7 @@ def get_relative(symbol: str) -> dict:
 # ---- trend buy/sell (the owner's daily signal for individual stocks) ---------------------------
 
 TREND = {"n": 200, "slope_days": 20, "macd_lookback": 5, "use_macd": True}
+MA_WINDOWS = (5, 20, 50, 200)  # report chart toggles
 
 
 def trend_frame(closes: pd.Series, n=200, slope_days=20, macd_lookback=5, use_macd=True) -> pd.DataFrame:
@@ -175,13 +176,18 @@ def trend_chart(closes: pd.Series, days: int = 252) -> dict:
     flips = hold.ne(hold.shift()) & hold.shift().notna()
     trade_day = flips.shift(1, fill_value=False)
     tail = f.iloc[-days:]
+    # Moving averages the report can toggle, computed on the whole series so a 200-day line exists
+    # from the first shown day when there's history behind it; None until a window is full.
+    mas = {w: f["close"].rolling(w).mean() for w in MA_WINDOWS}
     marks = [{"t": int(d.timestamp() * 1000), "type": "BUY" if hold.shift(1).loc[d] else "SELL",
               "price": float(f.loc[d, "close"])}
              for d in tail.index if trade_day.loc[d]]
     return {
         "maWindow": TREND["n"],
         "points": [{"t": int(d.timestamp() * 1000), "close": round(float(r.close), 4),
-                    "sma": round(float(r.sma), 4) if pd.notna(r.sma) else None} for d, r in tail.iterrows()],
+                    "sma": round(float(r.sma), 4) if pd.notna(r.sma) else None,
+                    **{f"ma{w}": (round(float(mas[w].loc[d]), 4) if pd.notna(mas[w].loc[d]) else None) for w in MA_WINDOWS}}
+                   for d, r in tail.iterrows()],
         "marks": marks,
     }
 
