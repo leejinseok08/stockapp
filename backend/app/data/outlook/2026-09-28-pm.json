@@ -1,0 +1,150 @@
+{
+  "slot": "2026-09-28-pm",
+  "asOf": "2026-09-28",
+  "author": "claude",
+  "stance": "신중",
+  "headline": "트럼프의 이란 휴전안 거부로 유가·금리 급등, 코스피 2.7% 급락",
+  "reason": "추석 연휴 동안 트럼프 대통령이 이란의 호르무즈 해협 재개방·7일 휴전 제안을 거부하면서 국제유가가 다시 뛰고, 미 10년물 국채금리는 2007년 이후 최고 수준인 5.2%대로, 30년물은 2004년 이후 최고치인 5.5%대로 올라섰다. 지난주 연준 인사들의 매파 발언으로 이미 금리가 급등해 있던 상태에서 유가발 물가 압력까지 겹치며 추가 긴축 우려가 커졌다. 그 여파로 코스피는 외국인·기관의 동반 매도 속에 2.70% 급락해 6889.74로 마감했고 삼성전자·SK하이닉스도 5%대 내렸으며, 미 3대 지수 선물도 개장을 앞두고 일제히 하락했다. 여섯 곳 기관의 개별 견해에는 아직 큰 변화가 없지만, 시장 자체에서 금리·지정학 리스크가 뚜렷하게 부각된 하루여서 신중으로 판단한다.",
+  "points": [
+    "트럼프가 이란의 호르무즈 해협 재개방·휴전 제안을 거부해 국제유가가 다시 상승했다.",
+    "미 10년물 금리가 5.2%대(2007년 이후 최고)로 급등, 유가발 물가 우려가 재부각됐다.",
+    "코스피 2.70%↓ 마감(6889.74), 외국인·기관 약 4.2조원 순매도로 반도체 대형주가 5%대 하락했다.",
+    "원/달러 환율은 1365.1원으로 상승, 미 금리 급등과 달러 강세가 반영됐다.",
+    "이번 주 미 PCE(9/30)·ISM 제조업(10/1)·고용보고서(10/2)가 금리 경로 판단의 다음 재료다."
+  ],
+  "isa": "달러 강세로 원/달러가 1365원대까지 올라 환헤지·환노출 상품의 성과 차이가 커질 수 있어, 이번 주 PCE·고용지표 전후 환율과 금리를 함께 확인할 시점이다.",
+  "houses": [
+    {
+      "id": "fed",
+      "tone": "신중",
+      "new": false,
+      "summary": "바 이사, 물가 위험에 추가 정책 조정 필요성 언급",
+      "detail": "9월 23일 바 이사는 성장과 고용은 견조하지만 물가가 목표로 충분히 내려오지 않고 있다고 평가했다. 관세·전쟁·AI 투자 수요를 가격 압력의 배경으로 들며 직전 주 금리 인상을 지지했고, 기본 전망상 추가 정책 조정이 필요할 수 있다고 밝혔다. 위험자산에는 긴축 부담으로 읽히지만, 연설은 개인 견해이며 다음 인상의 시기·폭을 확정하지 않았다.",
+      "sources": [
+        {
+          "title": "A Long-Term View on the Costs of Shelter — Michael S. Barr",
+          "url": "https://www.federalreserve.gov/newsevents/speech/barr20260923a.htm",
+          "date": "2026-09-23",
+          "access": "원문"
+        }
+      ]
+    },
+    {
+      "id": "bok",
+      "tone": "중립",
+      "new": true,
+      "summary": "신현송 총재, 취임 후 첫 은행장 간담회·부총리 면담",
+      "detail": "9월 28일 신현송 한국은행 총재가 취임 후 처음으로 16개 은행장과 만찬 간담회를 열어 가계부채, 물가 안정, 스테이블코인 등 현안에 대해 의견을 나눴다. 같은 날 이형일 경제부총리와도 첫 면담을 갖고 최근 미 국채금리 급등과 달러 강세로 흔들리는 금융·외환시장에 선제적으로 대응하기 위해 긴밀히 소통하기로 했다. 구체적인 정책 신호는 없었지만, 원/달러가 1365원대로 오른 날 나온 만남이어서 환율 변동에 대한 경계로 해석된다. 새 정책 판단으로 보기는 이르다.",
+      "sources": [
+        {
+          "title": "신현송 총재, 16개 은행장 만나 가계부채 리스크·스테이블코인 논의",
+          "url": "https://biz.heraldcorp.com/article/10886742",
+          "date": "2026-09-28",
+          "access": "보도"
+        },
+        {
+          "title": "이형일 부총리·신현송 한은 총재 첫 회동…금융·외환시장 선제대응 긴밀한 소통",
+          "url": "https://www.g-enews.com/article/Finance/2026/09/202609281108056926bb91c46fcd_1",
+          "date": "2026-09-28",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "jpm",
+      "tone": "중립",
+      "new": false,
+      "summary": "AI 수혜의 구성 차이와 고금리의 신용 부담을 점검",
+      "detail": "9월 25일 자산운용 분석은 성장주·가치주 수익률 차이에 지수 재편과 AI 수혜기업 구성이 영향을 줬다고 설명했다. 상반기에는 반도체 등 설비 공급자와 투자비를 지출하는 대형 기술기업의 성과가 달랐다는 점을 짚었다. 9월 23일 별도 분석은 변동금리 대출의 수익 증가와 차입자의 이자 부담이 함께 커진다고 지적했다. AI 성장만 보거나 고금리를 일률적 악재로 보는 대신 구성과 신용 위험을 구분하는 중립적 시각이다.",
+      "sources": [
+        {
+          "title": "Why are Growth and Value diverging so much this year?",
+          "url": "https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/on-the-minds-of-investors/why-are-growth-and-value-diverging-so-much-this-year/",
+          "date": "2026-09-25",
+          "access": "원문"
+        },
+        {
+          "title": "How will higher rates affect private credit?",
+          "url": "https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/on-the-minds-of-investors/how-will-higher-rates-affect-private-credit/",
+          "date": "2026-09-23",
+          "access": "원문"
+        }
+      ]
+    },
+    {
+      "id": "bofa",
+      "tone": "중립",
+      "new": false,
+      "summary": "자금흐름의 과열 경고와 CIO의 중기 낙관이 공존",
+      "detail": "9월 25일 Newsquawk 보도상 Flow Show의 불앤베어 지표는 9.5에서 9.3으로 낮아졌지만 높은 수준이며, 주식에서 102억 달러가 빠져나갔다. 반면 9월 21일 공식 CIO 전망은 유가·채권금리·정책금리 부담을 인정하면서 중간선거 이후의 역사적 성과를 들어 중기 기회를 강조했다. 서로 다른 부문의 관점이므로 기관 전체를 일괄 비관으로 보지 않는다. Reuters의 별도 Lipper 집계는 주식 순유입을 보여, 집계 범위·기준을 맞추지 않은 자금흐름 비교에도 주의가 필요하다.",
+      "sources": [
+        {
+          "title": "Capital Market Outlook — September 21, 2026",
+          "url": "https://www.privatebank.bankofamerica.com/articles/capital-market-outlook-sep-21-2026.html",
+          "date": "2026-09-21",
+          "access": "원문"
+        },
+        {
+          "title": "BofA Flow Show: Bull & Bear indicator 9.3 (prev. 9.5)",
+          "url": "https://www.newsquawk.com/headlines/bofa-flow-show-bull--bear-indicator-93-prev-95",
+          "date": "2026-09-25",
+          "access": "보도"
+        },
+        {
+          "title": "Reuters: Global equity funds snap two-week outflow as AI optimism returns",
+          "url": "https://www.marketscreener.com/news/global-equity-funds-snap-two-week-outflow-as-ai-optimism-returns-ce785adfdc8fff20",
+          "date": "2026-09-25",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "gs",
+      "tone": "긍정",
+      "new": false,
+      "summary": "AI 투자가 S&P500 이익 성장의 큰 몫을 뒷받침",
+      "detail": "9월 25일 Reuters는 골드만삭스 전략가들이 이번 주 AI 투자가 올해 S&P500 주당순이익 성장의 거의 절반을 이끈다고 평가했다고 보도했다. 실적 기반에 대한 긍정적 근거로 해석한다. 다만 유료 리서치 원문은 확인하지 못했고, 이 보도만으로 골드만의 시장 전체 전망이나 금리 위험에 대한 판단까지 확대하지 않는다.",
+      "sources": [
+        {
+          "title": "Reuters: Global equity funds snap two-week outflow as AI optimism returns",
+          "url": "https://www.marketscreener.com/news/global-equity-funds-snap-two-week-outflow-as-ai-optimism-returns-ce785adfdc8fff20",
+          "date": "2026-09-25",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "citi",
+      "tone": "긍정",
+      "new": false,
+      "summary": "고금리에도 폭넓은 실적 증가가 주식을 지지",
+      "detail": "9월 22일 공식 주간 전망은 세계 성장세가 중앙은행의 물가 대응 여력을 제공한다고 평가했다. 은행 대출 의지와 신용 공급이 개선되고 대형 기술기업의 레버리지는 낮다고 설명했다. 여러 업종의 실적 증가가 이어지는 만큼 주식에 대한 긍정적 시각을 유지했다. 실질금리 상승에 따른 가치평가 하락도 공포보다는 합리적 조정으로 해석해, 긴축 부담을 강조한 연준 발언과 시장 해석의 무게가 다르다.",
+      "sources": [
+        {
+          "title": "Higher Rates Are Here to Stay, and Earnings Keep Pace",
+          "url": "https://marketinsights.citi.com/Market-Commentary/Weekly-Market-Update/Higher-Rates-Are-Here-to-Stay-and-Earnings-Keep-Pace.html",
+          "date": "2026-09-22",
+          "access": "원문"
+        }
+      ]
+    }
+  ],
+  "watch": [
+    {
+      "date": "2026-09-29",
+      "event": "미국 8월 구인·이직보고서(JOLTS)"
+    },
+    {
+      "date": "2026-09-30",
+      "event": "미국 8월 PCE 물가·개인소득·소비"
+    },
+    {
+      "date": "2026-10-01",
+      "event": "미국 9월 ISM 제조업 PMI"
+    },
+    {
+      "date": "2026-10-02",
+      "event": "미국 9월 고용보고서: 비농업고용·실업률·임금"
+    }
+  ]
+}
