@@ -16,3 +16,6 @@ mobile/*.log
 
 # OS
 .DS_Store
+
+# Atlas (agent session store, trial since 2026-09-28; docs/HANDOFF.md stays the handoff of record)
+.atlas/

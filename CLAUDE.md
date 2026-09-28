@@ -23,7 +23,7 @@ Phone app = PWA on Cloudflare Pages: https://stockapp-i5a.pages.dev (project `st
 Without `EXPO_PUBLIC_API_URL` the app uses the deployed backend https://stockapp-ghmx.onrender.com (Render, auto-deploys on push to main, Python pinned via `PYTHON_VERSION=3.11.9`).
 
 ## Handoff with Codex
-The owner continues in Codex when Claude credits run out (Codex reads `AGENTS.md`, which points here). Read `docs/HANDOFF.md` before starting and keep it current by its protocol: update after each finished step and commit small steps, since a session can stop without warning.
+The owner continues in Codex when Claude credits run out (Codex reads `AGENTS.md`, which points here). Read `docs/HANDOFF.md` before starting and keep it current by its protocol: update after each finished step and commit small steps, since a session can stop without warning. The owner is trying Atlas (desktop app running both agents with shared memory, alpha, since 2026-09-28); HANDOFF.md stays the record either way, and `.atlas/` is gitignored.
 
 ## Rules
 - All UI follows `mobile/DESIGN.md` (Toss-style layout on the app's dark palette: bold section titles, bands between sections, change pills, logo avatars, chips; red=up blue=down always with ▲▼, amber accent only for actions, one-line descriptions only, no emoji icons). Signals use one scale everywhere: green 긍정 / gray 중립 / red 신중, mapped only in `mobile/src/signal.ts`.
