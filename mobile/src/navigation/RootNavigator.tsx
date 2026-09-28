@@ -87,7 +87,7 @@ export default function RootNavigator() {
           component={StockDetailScreen}
           options={({ route }) => ({ title: route.params.symbol })}
         />
-        <Stack.Screen name="Outlook" component={OutlookScreen} options={{ title: "이번 주 시황" }} />
+        <Stack.Screen name="Outlook" component={OutlookScreen} options={{ title: "시황" }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -10,21 +10,22 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 - Durable facts (rules, layout, recurring checks) go in `CLAUDE.md`, not here.
 
 ## Current task
-Codex Saturday automation: settings and prompt prepared in `tools/outlook/CODEX_AUTOMATION.md`.
-Registration is still pending: this session has no scheduled-task creation tool or supported CLI
-management command. Register in the desktop app, Saturday 12:00 Asia/Seoul, isolated worktree.
-Do not report this task as active until the app confirms registration and the next run.
+None.
 
 ## Uncommitted
-Existing owner/other-agent change: `backend/app/services/outlook.py` adds `history()`; untouched.
+None.
 
 ## Next up
-- Owner: set up the Codex automation (Codex app → Automations, project folder stockapp, Saturday 12:00,
-  copy settings/prompt from `tools/outlook/CODEX_AUTOMATION.md`; needs network access).
-- Next Saturday (2026-10-03): check W40 used originals for fed/bok and no third-party reposts (rules added
-  to PROMPT.md after W39 cited only press, including a blog repost of JPM's recap).
+- Owner: register the two Codex fallback automations (daily 10:00 and 23:30 KST) from
+  `tools/outlook/CODEX_AUTOMATION.md`; not registered yet.
+- After the first 09:00 / 22:30 runs: check they carried forward unchanged houses, marked `new` only on
+  houses with fresh material, and used originals for fed/bok.
+- Owner: confirm on the iPhone that the band under the tab bar is gone (status bar now black-translucent).
 
 ## Recently done
+- 2026-09-28 시황 twice a day (09:00 / 22:30 KST): slots `YYYY-MM-DD-am|pm` (`outlook slot` command), carry-forward
+  per house with a `new` flag, Claude routines at both times, Codex fallback doc for 10:00 / 23:30. W39 file
+  renamed to `2026-09-27-pm.json`. Unwired `outlook.history()` (from the Atlas test) kept, slot-based.
 - 2026-09-27 Signal colors unified (green/gray/red via `mobile/src/signal.ts` + `ToneTag`); 시장 tab shows the
   weekly view as one colored card, tap → `OutlookScreen` (reason, points, each house summary + detail +
   sources). Outlook schema: `reason`, house `summary`/`detail` (old `view` files still load).

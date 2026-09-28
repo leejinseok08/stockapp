@@ -9,20 +9,22 @@ import type { Outlook, RootStackParamList } from "../types";
 import { ToneTag } from "./ui";
 
 export const md = (d: string) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`;
+// "2026-09-28-am" → "9/28 오전", "-pm" → "9/28 밤" (the 09:00 and 22:30 updates).
+export const slotLabel = (slot: string) => `${md(slot)} ${slot.endsWith("-am") ? "오전" : "밤"}`;
 
-// 시장 tab: the week's overall view as one color and one line. Everything else (why, each house,
+// 시장 tab: the latest view (updated 09:00 and 22:30 KST) as one color and one line. Everything else (why, each house,
 // sources, next week) is one tap away on OutlookScreen.
 export function OutlookSection({ outlook }: { outlook: Outlook }) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   if (!outlook.available) {
-    return <Text style={styles.note}>첫 주간 시황은 토요일 오전에 올라와요.</Text>;
+    return <Text style={styles.note}>첫 시황은 오전 9시나 밤 10시 30분에 올라와요.</Text>;
   }
   const t = tones[outlookTone(outlook.stance)];
   return (
     <Pressable
       onPress={() => navigation.navigate("Outlook", { outlook })}
       accessibilityRole="button"
-      accessibilityLabel={`이번 주 시황 ${outlook.stance}. ${outlook.headline}. 눌러서 기관별 자세히 보기`}
+      accessibilityLabel={`시황 ${outlook.stance}. ${outlook.headline}. 눌러서 기관별 자세히 보기`}
       style={({ pressed }) => [styles.card, { backgroundColor: t.soft, borderColor: t.fg }, pressed && { opacity: 0.8 }]}
     >
       <View style={styles.top}>
@@ -31,7 +33,7 @@ export function OutlookSection({ outlook }: { outlook: Outlook }) {
       </View>
       <Text style={styles.headline}>{outlook.headline}</Text>
       <Text style={styles.stamp}>
-        {md(outlook.asOf)} 기준 · 기관별 자세히 보기
+        {slotLabel(outlook.slot)} 업데이트 · 기관별 자세히 보기
       </Text>
     </Pressable>
   );

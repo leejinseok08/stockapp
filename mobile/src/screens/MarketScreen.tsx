@@ -119,7 +119,7 @@ export default function MarketScreen() {
         </Text>
       </View>
 
-      <Section first title="이번 주 시황" desc="JPM·BofA·골드만·씨티·연준·한은 종합 · 눌러서 기관별 보기">
+      <Section first title="시황" desc="6개 기관 종합 · 매일 오전 9시·밤 10시 30분 · 눌러서 기관별 보기">
         {outlook ? <OutlookSection outlook={outlook} /> : <Text style={styles.note}>불러오는 중…</Text>}
       </Section>
 

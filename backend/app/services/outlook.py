@@ -1,9 +1,10 @@
-"""Weekly market view (주간 시황): six houses' research summed up once a week.
+"""Market view (시황): six houses' research summed up twice a day, 09:00 and 22:30 KST.
 
 The files are written by a scheduled agent (Claude routine, Codex automation as the fallback) that
 follows tools/outlook/PROMPT.md, validated with `python -m app.services.outlook check <file>`, and
-committed to app/data/outlook/<ISO week>.json. Context only: never a buy/sell call (the backtests
-in docs/signal-research.md found no timing rule that beats plain DCA).
+committed to app/data/outlook/<slot>.json, where a slot is `YYYY-MM-DD-am` (09:00 update) or
+`YYYY-MM-DD-pm` (22:30 update). Context only: never a buy/sell call (the backtests in
+docs/signal-research.md found no timing rule that beats plain DCA).
 """
 
 import json
@@ -13,12 +14,14 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 DIR = Path(__file__).resolve().parent.parent / "data" / "outlook"
+KST = timezone(timedelta(hours=9))  # fixed offset: Windows Python has no tz database without tzdata
 
 TONES = ("긍정", "중립", "신중")
 HOUSES = {"jpm": "JPM", "bofa": "BofA", "gs": "골드만삭스", "citi": "씨티", "fed": "연준", "bok": "한국은행"}
 ACCESS = ("원문", "보도")  # read the original / only through press coverage (paid client research)
-WEEK = re.compile(r"^\d{4}-W\d{2}$")
+SLOT = re.compile(r"^\d{4}-\d{2}-\d{2}-(am|pm)$")
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+PAST = 10  # earlier updates whose tone is shown as a trail (five days)
 
 
 def validate(doc: dict) -> list[str]:
@@ -31,8 +34,8 @@ def validate(doc: dict) -> list[str]:
         elif len(v) > limit:
             errs.append(f"{where}: {len(v)} chars, keep it under {limit}")
 
-    if not WEEK.match(str(doc.get("week", ""))):
-        errs.append("week: use ISO week like 2026-W39")
+    if not SLOT.match(str(doc.get("slot", ""))):
+        errs.append("slot: YYYY-MM-DD-am (09:00 update) or YYYY-MM-DD-pm (22:30 update)")
     if not DATE.match(str(doc.get("asOf", ""))):
         errs.append("asOf: use YYYY-MM-DD")
     if doc.get("author") not in ("claude", "codex"):
@@ -61,7 +64,9 @@ def validate(doc: dict) -> list[str]:
             continue
         where = f"houses[{h.get('id')}]"
         if h.get("tone") is not None and h.get("tone") not in TONES:
-            errs.append(f"{where}.tone: one of {TONES} or null when nothing new this week")
+            errs.append(f"{where}.tone: one of {TONES} or null when the house has no recent view")
+        if not isinstance(h.get("new", False), bool):
+            errs.append(f"{where}.new: true only when it has material since the previous update")
         text(h.get("summary"), f"{where}.summary", 50)
         text(h.get("detail"), f"{where}.detail", 600)
         sources = h.get("sources")
@@ -91,51 +96,67 @@ def validate(doc: dict) -> list[str]:
     return errs
 
 
-def this_week(now: datetime | None = None) -> tuple[str, str]:
-    """ISO week and date in Korea. Fixed +9 offset: Windows Python has no tz database without tzdata."""
-    d = (now or datetime.now(timezone.utc)).astimezone(timezone(timedelta(hours=9))).date()
-    y, w, _ = d.isocalendar()
-    return f"{y}-W{w:02d}", d.isoformat()
+def this_slot(now: datetime | None = None) -> tuple[str, str]:
+    """The update this run belongs to, in Korea: before 16:00 = the 09:00 update (am), else 22:30 (pm).
+    A 22:30 run that slips past midnight counts as the next morning's."""
+    t = (now or datetime.now(timezone.utc)).astimezone(KST)
+    return f"{t.date().isoformat()}-{'am' if t.hour < 16 else 'pm'}", t.date().isoformat()
 
 
 def _files() -> list[Path]:
-    return sorted(DIR.glob("*-W*.json")) if DIR.exists() else []
+    # Slot names sort in time order (date, then am before pm).
+    return sorted(p for p in DIR.glob("*.json") if SLOT.match(p.stem)) if DIR.exists() else []
 
 
 def get_outlook() -> dict:
-    """The latest week plus the stance of the weeks before it (so a change of tone shows)."""
+    """The latest update plus the tone of the ones before it (so a change of tone shows)."""
     files = _files()
     if not files:
         return {"available": False}
     doc = json.loads(files[-1].read_text(encoding="utf-8"))
     past = []
-    for f in files[-9:-1]:
+    for f in files[-(PAST + 1):-1]:
         try:
             d = json.loads(f.read_text(encoding="utf-8"))
-            past.append({"week": d["week"], "stance": d["stance"]})
+            past.append({"slot": d["slot"], "stance": d["stance"]})
         except Exception:
             continue
     doc.setdefault("reason", "")
     for h in doc.get("houses", []):
         h["name"] = HOUSES.get(h.get("id"), h.get("id"))
+        h.setdefault("new", False)
         if "summary" not in h:  # files before 2026-09-27 had one `view` line per house
             h["summary"], h["detail"] = h.pop("view", ""), ""
     return {"available": True, **doc, "past": past}
 
 
+def history() -> list[dict]:
+    """Every update on disk, newest first — slot / asOf / stance / headline for a list."""
+    out = []
+    for f in reversed(_files()):
+        try:
+            d = json.loads(f.read_text(encoding="utf-8"))
+            out.append({"slot": d["slot"], "asOf": d["asOf"], "stance": d["stance"], "headline": d["headline"]})
+        except Exception:
+            continue
+    return out
+
+
 if __name__ == "__main__":
-    if sys.argv[1:] == ["week"]:
-        week, day = this_week()
-        path = DIR / f"{week}.json"
-        print(f"{week} {day} {'exists' if path.exists() else 'missing'} {path.relative_to(DIR.parents[2])}")
+    if sys.argv[1:] == ["slot"]:
+        slot, day = this_slot()
+        path = DIR / f"{slot}.json"
+        previous = _files()
+        print(f"{slot} {day} {'exists' if path.exists() else 'missing'} {path.relative_to(DIR.parents[2])}")
+        print(f"previous: {previous[-1].relative_to(DIR.parents[2]) if previous else 'none'}")
         sys.exit(0)
     if len(sys.argv) != 3 or sys.argv[1] != "check":
-        sys.exit("usage: python -m app.services.outlook week | check <file.json>")
+        sys.exit("usage: python -m app.services.outlook slot | check <file.json>")
     path = Path(sys.argv[2])
     doc = json.loads(path.read_text(encoding="utf-8"))
     errors = validate(doc)
-    if path.stem != doc.get("week"):
-        errors.append(f"file name: must be {doc.get('week')}.json")
+    if path.stem != doc.get("slot"):
+        errors.append(f"file name: must be {doc.get('slot')}.json")
     if errors:
         print("\n".join(errors))
         sys.exit(1)

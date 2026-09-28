@@ -39,7 +39,7 @@ def _house(id_, tone="중립"):
 
 
 GOOD = {
-    "week": "2026-W39", "asOf": "2026-09-26", "author": "claude", "stance": "중립",
+    "slot": "2026-09-26-pm", "asOf": "2026-09-26", "author": "claude", "stance": "중립",
     "headline": "금리 부담 속 중립", "reason": "왜 중립인지 설명.", "points": ["하나", "둘"], "isa": "환노출 유지, 적립 그대로",
     "houses": [_house(i) for i in outlook.HOUSES],
     "watch": [{"date": "2026-10-02", "event": "미국 고용"}],
@@ -63,6 +63,12 @@ def test_validate_reports_each_problem():
     assert any("needs at least one source" in e for e in errs)
 
 
+def test_validate_new_flag_must_be_bool():
+    doc = copy.deepcopy(GOOD)
+    doc["houses"][0]["new"] = "yes"
+    assert any(e.endswith(".new: true only when it has material since the previous update") for e in outlook.validate(doc))
+
+
 def test_validate_allows_quiet_house():
     doc = copy.deepcopy(GOOD)
     doc["houses"] = [{"id": "citi", "tone": None, "summary": "이번 주 새 자료 없음", "detail": "이번 주 새 자료 없음", "sources": []} if h["id"] == "citi" else h
@@ -73,19 +79,24 @@ def test_validate_allows_quiet_house():
 def test_get_outlook_latest_with_past_stances(tmp_path, monkeypatch):
     monkeypatch.setattr(outlook, "DIR", tmp_path)
     assert outlook.get_outlook() == {"available": False}
-    for week, stance in [("2026-W38", "신중"), ("2026-W39", "중립")]:
-        (tmp_path / f"{week}.json").write_text(json.dumps({**GOOD, "week": week, "stance": stance}), encoding="utf-8")
+    # am sorts before pm on the same day; stray files that aren't a slot are ignored.
+    (tmp_path / ".gitkeep").write_text("")
+    for slot, stance in [("2026-09-27-pm", "신중"), ("2026-09-28-am", "긍정"), ("2026-09-28-pm", "중립")]:
+        (tmp_path / f"{slot}.json").write_text(json.dumps({**GOOD, "slot": slot, "stance": stance}), encoding="utf-8")
     got = outlook.get_outlook()
-    assert got["week"] == "2026-W39"
-    assert got["past"] == [{"week": "2026-W38", "stance": "신중"}]
+    assert got["slot"] == "2026-09-28-pm"
+    assert got["past"] == [{"slot": "2026-09-27-pm", "stance": "신중"}, {"slot": "2026-09-28-am", "stance": "긍정"}]
+    assert [h["slot"] for h in outlook.history()] == ["2026-09-28-pm", "2026-09-28-am", "2026-09-27-pm"]
     assert {h["name"] for h in got["houses"]} == set(outlook.HOUSES.values())
 
 
-def test_this_week_uses_korean_date():
+def test_this_slot_in_korean_time():
     from datetime import datetime, timezone
-    # Friday 23:30 UTC is already Saturday in Korea; same ISO week as the Mon–Fri before it.
-    assert outlook.this_week(datetime(2026, 10, 2, 23, 30, tzinfo=timezone.utc)) == ("2026-W40", "2026-10-03")
-    assert outlook.this_week(datetime(2026, 9, 27, 3, 0, tzinfo=timezone.utc)) == ("2026-W39", "2026-09-27")
+    utc = lambda *a: datetime(*a, tzinfo=timezone.utc)
+    assert outlook.this_slot(utc(2026, 9, 28, 0, 0)) == ("2026-09-28-am", "2026-09-28")  # 09:00 KST
+    assert outlook.this_slot(utc(2026, 9, 28, 1, 0)) == ("2026-09-28-am", "2026-09-28")  # Codex fallback 10:00
+    assert outlook.this_slot(utc(2026, 9, 28, 13, 30)) == ("2026-09-28-pm", "2026-09-28")  # 22:30 KST
+    assert outlook.this_slot(utc(2026, 9, 28, 14, 30)) == ("2026-09-28-pm", "2026-09-28")  # fallback 23:30
 
 
 def test_get_outlook_reads_old_view_files(tmp_path, monkeypatch):
@@ -95,7 +106,7 @@ def test_get_outlook_reads_old_view_files(tmp_path, monkeypatch):
     for h in old["houses"]:
         h["view"] = h.pop("summary")
         h.pop("detail")
-    (tmp_path / "2026-W39.json").write_text(json.dumps(old), encoding="utf-8")
+    (tmp_path / "2026-09-27-pm.json").write_text(json.dumps(old), encoding="utf-8")
     got = outlook.get_outlook()
     assert got["reason"] == ""
     assert got["houses"][0]["summary"] == "요약 한 줄" and got["houses"][0]["detail"] == ""

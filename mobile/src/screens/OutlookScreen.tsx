@@ -2,13 +2,13 @@ import { Feather } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { md } from "../components/OutlookSection";
+import { md, slotLabel } from "../components/OutlookSection";
 import { Section, ToneTag } from "../components/ui";
 import { outlookTone } from "../signal";
 import { colors, fonts, radius, space, tones, type } from "../theme";
 import type { OutlookHouse, RootStackParamList } from "../types";
 
-// The week's view in full (opened from the 시장 tab card): why the overall tone, the key points, each
+// The latest view in full (opened from the 시장 tab card): why the overall tone, the key points, each
 // house's one-line summary + explanation + sources, and next week's events. Detail pages may carry
 // paragraphs; the tabs stay one line per item (DESIGN.md).
 export default function OutlookScreen({ route }: NativeStackScreenProps<RootStackParamList, "Outlook">) {
@@ -19,16 +19,17 @@ export default function OutlookScreen({ route }: NativeStackScreenProps<RootStac
         <View style={styles.headTop}>
           <ToneTag tone={outlookTone(o.stance)} label={o.stance} size="lg" />
           <Text style={styles.stamp}>
-            {md(o.asOf)} 기준 · {o.week.slice(5)}
+            {slotLabel(o.slot)} 업데이트
           </Text>
         </View>
         <Text style={styles.headline}>{o.headline}</Text>
         {o.past.length > 0 && (
-          <View style={styles.trail} accessibilityLabel={`최근 판단 ${o.past.map((p) => p.stance).join(", ")}, 이번 주 ${o.stance}`}>
-            {[...o.past, { week: o.week, stance: o.stance }].map((p) => (
-              <View key={p.week} style={styles.trailItem}>
+          <View style={styles.trail} accessibilityLabel={`최근 판단 ${o.past.map((p) => p.stance).join(", ")}, 지금 ${o.stance}`}>
+            {[...o.past, { slot: o.slot, stance: o.stance }].map((p) => (
+              <View key={p.slot} style={styles.trailItem}>
                 <View style={[styles.trailDot, { backgroundColor: tones[outlookTone(p.stance)].fg }]} />
-                <Text style={styles.trailWeek}>{p.week.slice(5)}</Text>
+                <Text style={styles.trailWeek}>{md(p.slot)}</Text>
+                <Text style={styles.trailWeek}>{p.slot.endsWith("-am") ? "오전" : "밤"}</Text>
               </View>
             ))}
           </View>
@@ -56,7 +57,7 @@ export default function OutlookScreen({ route }: NativeStackScreenProps<RootStac
       </Section>
 
       {o.watch.length > 0 && (
-        <Section title="다음 주 일정">
+        <Section title="다가오는 일정">
           {o.watch.map((w, i) => (
             <View key={i} style={styles.watchRow}>
               <Text style={styles.watchDate}>{md(w.date)}</Text>
@@ -76,7 +77,8 @@ function House({ house }: { house: OutlookHouse }) {
     <View style={styles.house}>
       <View style={styles.houseTop}>
         <Text style={[styles.houseName, quiet && styles.muted]}>{house.name}</Text>
-        {house.tone ? <ToneTag tone={outlookTone(house.tone)} label={house.tone} /> : <Text style={styles.quiet}>새 자료 없음</Text>}
+        {house.tone ? <ToneTag tone={outlookTone(house.tone)} label={house.tone} /> : <Text style={styles.quiet}>최근 자료 없음</Text>}
+        {house.new && <Text style={styles.fresh}>새 소식</Text>}
       </View>
       {!quiet && (
         <>
@@ -113,7 +115,7 @@ const styles = StyleSheet.create({
   trail: { flexDirection: "row", gap: space.md, marginTop: space.md },
   trailItem: { alignItems: "center", gap: 4 },
   trailDot: { width: 10, height: 10, borderRadius: 5 },
-  trailWeek: { ...type.num, fontSize: 10, color: colors.textMuted },
+  trailWeek: { ...type.num, fontSize: 10, lineHeight: 13, color: colors.textMuted, textAlign: "center" },
   body: { ...type.body, fontSize: 15, lineHeight: 24, color: colors.text, marginTop: space.lg },
   point: { flexDirection: "row", paddingVertical: 3 },
   bullet: { width: 14, ...type.body, color: colors.textMuted },
@@ -125,6 +127,7 @@ const styles = StyleSheet.create({
   houseName: { fontFamily: fonts.sansBold, fontSize: 16, color: colors.text },
   muted: { color: colors.textMuted },
   quiet: { ...type.caption, color: colors.textMuted },
+  fresh: { fontFamily: fonts.sansBold, fontSize: 11, color: colors.text },
   summary: { fontFamily: fonts.sansBold, fontSize: 14, lineHeight: 21, color: colors.text, marginTop: space.sm },
   detail: { ...type.body, fontSize: 14, lineHeight: 22, color: colors.textMuted, marginTop: space.xs },
   source: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: 6, marginTop: 2 },

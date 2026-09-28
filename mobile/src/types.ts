@@ -486,6 +486,7 @@ export type OutlookHouse = {
   id: string;
   name: string;
   tone: OutlookTone | null;
+  new: boolean; // has material since the previous update
   summary: string;
   detail: string;
   sources: OutlookSource[];
@@ -495,7 +496,7 @@ export type Outlook =
   | { available: false }
   | {
       available: true;
-      week: string;
+      slot: string; // YYYY-MM-DD-am (09:00 update) | -pm (22:30 update)
       asOf: string;
       author: "claude" | "codex";
       stance: OutlookTone;
@@ -505,5 +506,5 @@ export type Outlook =
       isa: string;
       houses: OutlookHouse[];
       watch: { date: string; event: string }[];
-      past: { week: string; stance: OutlookTone }[];
+      past: { slot: string; stance: OutlookTone }[];
     };
