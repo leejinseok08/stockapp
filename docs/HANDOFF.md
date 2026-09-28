@@ -10,20 +10,7 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 - Durable facts (rules, layout, recurring checks) go in `CLAUDE.md`, not here.
 
 ## Current task
-Toss-style redesign, step 1 (owner chose "오늘 + 리포트 + 공통 인터랙션 first", 2026-09-28).
-- Diagnosis: A1 오늘 hides my holdings mid-page, empty 신호 변경 on top; A2 swing jargon (BNF 이격도);
-  A3 종목 rows too dense ("그 밖의 값"); A4 시장 7 sections, 수급 shows "KRX 로그인 설정 필요";
-  A5 계좌 3 repeated cards; A6 report chart after long text (3,000pt). B1 only 9/24 Pressables
-  have pressed feedback; B2 full-screen spinners, no skeletons; B3 no animation; B4 no refresh
-  feedback; B5 haptics impossible in iOS PWA.
-- Figma file (owner's drafts): https://www.figma.com/design/FU9m15qEPcvcalRN8hwaPe — frames
-  01 오늘, 02 종목 리포트 (+ R5 이동평균 5/20/50/200 toggles, colors 5 #A594F9 · 20 #4FD1C5 ·
-  50 #F2C94C · 200 #E8A33D), 03 공통 인터랙션, 04 종목, 05 시장, 06 계좌 — each "· 제안" with
-  yellow notes. Visual QA done (clipping/overlap/▲▼ colors) on 2026-09-28.
-- APPROVED in full by the owner (2026-09-28): T1-T5, R1-R5, S1-S3, M1-M5, C1-C4, I1-I4.
-- Build order (commit after each, tick here): [x] I common (Press everywhere; Skeleton/Collapsible/FadeIn/useToast/Flash in motion.tsx, wired per screen)
-  [x] 오늘 T1-T5 (swing rows pass `swing` info to StockDetail; report must show it in R)  [x] 리포트 R1-R5 (trend-chart points carry ma5/20/50/200 from 3y history; toggles saved as setting "chart-ma")
-  [x] 종목 S1-S3  [x] 시장 M1-M5  [ ] 계좌 C1-C4  [ ] render check all, deploy web.
+None.
 
 ## Uncommitted
 None.
@@ -36,6 +23,9 @@ None.
 - Owner: confirm on the iPhone that the band under the tab bar is gone (status bar now black-translucent).
 
 ## Recently done
+- 2026-09-28 Toss-style redesign, all approved items (Figma https://www.figma.com/design/FU9m15qEPcvcalRN8hwaPe):
+  I1-I4 (motion.tsx: Press everywhere, Skeleton, Collapsible, FadeIn, useToast, Flash), 오늘 T1-T5,
+  리포트 R1-R5 (trend-chart ma5/20/50/200), 종목 S1-S3, 시장 M1-M5, 계좌 C1-C4. Each render-checked locally.
 - 2026-09-28 시황 twice a day (09:00 / 22:30 KST): slots `YYYY-MM-DD-am|pm` (`outlook slot` command), carry-forward
   per house with a `new` flag, Claude routines at both times, Codex fallback doc for 10:00 / 23:30. W39 file
   renamed to `2026-09-27-pm.json`. Unwired `outlook.history()` (from the Atlas test) kept, slot-based.

@@ -5,7 +5,8 @@ import { readSetting, writeSetting } from "../cache";
 import { fmtMoney } from "../format";
 import { colors, fonts, space, type } from "../theme";
 import type { IsaPlan } from "../types";
-import { Press } from "./motion";
+import { Collapsible, Press } from "./motion";
+import { ToneTag } from "./ui";
 
 const mdd = (d?: string) => (d ? d.slice(5).replace("-", "/") : "");
 
@@ -72,71 +73,71 @@ export function IsaSection({ gainKRW }: { gainKRW?: number | null }) {
   const mat = maturity(s.joinDate);
 
 
+  const monthly = num(s.monthly ?? "");
+  // The fields the owner types in; while any is empty, one button asks for them instead of a
+  // "설정에서 입력" on every row.
+  const missing = !monthly || paidYear == null || !mat;
+
   return (
     <View>
-      <Text style={styles.sectionTitle}>ISA · KB증권 중개형 · 일반형</Text>
-      {plan && (
-        <View style={styles.row}>
-          <Text style={styles.label}>이번 달 매수</Text>
-          {plan.items.map((i) => {
-            const amt = num(s.monthly ?? "");
-            const state =
-              i.status === "done"
-                ? `${mdd(i.boughtOn)} 매수일 지남`
-                : i.status === "buy"
-                  ? `${i.buyToday ? "오늘" : mdd(i.buyOn)} 매수${i.reason === "monthEnd" ? " (월말)" : ""}`
-                  : i.status === "wait"
-                    ? "하락일 대기 · 없으면 월말"
-                    : "확인 안 됨";
-            return (
-              <View key={i.id} style={styles.planRow}>
-                <Text style={styles.planName}>
-                  {i.name} <Text style={styles.sub}>{Math.round(i.weight * 100)}%{amt ? ` · ${fmtMoney(amt * i.weight, "KRW")}` : ""}</Text>
+      <Text style={styles.sectionTitle}>ISA · KB증권 중개형</Text>
+      <Text style={styles.desc}>이번 달 매수와 한도 · 일반형</Text>
+      {plan &&
+        plan.items.map((i) => {
+          const [tone, label] =
+            i.status === "done"
+              ? (["neutral", `${mdd(i.boughtOn)} 매수함`] as const)
+              : i.status === "buy"
+                ? (["good", `${i.buyToday ? "오늘" : mdd(i.buyOn)} 매수${i.reason === "monthEnd" ? " (월말)" : " 예정"}`] as const)
+                : i.status === "wait"
+                  ? (["neutral", "하락일 대기"] as const)
+                  : (["neutral", "확인 안 됨"] as const);
+          return (
+            <View key={i.id} style={styles.planRow} accessible accessibilityLabel={`${i.name} 비중 ${Math.round(i.weight * 100)}%, ${label}`}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.planName}>{i.name}</Text>
+                <Text style={styles.sub}>
+                  비중 {Math.round(i.weight * 100)}%{monthly ? ` · ${fmtMoney(monthly * i.weight, "KRW")}` : ""}
                 </Text>
-                <Text style={[styles.planState, i.status === "buy" && styles.planBuy]}>{state}</Text>
               </View>
-            );
-          })}
-          <Text style={styles.sub}>{plan.rule} · 과거 첫 거래일 매수 대비 −0.2% (선호 방식) · 알림 없음</Text>
-        </View>
+              <ToneTag tone={tone} label={label} />
+            </View>
+          );
+        })}
+      {plan && <Text style={styles.sub}>{plan.rule} · 알림 없음</Text>}
+
+      {!!monthly && <Row label="월 적립금" value={fmtMoney(monthly, "KRW")} sub="ETF별 금액은 40 : 30 : 30" />}
+      {paidYear != null && !!annual && (
+        <Row
+          label="올해 납입"
+          value={`${fmtMoney(paidYear, "KRW")} / ${fmtMoney(annual, "KRW")}`}
+          progress={paidYear / annual}
+          sub={`${Math.round((paidYear / annual) * 100)}% 사용 · 남은 한도 ${fmtMoney(Math.max(annual - paidYear, 0), "KRW")}`}
+        />
       )}
-      <Row
-        label="월 적립금"
-        value={s.monthly && num(s.monthly) ? fmtMoney(num(s.monthly), "KRW") : "설정에서 입력"}
-        sub="이번 달 매수 금액을 ETF별로 나눠 보여줘요 (40 : 30 : 30)"
-      />
-      <Row
-        label="올해 납입"
-        value={paidYear != null && annual ? `${fmtMoney(paidYear, "KRW")} / ${fmtMoney(annual, "KRW")}` : "설정에서 입력"}
-        progress={paidYear != null && annual ? paidYear / annual : undefined}
-        sub={paidYear != null && annual ? `${Math.round((paidYear / annual) * 100)}% 사용 · 남은 한도 ${fmtMoney(Math.max(annual - paidYear, 0), "KRW")}` : undefined}
-      />
-      <Row
-        label="누적 납입"
-        value={paidTotal != null && total ? `${fmtMoney(paidTotal, "KRW")} / ${fmtMoney(total, "KRW")}` : "설정에서 입력"}
-        progress={paidTotal != null && total ? paidTotal / total : undefined}
-      />
-      <Row
-        label="의무가입 만료 (3년)"
-        value={mat ? mat.date : "가입일 입력 필요"}
-        progress={mat ? mat.elapsed : undefined}
-        sub={mat ? (mat.days > 0 ? `D-${mat.days} · 만료 전 해지하면 비과세 혜택이 사라져요` : "만료됨 · 해지·연장·연금 이전 가능") : undefined}
-      />
+      {paidTotal != null && !!total && (
+        <Row label="누적 납입" value={`${fmtMoney(paidTotal, "KRW")} / ${fmtMoney(total, "KRW")}`} progress={paidTotal / total} />
+      )}
+      {mat && (
+        <Row
+          label="의무가입 만료 (3년)"
+          value={mat.date}
+          progress={mat.elapsed}
+          sub={mat.days > 0 ? `D-${mat.days} · 만료 전 해지하면 비과세 혜택이 사라져요` : "만료됨 · 해지·연장·연금 이전 가능"}
+        />
+      )}
       <Row
         label="비과세 한도"
         value={num(s.taxFree) != null ? fmtMoney(num(s.taxFree), "KRW") : "-"}
-        progress={gainKRW != null && gainKRW > 0 && num(s.taxFree) ? gainKRW / num(s.taxFree)! : undefined}
-        sub={`${gainKRW != null ? `국내 상장 보유분 평가이익 ${fmtMoney(gainKRW, "KRW")} · ` : ""}손익 합산해 해지 때 과세 · 초과분 9.9% 분리과세`}
+        progress={gainKRW != null && gainKRW > 0 && num(s.taxFree) ? gainKRW / num(s.taxFree)! : 0}
+        sub={gainKRW != null ? `국내 상장 보유분 평가이익 ${fmtMoney(gainKRW, "KRW")}` : undefined}
       />
-      <Row
-        label="만기 후"
-        value="연금계좌 이전"
-        sub="만기 60일 안에 연금저축·IRP로 옮기면 이전액의 10%(최대 300만 원) 추가 세액공제"
-      />
-      <Text style={styles.note}>
-        기본 한도는 현행 기준이에요. 2026년 세제개편안(연 4천만·총 2억·비과세 500만)은 시행이 확정되지 않았으니 KB증권
-        앱에서 본인 계좌 한도를 확인하고 아래에서 바꾸세요.
-      </Text>
+
+      {!editing && missing && (
+        <Press pressedBg={false} style={styles.cta} onPress={() => setEditing(true)} accessibilityRole="button" accessibilityLabel="ISA 정보 입력하기">
+          <Text style={styles.ctaText}>ISA 정보 입력하기</Text>
+        </Press>
+      )}
 
       {editing ? (
         <View style={styles.form}>
@@ -152,17 +153,23 @@ export function IsaSection({ gainKRW }: { gainKRW?: number | null }) {
           </Press>
         </View>
       ) : (
-        <Press
-          onPress={() => setEditing(true)}
-          hitSlop={10}
-          style={styles.editLink}
-          accessibilityRole="button"
-          accessibilityLabel="ISA 설정 편집"
-        >
-          <Text style={styles.editText}>설정 편집</Text>
-        </Press>
+        !missing && (
+          <Press onPress={() => setEditing(true)} hitSlop={10} style={styles.editLink} accessibilityRole="button" accessibilityLabel="ISA 설정 편집">
+            <Text style={styles.editText}>설정 편집</Text>
+          </Press>
+        )
       )}
 
+      <Collapsible title="만기 · 세제 · 개편안" preview="안내">
+        <Text style={styles.note}>
+          손익을 합산해 해지 때 과세하고, 비과세 한도를 넘는 이익은 9.9% 분리과세예요. 만기 60일 안에 연금저축·IRP로 옮기면 이전액의
+          10%(최대 300만 원)를 추가로 세액공제받아요.
+        </Text>
+        <Text style={styles.note}>
+          기본 한도는 현행 기준이에요. 2026년 세제개편안(연 4천만·총 2억·비과세 500만)은 시행이 확정되지 않았으니 KB증권 앱에서
+          본인 계좌 한도를 확인하고 설정에서 바꾸세요.
+        </Text>
+      </Collapsible>
     </View>
   );
 }
@@ -201,14 +208,17 @@ function Field({ label, value, onChange, numeric }: { label: string; value: stri
 }
 
 const styles = StyleSheet.create({
-  sectionTitle: { ...type.section, marginBottom: space.sm },
+  sectionTitle: { ...type.section },
+  desc: { ...type.caption, color: colors.textMuted, marginTop: space.xs, marginBottom: space.sm },
+  cta: { backgroundColor: colors.accent, borderRadius: 12, paddingVertical: 14, alignItems: "center", marginTop: space.lg },
+  ctaText: { fontFamily: fonts.sansBold, fontSize: 15, color: colors.onAccent },
   row: { paddingVertical: space.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
   rowTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
   label: { ...type.body, fontSize: 13, color: colors.textMuted },
   value: { ...type.numStrong, fontSize: 13, color: colors.text, textAlign: "right" },
   valueText: { fontFamily: fonts.sansMedium },
-  planRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: space.sm, gap: space.sm },
-  planName: { ...type.body, fontSize: 13, color: colors.text, flexShrink: 1 },
+  planRow: { flexDirection: "row", alignItems: "center", paddingVertical: space.sm, gap: space.sm },
+  planName: { ...type.body, fontFamily: fonts.sansBold, fontSize: 14, color: colors.text },
   planState: { ...type.caption, color: colors.textMuted },
   planBuy: { color: colors.accent, fontFamily: fonts.sansBold },
   track: { height: 4, borderRadius: 2, backgroundColor: colors.hairline, marginTop: space.sm, overflow: "hidden" },
