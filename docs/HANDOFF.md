@@ -17,7 +17,9 @@ Toss-style redesign, step 1 (owner chose "오늘 + 리포트 + 공통 인터랙�
   have pressed feedback; B2 full-screen spinners, no skeletons; B3 no animation; B4 no refresh
   feedback; B5 haptics impossible in iOS PWA.
 - Figma file (owner's drafts): https://www.figma.com/design/FU9m15qEPcvcalRN8hwaPe — frames
-  "01 오늘 · 제안", "02 종목 리포트 · 제안", "03 공통 인터랙션 · 제안" with yellow notes.
+  01 오늘, 02 종목 리포트 (+ R5 이동평균 5/20/50/200 toggles, colors 5 #A594F9 · 20 #4FD1C5 ·
+  50 #F2C94C · 200 #E8A33D), 03 공통 인터랙션, 04 종목, 05 시장, 06 계좌 — each "· 제안" with
+  yellow notes. Visual QA done (clipping/overlap/▲▼ colors) on 2026-09-28.
 - WAITING for the owner's approval per item. Do not change app code before approval.
 
 ## Uncommitted
