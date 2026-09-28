@@ -1,3 +1,4 @@
+import ctypes
 import time
 from collections import OrderedDict
 from typing import Any
@@ -28,12 +29,21 @@ def _cached(key: str, ttl: float, fn):
     return value
 
 
+def _malloc_trim() -> None:
+    """Give memory freed by dropped entries back to the OS (glibc keeps it otherwise)."""
+    try:
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except OSError:  # not glibc (Windows/macOS dev machines)
+        pass
+
+
 def _trim(now: float) -> None:
     global _last_sweep
     if now - _last_sweep >= SWEEP_EVERY:
         _last_sweep = now
         for k in [k for k, (t, ttl, _) in _CACHE.items() if now - t >= ttl]:
             del _CACHE[k]
+        _malloc_trim()
     while len(_CACHE) > MAX_ENTRIES:
         _CACHE.popitem(last=False)
 

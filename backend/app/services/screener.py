@@ -9,6 +9,7 @@ periods. Every candidate carries that record.
 POST /swing/run?market=KR|US (cron) -> runs in a background thread and stores AppState "swing:<market>".
 """
 
+import ctypes
 import gc
 import json
 import logging
@@ -110,9 +111,19 @@ def scan(market: str) -> dict:
             _scan_one(u, h, idx, lite, active, found, followed, updates, names, market)
             as_of = max(as_of or h.index[-1], h.index[-1])
         del prices
-        gc.collect()
+        _release()
     log.info("swing scan %s: %d prices downloaded", market, scanned)
     return _finish(market, rec, active, found, idx, as_of, scanned, followed, updates)
+
+
+def _release() -> None:
+    """Hand freed memory back to the OS. Python keeps what numpy/yfinance's threads freed, so without
+    this a scan left the 512MB server at ~510MB (2026-09-28) and the next busy minute OOM-killed it."""
+    gc.collect()
+    try:
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except OSError:  # not glibc (Windows/macOS dev machines)
+        pass
 
 
 def _scan_one(u, h, idx, lite, active, found, followed, updates, names, market) -> None:
@@ -184,6 +195,7 @@ def run_async(market: str) -> bool:
             result = scan(market)
             put_state(f"swing:{market}", json.dumps(result, ensure_ascii=False), result["generatedAt"])
             _CACHE.pop("swing:latest", None)  # the next /swing reads the new scan
+            _release()
             log.info("swing scan %s: %d groups", market, len(result["groups"]))
         except Exception as e:
             log.exception("swing scan %s failed: %s", market, e)
