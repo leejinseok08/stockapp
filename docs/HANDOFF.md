@@ -10,11 +10,7 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 - Durable facts (rules, layout, recurring checks) go in `CLAUDE.md`, not here.
 
 ## Current task
-Latency + 시황 detail (owner approved all, 2026-09-28). Measured: warm APIs <1s (swing 2.2s/65KB);
-slowness = restarts with cold caches: 5 OOM kills in 4 days (512MB, _CACHE never evicts) and a redeploy
-at every 09:00/22:30 outlook push. Steps: [x] P1 bounded cache (+ swing scan in 100-symbol batches)  [x] P2 outlook commits carry [skip render];
-backend reads them from GitHub (no redeploy)  [x] P3 slimmer /swing (?full=1 for everything)  [ ] O1-O6 시황 detail
-(Figma frame "07 시황 상세 · 제안") + shorter points in PROMPT.md.
+None.
 
 ## Uncommitted
 None.
@@ -27,6 +23,9 @@ None.
 - Owner: confirm on the iPhone that the band under the tab bar is gone (status bar now black-translucent).
 
 ## Recently done
+- 2026-09-28 Latency: bounded self-sweeping cache (300 entries), swing scan in 100-symbol batches, outlook
+  commits with [skip render] read from GitHub, slim /swing. 시황 detail O1-O6 (tone strip, 3-line reason,
+  3 points, ISA card, houses fold). Points now ≤70 chars. Watch Render events for further OOM kills.
 - 2026-09-28 Toss-style redesign, all approved items (Figma https://www.figma.com/design/FU9m15qEPcvcalRN8hwaPe):
   I1-I4 (motion.tsx: Press everywhere, Skeleton, Collapsible, FadeIn, useToast, Flash), 오늘 T1-T5,
   리포트 R1-R5 (trend-chart ma5/20/50/200), 종목 S1-S3, 시장 M1-M5, 계좌 C1-C4. Each render-checked locally.

@@ -64,7 +64,9 @@ Rules:
 ## 3. Write `backend/app/data/outlook/<slot>.json`
 Korean, plain. UTF-8. The 시장 tab shows only `stance` (as one color) and `headline`; tapping it opens a
 detail page with `reason`, `points`, `isa`, then each house's `summary` and `detail` with sources (a
-"new" mark on houses with `"new": true`), then `watch`. So `headline` and `summary` are one glanceable
+"new" mark on houses with `"new": true`), then `watch`. Only the first three `points` and the first three
+lines of `reason` show before "더 보기", so put the most important first and keep each point one short
+sentence. `headline` and `summary` are one glanceable
 line; `reason` and `detail` explain: what was said, the evidence (numbers with their dates), and why it
 leads to that tone. Shape (limits are checked):
 ```json
@@ -75,7 +77,7 @@ leads to that tone. Shape (limits are checked):
   "stance": "중립",
   "headline": "한 줄 결론 (80자 이내)",
   "reason": "왜 이 판단인지: 직전 대비 달라진 점과 기관들의 근거를 3~5문장으로 (600자 이내)",
-  "points": ["직전 업데이트 이후 달라진 것부터, 2~5줄, 줄당 120자 이내", "기관 간 이견도 여기에"],
+  "points": ["직전 업데이트 이후 달라진 것부터, 2~5줄, 줄당 70자 이내의 한 문장", "기관 간 이견도 여기에"],
   "isa": "ISA 적립식 관점에서 지금 볼 것 한 줄 (120자 이내)",
   "houses": [
     {"id": "fed", "tone": "중립", "new": true, "summary": "한 줄 요약 (50자 이내)",

@@ -60,7 +60,7 @@ def validate(doc: dict) -> list[str]:
         errs.append("points: 2 to 5 lines")
     else:
         for i, p in enumerate(points):
-            text(p, f"points[{i}]", 120)
+            text(p, f"points[{i}]", 70)
     text(doc.get("isa"), "isa", 120)
 
     houses = doc.get("houses")
