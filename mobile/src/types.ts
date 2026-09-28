@@ -78,7 +78,8 @@ export type NewsItem = {
 
 export type RootStackParamList = {
   Tabs: undefined;
-  StockDetail: { symbol: string; name?: string };
+  // swing: the 스윙 signal the row was opened from (오늘), shown on the report with its techniques
+  StockDetail: { symbol: string; name?: string; swing?: { action: "BUY" | "SELL"; techniques: string[]; order: string; note?: string } };
   Outlook: { outlook: Extract<Outlook, { available: true }> };
 };
 

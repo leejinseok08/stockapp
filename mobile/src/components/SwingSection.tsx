@@ -1,17 +1,20 @@
 // 스윙 on 오늘: only the conclusion. BUY = stocks where a technique that passed the backtest fired at
 // the last close (backend screener.scan, calmest first; KR paused in an index uptrend); SELL = holdings bought on such a signal whose exit rule is
-// due (screener.sells). The techniques behind each one are small tags; no records or explanations.
+// due (screener.sells). Counts first, the top three ranked, the rest one tap away; the techniques behind a
+// signal are shown on the stock's report (passed along when the row is opened).
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { fmtMoney, fmtPrice } from "../format";
 import { colors, fonts, space, trendColor, trendGlyph, type } from "../theme";
 import type { SwingPaper, SwingScan, SwingSell } from "../types";
 import { SignalBadge } from "./SignalBadge";
-import { Avatar, Chips, Section } from "./ui";
+import { Avatar, Chips, Section, ToneTag } from "./ui";
 import { Press } from "./motion";
 
-const SHOW = 5;
+const SHOW = 3;
 const md = (d: string) => d.slice(5).replace("-", "/");
+
+export type SwingInfo = { action: "BUY" | "SELL"; techniques: string[]; order: string; note?: string };
 
 type Row = {
   symbol: string;
@@ -31,7 +34,7 @@ export function SwingSection({
   scans: Partial<Record<"KR" | "US", SwingScan>>;
   sells: SwingSell[];
   paper: Partial<Record<"KR" | "US", SwingPaper>>;
-  onOpen: (symbol: string, name?: string | null) => void;
+  onOpen: (symbol: string, name: string | null, swing: SwingInfo) => void;
 }) {
   const markets = (["KR", "US"] as const).filter((m) => scans[m] || sells.some((s) => s.market === m));
   const [market, setMarket] = useState<"KR" | "US">(markets[0] ?? "KR");
@@ -90,15 +93,8 @@ export function SwingSection({
       }
     >
       <View style={styles.summary} accessible accessibilityLabel={`BUY ${buyCount}개, SELL ${sellRows.length}개`}>
-        <View style={styles.cell}>
-          <Text style={styles.label}>BUY</Text>
-          <Text style={[styles.count, buyCount > 0 && styles.countOn]}>{buyCount}</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.cell}>
-          <Text style={styles.label}>SELL</Text>
-          <Text style={[styles.count, sellRows.length > 0 && styles.countOn]}>{sellRows.length}</Text>
-        </View>
+        <ToneTag tone={buyCount > 0 ? "good" : "neutral"} label={`BUY ${buyCount}`} size="md" />
+        <ToneTag tone={sellRows.length > 0 ? "caution" : "neutral"} label={`SELL ${sellRows.length}`} size="md" />
       </View>
       {acct && acct.trades > 0 && (
         <Text style={styles.paper} accessibilityLabel={`모의 매매 ${md(paper[market]!.since)}부터 손익 ${fmtMoney(acct.pnl, cur)}`}>
@@ -111,76 +107,62 @@ export function SwingSection({
       )}
 
       {sellRows.map((r) => (
-        <SwingRow key={`s-${r.symbol}`} row={r} onPress={() => onOpen(r.symbol, r.name)} />
+        <SwingRow key={`s-${r.symbol}`} row={r} onPress={() => onOpen(r.symbol, r.name, info(r))} />
       ))}
-      {shownBuys.map((r) => (
-        <SwingRow key={`b-${r.symbol}`} row={r} onPress={() => onOpen(r.symbol, r.name)} />
+      {shownBuys.map((r, i) => (
+        <SwingRow key={`b-${r.symbol}`} row={r} rank={i + 1} onPress={() => onOpen(r.symbol, r.name, info(r))} />
       ))}
       {buys.length > SHOW && (
         <Press
           onPress={() => setAll(!all)}
-          hitSlop={10}
           style={styles.moreBtn}
           accessibilityRole="button"
-          accessibilityLabel={all ? "BUY 접기" : `BUY ${buys.length - SHOW}개 더 보기`}
+          accessibilityLabel={all ? "BUY 접기" : `BUY ${buys.length}개 전체 보기`}
         >
-          <Text style={styles.more}>{all ? "접기 ▴" : `${buys.length - SHOW}개 더 ▾`}</Text>
+          <Text style={styles.more}>{all ? "접기" : `BUY ${buys.length}개 전체 보기`}</Text>
         </Press>
       )}
-      {all && buyCount > buys.length && <Text style={styles.more}>상위 {buys.length}개</Text>}
+      {all && buyCount > buys.length && <Text style={styles.empty}>상위 {buys.length}개</Text>}
       {scan?.paused && <Text style={styles.empty}>지수 상승 추세라 BUY는 쉬어요</Text>}
       {!scan?.paused && buys.length === 0 && sellRows.length === 0 && <Text style={styles.empty}>오늘은 신호가 없어요</Text>}
     </Section>
   );
 }
 
-function SwingRow({ row, onPress }: { row: Row; onPress: () => void }) {
-  const tags = row.note ? [row.note, ...row.tags] : row.tags;
+const info = (r: Row): SwingInfo => ({ action: r.action, techniques: r.tags, order: r.order, note: r.note });
+
+function SwingRow({ row, rank, onPress }: { row: Row; rank?: number; onPress: () => void }) {
   return (
     <Press
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.surface }]}
+      style={styles.row}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${row.name ?? row.symbol} ${row.action}, ${row.order}, ${tags.join(", ")}`}
+      accessibilityLabel={`${rank ? `${rank}위 ` : ""}${row.name ?? row.symbol} ${row.action}, ${row.order}. 눌러서 근거 보기`}
     >
-      <Avatar name={row.name ?? row.symbol} size={36} />
+      <Text style={styles.rank}>{rank ?? ""}</Text>
+      <Avatar name={row.name ?? row.symbol} size={40} />
       <View style={styles.mid}>
         <Text style={styles.name} numberOfLines={1}>
           {row.name ?? row.symbol}
         </Text>
         <Text style={styles.tags} numberOfLines={1}>
-          {tags.join(" · ")}
+          {row.note ? `${row.note} · ${row.order}` : row.order}
         </Text>
       </View>
-      <View style={styles.right}>
-        <SignalBadge action={row.action} />
-        <Text style={styles.order}>{row.order}</Text>
-      </View>
+      <SignalBadge action={row.action} />
     </Press>
   );
 }
 
 const styles = StyleSheet.create({
-  summary: {
-    flexDirection: "row",
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingVertical: space.md,
-    marginBottom: space.sm,
-  },
-  cell: { flex: 1, alignItems: "center" },
-  divider: { width: StyleSheet.hairlineWidth, backgroundColor: colors.hairline },
-  label: { fontFamily: fonts.monoBold, fontSize: 12, color: colors.textMuted },
-  count: { ...type.hero, fontSize: 30, color: colors.textMuted },
-  countOn: { color: colors.text },
+  summary: { flexDirection: "row", gap: space.sm, marginBottom: space.sm },
   paper: { ...type.caption, color: colors.textMuted, marginBottom: space.xs },
-  row: { flexDirection: "row", alignItems: "center", paddingVertical: space.md },
+  row: { flexDirection: "row", alignItems: "center", paddingVertical: space.md, borderRadius: 12 },
+  rank: { ...type.numStrong, fontSize: 15, color: colors.textMuted, width: 22 },
   mid: { flex: 1, marginLeft: space.md, marginRight: space.sm },
   name: { ...type.body, fontFamily: fonts.sansBold, fontSize: 16, color: colors.text },
-  tags: { ...type.caption, fontSize: 11, color: colors.textMuted, marginTop: 2 },
-  right: { alignItems: "flex-end", gap: 3 },
-  order: { ...type.caption, fontSize: 11, color: colors.textMuted },
-  moreBtn: { alignSelf: "flex-start", paddingVertical: space.xs },
-  more: { ...type.caption, color: colors.textMuted },
+  tags: { ...type.caption, fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  moreBtn: { backgroundColor: colors.surface, borderRadius: 12, paddingVertical: space.md, alignItems: "center", marginTop: space.sm },
+  more: { fontFamily: fonts.sansBold, fontSize: 14, color: colors.text },
   empty: { ...type.caption, color: colors.textMuted, textAlign: "center", marginTop: space.md },
 });

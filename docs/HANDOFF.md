@@ -22,7 +22,7 @@ Toss-style redesign, step 1 (owner chose "오늘 + 리포트 + 공통 인터랙�
   yellow notes. Visual QA done (clipping/overlap/▲▼ colors) on 2026-09-28.
 - APPROVED in full by the owner (2026-09-28): T1-T5, R1-R5, S1-S3, M1-M5, C1-C4, I1-I4.
 - Build order (commit after each, tick here): [x] I common (Press everywhere; Skeleton/Collapsible/FadeIn/useToast/Flash in motion.tsx, wired per screen)
-  [ ] 오늘 T1-T5  [ ] 리포트 R1-R5 (R5 needs 200 extra days of closes from the backend)
+  [x] 오늘 T1-T5 (swing rows pass `swing` info to StockDetail; report must show it in R)  [ ] 리포트 R1-R5 (R5 needs 200 extra days of closes from the backend)
   [ ] 종목 S1-S3  [ ] 시장 M1-M5  [ ] 계좌 C1-C4  [ ] render check all, deploy web.
 
 ## Uncommitted
