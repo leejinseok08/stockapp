@@ -26,6 +26,11 @@
       body {
         overflow: hidden;
       }
+      /* Sideways swipes belong to the app (tab switch, swipe back), not the browser's history. */
+      html,
+      body {
+        overscroll-behavior-x: none;
+      }
       /* Pin the app to the screen's edges instead of trusting 100% / 100dvh, which an installed iOS
          web app can size short of the screen (the gap under the tab bar). */
       #root {

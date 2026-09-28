@@ -44,6 +44,7 @@ import type {
   TrendChart,
 } from "../types";
 import { Collapsible, Flash, Press, Skeleton } from "../components/motion";
+import { NO_SWIPE } from "../components/gestures";
 
 const LINE_LABELS: [FinancialLineKey, string][] = [
   ["revenue", "매출"],
@@ -621,7 +622,8 @@ function Ledger({ rows }: { rows: [string, string][] }) {
 function StatementTable({ rows, currency }: { rows: Fundamentals["income"]; currency?: string | null }) {
   const periods = Object.keys(rows[0].values).slice(0, 4);
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+    // Scrolls sideways itself, so it is not a swipe-back area.
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} {...({ dataSet: NO_SWIPE } as object)}>
       <View>
         <View style={styles.tableRow}>
           <Text style={[styles.tableCell, styles.tableItemCell]} />

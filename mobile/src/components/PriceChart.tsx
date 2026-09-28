@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { GestureResponderEvent, View } from "react-native";
 import Svg, { Circle, Line, Polyline, Rect, Text as SvgText } from "react-native-svg";
 import { fmtPrice } from "../format";
+import { NO_SWIPE } from "./gestures";
 import { colors, fonts, tones } from "../theme";
 
 type Props = {
@@ -80,10 +81,14 @@ export function PriceChart({ times, closes, ma, lines, marks, currency, width, h
     <View
       onStartShouldSetResponder={() => true}
       onResponderGrant={onTouch}
+      // Keep the crosshair drag: a sideways drag here is reading the chart, not switching tabs.
+      onResponderTerminationRequest={() => false}
       onResponderMove={onTouch}
       onResponderRelease={() => setHover(null)}
       onResponderTerminate={() => setHover(null)}
       {...(web as object)}
+      // A sideways drag here moves the crosshair; it must not switch tabs or go back.
+      {...({ dataSet: NO_SWIPE } as object)}
     >
     <Svg width={width} height={height} accessibilityLabel="가격 차트">
       <Line x1={0} y1={y(max)} x2={plotW} y2={y(max)} stroke={colors.hairline} strokeWidth={1} />

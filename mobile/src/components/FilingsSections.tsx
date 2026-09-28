@@ -9,6 +9,7 @@ import { Pips } from "./charts";
 import { RadarChart } from "./RadarChart";
 import { Section } from "./ui";
 import { Press } from "./motion";
+import { NO_SWIPE } from "./gestures";
 
 const AXES = ["value", "growth", "past", "health", "dividend"] as const;
 const SHORT: Record<(typeof AXES)[number], string> = { value: "가치", growth: "성장", past: "실적", health: "건전성", dividend: "배당" };
@@ -117,7 +118,7 @@ export function SnowflakeSection({ data, bare }: { data: Snowflake | null; bare?
       </View>
 
       <Text style={styles.sub}>연간 공시 · {cur}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} {...({ dataSet: NO_SWIPE } as object)}>
         <View>
           <View style={styles.tr}>
             <Text style={[styles.td, styles.tdItem]} />

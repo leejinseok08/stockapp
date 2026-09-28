@@ -10,6 +10,7 @@ import OutlookScreen from "../screens/OutlookScreen";
 import StockDetailScreen from "../screens/StockDetailScreen";
 import StocksScreen from "../screens/StocksScreen";
 import TodayScreen from "../screens/TodayScreen";
+import { withSwipeBack, withTabSwipe } from "../components/gestures";
 import { colors, fonts } from "../theme";
 import type { RootStackParamList, TabParamList } from "../types";
 
@@ -20,6 +21,14 @@ const TAB_ICONS: Record<keyof TabParamList, React.ComponentProps<typeof Feather>
   Market: "activity",
   Account: "briefcase",
 };
+
+// Swipe between tabs and swipe back from the left edge (components/gestures.tsx).
+const TodayTab = withTabSwipe(TodayScreen, "Today");
+const StocksTab = withTabSwipe(StocksScreen, "Stocks");
+const MarketTab = withTabSwipe(MarketScreen, "Market");
+const AccountTab = withTabSwipe(AccountScreen, "Account");
+const StockDetail = withSwipeBack(StockDetailScreen);
+const OutlookDetail = withSwipeBack(OutlookScreen);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -61,10 +70,10 @@ function Tabs() {
         tabBarIcon: ({ color, size }) => <Feather name={TAB_ICONS[route.name]} color={color} size={size - 4} />,
       })}
     >
-      <Tab.Screen name="Today" component={TodayScreen} options={{ title: "오늘" }} />
-      <Tab.Screen name="Stocks" component={StocksScreen} options={{ title: "종목" }} />
-      <Tab.Screen name="Market" component={MarketScreen} options={{ title: "시장" }} />
-      <Tab.Screen name="Account" component={AccountScreen} options={{ title: "계좌" }} />
+      <Tab.Screen name="Today" component={TodayTab} options={{ title: "오늘" }} />
+      <Tab.Screen name="Stocks" component={StocksTab} options={{ title: "종목" }} />
+      <Tab.Screen name="Market" component={MarketTab} options={{ title: "시장" }} />
+      <Tab.Screen name="Account" component={AccountTab} options={{ title: "계좌" }} />
     </Tab.Navigator>
   );
 }
@@ -84,10 +93,10 @@ export default function RootNavigator() {
         <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
         <Stack.Screen
           name="StockDetail"
-          component={StockDetailScreen}
+          component={StockDetail as typeof StockDetailScreen}
           options={({ route }) => ({ title: route.params.symbol })}
         />
-        <Stack.Screen name="Outlook" component={OutlookScreen} options={{ title: "시황" }} />
+        <Stack.Screen name="Outlook" component={OutlookDetail as typeof OutlookScreen} options={{ title: "시황" }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

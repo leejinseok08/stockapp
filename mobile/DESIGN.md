@@ -103,6 +103,9 @@ Rules:
   fades in on focus (`FadeIn`). After a pull-to-refresh, `useToast` says what changed and `Flash`
   tints a changed number (red up, blue down) for 0.8s.
 - No haptics: an installed iOS web app can't vibrate.
+- Swipes (`src/components/gestures.tsx`): sideways swipe switches tabs; dragging from the left edge
+  (40pt) goes back on stack screens. Built on DOM touch events, not the responder system. Anything
+  that owns a sideways drag (charts, tables that scroll sideways) carries `dataSet={NO_SWIPE}`.
 
 ## Anti-patterns (don't ship)
 
