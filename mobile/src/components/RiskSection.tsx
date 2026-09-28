@@ -21,10 +21,12 @@ function fmtValue(v: number, unit: string) {
 
 // Gauge at the top (how many of five are lit), then each signal as a one-year line with its
 // danger zone shaded, so "how close to the line, and heading which way" reads without text.
-export function RiskSection({ risk }: { risk: RiskGauge }) {
+// rowsOnly: the 시장 tab shows the gauge in its own card and opens just the five rows here.
+export function RiskSection({ risk, rowsOnly }: { risk: RiskGauge; rowsOnly?: boolean }) {
   const spark = Math.min(120, Math.round(Dimensions.get("window").width * 0.28));
   return (
     <View>
+      {!rowsOnly && (
       <View style={styles.summary}>
         <Text style={styles.hero}>
           {risk.lit}
@@ -35,6 +37,7 @@ export function RiskSection({ risk }: { risk: RiskGauge }) {
           <Text style={styles.scale}>0~1 평상 · 2 관찰 · 3↑ 경계</Text>
         </View>
       </View>
+      )}
 
       {risk.items.map((i) => (
         <View

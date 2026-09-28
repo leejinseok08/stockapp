@@ -9,18 +9,20 @@ const pp = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(2)}%p`;
 
 // Korean vs US rates, then the KR−US gaps: same row shape as the risk gauge (what it is, a
 // one-year line, the value and its one-month change).
-export function RatesSection({ rates }: { rates: Rates }) {
+// only: show just these keys (시장 tab shows the three that move USD/KRW first).
+export function RatesSection({ rates, only }: { rates: Rates; only?: string[] }) {
+  const pick = <T extends { key: string }>(xs: T[]) => (only ? xs.filter((x) => only.includes(x.key)) : xs);
   const spark = Math.min(110, Math.round(Dimensions.get("window").width * 0.26));
   return (
     <View>
-      {rates.items.map((i) => (
+      {pick(rates.items).map((i) => (
         <RateRow key={i.key} item={i} spark={spark} fmt={pct} />
       ))}
-      {rates.gaps.length > 0 && <Text style={styles.group}>한미 금리 차</Text>}
-      {rates.gaps.map((i) => (
+      {!only && rates.gaps.length > 0 && <Text style={styles.group}>한미 금리 차</Text>}
+      {pick(rates.gaps).map((i) => (
         <RateRow key={i.key} item={i} spark={spark} fmt={pp} />
       ))}
-      <Text style={styles.legend}>선: 최근 1년 · 오른쪽 아래: 1개월 변화</Text>
+      {!only && <Text style={styles.legend}>선: 최근 1년 · 오른쪽 아래: 1개월 변화</Text>}
       {rates.keyMissing && <Text style={styles.what}>한국 금리: ECOS 인증키 설정 필요</Text>}
       {rates.failed.length > 0 && <Text style={styles.what}>불러오지 못함: {rates.failed.join(", ")}</Text>}
     </View>
