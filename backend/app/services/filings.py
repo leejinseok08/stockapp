@@ -164,10 +164,17 @@ def _dart_key() -> str:
 def dart_corp_code(stock_code: str) -> str:
     def fetch():
         raw = _get(f"{DART}/corpCode.xml?crtfc_key={_dart_key()}", timeout=60)
-        with zipfile.ZipFile(io.BytesIO(raw)) as z:
-            root = ElementTree.fromstring(z.read(z.namelist()[0]))
-        return {e.findtext("stock_code").strip(): e.findtext("corp_code")
-                for e in root.iter("list") if (e.findtext("stock_code") or "").strip()}
+        # Streamed: the file lists ~110k companies (24MB of XML); a full tree took ~130MB at once, enough
+        # to push the 512MB server over when a report opened (OOM 2026-09-28).
+        table = {}
+        with zipfile.ZipFile(io.BytesIO(raw)) as z, z.open(z.namelist()[0]) as f:
+            for _, e in ElementTree.iterparse(f):
+                if e.tag == "list":
+                    code = (e.findtext("stock_code") or "").strip()
+                    if code:
+                        table[code] = e.findtext("corp_code")
+                    e.clear()
+        return table
 
     table = _cached("dart:corpcodes", 7 * 24 * 3600, fetch)
     if stock_code not in table:
