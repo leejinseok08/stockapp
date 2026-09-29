@@ -10,7 +10,17 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 - Durable facts (rules, layout, recurring checks) go in `CLAUDE.md`, not here.
 
 ## Current task
-None.
+Kiwoom REST API (owner, 2026-09-29). Keys not issued yet: build the code, verify against the spec with mocked
+HTTP; live checks wait for the keys. Spec: github.com/Kiwoom-Securities/Kiwoom-REST-API (`kiwoom/_data/kiwoom_api_spec.json`).
+1. Real account, read-only (KR kt00018/kt00001 + US ust21070/ust21110) on the 계좌 tab, behind an ACCOUNT_TOKEN header.
+   Real client refuses every api-id outside a read-only allowlist.
+2. Swing signals auto-ordered on the Kiwoom MOCK account: plan after each scan (entries = paper pending picks,
+   exits = the technique's next-session orders), execute right after the open (worker cron). Size = mock
+   account equity / screener.SLOTS (owner: not the paper account's fixed amounts).
+3. Quotes from Kiwoom: probe only (latency, failures, match vs yfinance/pykrx); switch only if stable.
+Owner to do: issue real + mock App Key/Secret, register Render outbound IPs (Oregon) in the Kiwoom portal,
+put keys in Render env (KIWOOM_APP_KEY/SECRET, KIWOOM_MOCK_APP_KEY/SECRET) + ACCOUNT_TOKEN.
+Done so far: DART corp list streamed (OOM fix, 866954f).
 
 ## Uncommitted
 None.
