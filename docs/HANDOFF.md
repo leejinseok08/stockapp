@@ -26,6 +26,8 @@ None.
   `viewCutShort`), deployed 2026-09-29. The 62pt strip itself stays until Apple fixes it.
 
 ## Recently done
+- 2026-09-29 Swipe back moves the stack header with the page (`SwipeHeader` in gestures.tsx, stack `header`
+  option; shared per-route offset). Checked in headless Edge with touch emulation.
 - 2026-09-28 Swipes: tabs sideways, back from the left edge (gestures.tsx, DOM touch events, data-noswipe on
   charts/tables). Memory: 2 more OOM kills after the KR scan left ~510MB -> malloc_trim after scan batches and
   cache sweeps + MALLOC_ARENA_MAX=2 on Render. Check Render events for OOM over the next days. Docs-only

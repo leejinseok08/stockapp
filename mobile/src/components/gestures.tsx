@@ -6,7 +6,9 @@
 // so the next sideways swipe did nothing. A swipe counts only when it is clearly sideways
 // (|dx| > 2|dy|), so vertical scrolling is untouched, and never when it starts on something marked
 // data-noswipe (charts with a crosshair, tables that scroll sideways).
-import { useNavigation } from "@react-navigation/native";
+import { Header, HeaderBackButton, getHeaderTitle } from "@react-navigation/elements";
+import type { NativeStackHeaderProps } from "@react-navigation/native-stack";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useEffect, useRef } from "react";
 import { Animated, Dimensions, StyleSheet, View } from "react-native";
 import { colors } from "../theme";
@@ -91,6 +93,15 @@ function useSwipe(ref: React.RefObject<unknown>, h: Handlers) {
   }, [ref]);
 }
 
+// The stack draws a screen's header outside the screen, so the header and the page share one offset
+// per route: both slide together on a back swipe (SwipeBack moves it, SwipeHeader follows it).
+const offsets = new Map<string, Animated.Value>();
+function offsetFor(key: string) {
+  let x = offsets.get(key);
+  if (!x) offsets.set(key, (x = new Animated.Value(0)));
+  return x;
+}
+
 const sideways = (dx: number, dy: number) => Math.abs(dx) > Math.abs(dy) * 2;
 
 export function TabSwipe({ tab, children }: { tab: Tab; children: React.ReactNode }) {
@@ -122,7 +133,9 @@ export function TabSwipe({ tab, children }: { tab: Tab; children: React.ReactNod
 
 export function SwipeBack({ children }: { children: React.ReactNode }) {
   const navigation = useNavigation<any>();
-  const x = useRef(new Animated.Value(0)).current;
+  const route = useRoute();
+  const x = offsetFor(route.key);
+  useEffect(() => () => void offsets.delete(route.key), [route.key]);
   const ref = useRef<View>(null);
   const width = Dimensions.get("window").width;
   const settle = () => Animated.timing(x, { toValue: 0, duration: 180, useNativeDriver: JS }).start();
@@ -144,6 +157,38 @@ export function SwipeBack({ children }: { children: React.ReactNode }) {
       <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.shade, { opacity: shade }]} />
       <Animated.View ref={ref} style={[styles.fill, styles.page, { transform: [{ translateX: x }] }]}>
         {children}
+      </Animated.View>
+    </View>
+  );
+}
+
+// Stack header for screens wrapped in withSwipeBack (screenOptions `header`): the stack's default header,
+// moving with the page.
+export function SwipeHeader({ options, route, navigation, back }: NativeStackHeaderProps) {
+  const x = offsetFor(route.key);
+  const width = Dimensions.get("window").width;
+  const shade = x.interpolate({ inputRange: [0, width], outputRange: [0.35, 0], extrapolate: "clamp" });
+  const { headerRight } = options;
+  return (
+    <View>
+      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.shade, { opacity: shade }]} />
+      <Animated.View style={[styles.page, { transform: [{ translateX: x }] }]}>
+        <Header
+          title={getHeaderTitle(options, route.name)}
+          headerTintColor={options.headerTintColor}
+          headerLeft={
+            back
+              ? ({ tintColor }) => <HeaderBackButton tintColor={tintColor} onPress={navigation.goBack} canGoBack />
+              : undefined
+          }
+          headerRight={
+            typeof headerRight === "function" ? ({ tintColor }) => headerRight({ tintColor, canGoBack: !!back }) : undefined
+          }
+          headerTitleAlign={options.headerTitleAlign}
+          headerTitleStyle={options.headerTitleStyle}
+          headerShadowVisible={options.headerShadowVisible}
+          headerStyle={options.headerStyle}
+        />
       </Animated.View>
     </View>
   );

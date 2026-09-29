@@ -10,7 +10,7 @@ import OutlookScreen from "../screens/OutlookScreen";
 import StockDetailScreen from "../screens/StockDetailScreen";
 import StocksScreen from "../screens/StocksScreen";
 import TodayScreen from "../screens/TodayScreen";
-import { withSwipeBack, withTabSwipe } from "../components/gestures";
+import { SwipeHeader, withSwipeBack, withTabSwipe } from "../components/gestures";
 import { colors, fonts } from "../theme";
 import type { RootStackParamList, TabParamList } from "../types";
 
@@ -100,6 +100,7 @@ export default function RootNavigator() {
           headerTintColor: colors.text,
           headerTitleStyle: { fontFamily: fonts.sansBold, fontSize: 16 },
           headerBackTitleVisible: false,
+          header: (props) => <SwipeHeader {...props} />, // slides with the page on a back swipe
         }}
       >
         <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
