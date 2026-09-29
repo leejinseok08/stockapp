@@ -12,8 +12,9 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 ## Current task
 Kiwoom (owner, 2026-09-29): code done and deployed (backend 2a50719 + app + worker crons), inert until keys exist.
 2026-09-29: keys + ACCOUNT_TOKEN set in Render. Kiwoom's firewall blocked urllib's User-Agent ("Request Blocked",
-fixed 7bb46d9). Mock works (KR ₩1,000만, US $0 - owner to check US mock funds/application). Real: 8050, Render
-outbound IPs not registered yet (owner copies them from Render > Connect > Outbound into the Kiwoom portal).
+fixed 7bb46d9). Mock works (KR ₩1,000만). US mock: no funds and exchange isn't offered on mock (docs/kiwoom.md) - owner
+to ask Kiwoom how to fund US 모의투자. Real: 8050 until the owner registers 74.220.48.29 (GET /kiwoom/egress)
+in the Kiwoom portal. Money rule: docs/kiwoom.md (ca60c57).
 Next:
 1. `GET /kiwoom/status` -> real/mock/accountToken all true; open 계좌 tab, enter the token, check KR + US balances.
    If 8010/8040/8050 errors: Render's outbound IPs aren't registered (or token IP changed) in the Kiwoom portal.
