@@ -92,12 +92,14 @@ def _post(url: str, body: dict, headers: dict, timeout: int = 20) -> tuple[dict,
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read() or b"{}"), {k.lower(): v for k, v in r.headers.items()}
     except urllib.error.HTTPError as e:
+        raw = e.read() or b""
         try:
-            data = json.loads(e.read() or b"{}")
+            data = json.loads(raw or b"{}")
         except ValueError:
             data = {}
         if not data:
-            raise KiwoomError(e.code, f"HTTP {e.code}") from e
+            text = raw.decode("utf-8", "replace").strip()[:200]
+            raise KiwoomError(e.code, f"HTTP {e.code} {text}".strip()) from e
         return data, {"status": str(e.code)}
 
 
@@ -111,8 +113,11 @@ class Client:
 
     def _issue(self) -> None:
         k, s = ENV[self.mode]
-        data, _ = _post(HOSTS[self.mode] + "/oauth2/token",
-                        {"grant_type": "client_credentials", "appkey": os.getenv(k), "secretkey": os.getenv(s)}, {})
+        try:
+            data, _ = _post(HOSTS[self.mode] + "/oauth2/token",
+                            {"grant_type": "client_credentials", "appkey": os.getenv(k), "secretkey": os.getenv(s)}, {})
+        except KiwoomError as e:
+            raise KiwoomError(e.code, f"토큰 발급: {e.msg}") from e
         code = _code(data.get("return_code"))
         if code not in (None, 0) or not data.get("token"):
             raise KiwoomError(code, str(data.get("return_msg") or "토큰 발급 실패"))
