@@ -24,7 +24,8 @@ from .macro import KST
 
 log = logging.getLogger("stockapp.kiwoom")
 
-HOSTS = {"real": "https://api.kiwoom.com", "mock": "https://mockapi.kiwoom.com"}
+REAL_HOST, MOCK_HOST = "https://api.kiwoom.com", "https://mockapi.kiwoom.com"
+HOSTS = {"real": REAL_HOST, "mock": MOCK_HOST}
 ENV = {"real": ("KIWOOM_APP_KEY", "KIWOOM_APP_SECRET"), "mock": ("KIWOOM_MOCK_APP_KEY", "KIWOOM_MOCK_APP_SECRET")}
 GAP = {"real": 0.35, "mock": 1.05}  # seconds between calls on one token: real 3/s at most, mock 1/s per TR
 AUTH_RETRY = {8005, 8010, 8031, 8103}  # expired / other IP / wrong server / token check failed
@@ -42,7 +43,16 @@ READ_ONLY = {
     "ust31300",  # 환전 예상 금액 조회
     "ust31301",  # 환율 조회
 }
-ORDERS = {"kt10000", "kt10001", "ust20000", "ust20001"}  # mock only
+# Every api-id that moves money (orders, amend/cancel, credit, gold spot, currency exchange): refused on the
+# real host whatever the allowlist says (owner, 2026-09-29: nothing that spends real money, no paid services).
+MONEY = {
+    "kt10000", "kt10001", "kt10002", "kt10003",  # 주식 매수/매도/정정/취소
+    "kt10006", "kt10007", "kt10008", "kt10009",  # 신용 매수/매도/정정/취소
+    "kt50000", "kt50001", "kt50002", "kt50003",  # 금현물 매수/매도/정정/취소
+    "ust20000", "ust20001", "ust20002", "ust20003",  # 미국주식 매수/매도/정정/취소
+    "ust31302",  # 환전 신청
+}
+ORDERS = {"kt10000", "kt10001", "ust20000", "ust20001"}  # the only MONEY ids, and only on the mock host
 
 PATHS = {
     "kt00018": "/api/dostk/acnt", "kt00001": "/api/dostk/acnt", "ka10081": "/api/dostk/chart",
@@ -137,10 +147,12 @@ class Client:
         """One response per page (cont-yn / next-key paging). Raises KiwoomError on a business error."""
         if not configured(self.mode):
             raise NotConfigured(self.mode)
-        if self.mode == "real" and api_id not in READ_ONLY:
+        if self.mode == "real" and (api_id in MONEY or api_id not in READ_ONLY):
             raise KiwoomError(None, f"실전 계좌는 조회만 허용: {api_id}")
-        if api_id in ORDERS and self.mode != "mock":
-            raise KiwoomError(None, f"주문은 모의투자만: {api_id}")
+        if api_id in MONEY and (self.mode != "mock" or api_id not in ORDERS):
+            raise KiwoomError(None, f"돈이 오가는 API는 모의투자 주문만: {api_id}")
+        if HOSTS[self.mode] != (MOCK_HOST if self.mode == "mock" else REAL_HOST):
+            raise KiwoomError(None, "호스트 설정 오류")
         out, extra = [], {}
         with self.lock:
             for _ in range(pages):
@@ -292,6 +304,7 @@ def kr_round(price: float, side: str) -> int:
 def order(market: str, side: str, symbol: str, qty: int, price: float | None) -> str:
     """Send one order to the MOCK account; returns Kiwoom's order number. price None = market order."""
     c = client("mock")
+    assert c.mode == "mock" and HOSTS[c.mode] == MOCK_HOST
     if market == "KR":
         body = {"dmst_stex_tp": "KRX", "stk_cd": kr_code(symbol), "ord_qty": str(qty),
                 "trde_tp": "3" if price is None else "0", "ord_uv": "" if price is None else str(kr_round(price, side))}

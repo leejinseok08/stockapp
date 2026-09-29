@@ -26,6 +26,7 @@ Without `EXPO_PUBLIC_API_URL` the app uses the deployed backend https://stockapp
 The owner continues in Codex when Claude credits run out (Codex reads `AGENTS.md`, which points here). Read `docs/HANDOFF.md` before starting and keep it current by its protocol: update after each finished step and commit small steps, since a session can stop without warning. The owner is trying Atlas (desktop app running both agents with shared memory, alpha, since 2026-09-28); HANDOFF.md stays the record either way, and `.atlas/` is gitignored.
 
 ## Rules
+- Kiwoom (`docs/kiwoom.md`, API list `docs/kiwoom-api-index.md`): nothing may spend real money or start a paid service. The real account is read-only (`kiwoom.READ_ONLY`, `kiwoom.MONEY` refused on the real host, test-guarded); orders only on the mock account. If a request needs a real order, exchange, credit, a paid data feed or any paid plan, don't build it — tell the owner it is blocked by this rule.
 - All UI follows `mobile/DESIGN.md` (Toss-style layout on the app's dark palette: bold section titles, bands between sections, change pills, logo avatars, chips; red=up blue=down always with ▲▼, amber accent only for actions, one-line descriptions only, no emoji icons). Signals use one scale everywhere: green 긍정 / gray 중립 / red 신중, mapped only in `mobile/src/signal.ts`.
 - Money: never sum or rank across currencies without converting. Use `fmtPrice` / `fmtMoney` in `mobile/src/format.ts` (KRW: no decimals, 억/조).
 - Charts: no smoothing, never draw values that don't exist (e.g. moving average before a full window).

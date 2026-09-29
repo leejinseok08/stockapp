@@ -59,6 +59,19 @@ def test_real_account_cannot_order(keys):
         kiwoom.client("real").call("ust20000", {})
 
 
+def test_nothing_that_moves_money_reaches_the_real_host(keys, monkeypatch):
+    calls = []
+    monkeypatch.setattr(kiwoom, "_post", lambda *a, **k: calls.append(a) or ({"return_code": 0, "token": "T", "expires_dt": "20991231235959"}, {}))
+    assert not kiwoom.MONEY & kiwoom.READ_ONLY
+    for api in kiwoom.MONEY:
+        with pytest.raises(kiwoom.KiwoomError):
+            kiwoom.client("real").call(api, {})
+    for api in kiwoom.MONEY - kiwoom.ORDERS:  # amend/cancel/credit/gold/exchange: not even on mock
+        with pytest.raises(kiwoom.KiwoomError):
+            kiwoom.client("mock").call(api, {})
+    assert calls == []  # refused before any request, token included
+
+
 def test_not_configured(monkeypatch):
     monkeypatch.delenv("KIWOOM_MOCK_APP_KEY", raising=False)
     with pytest.raises(kiwoom.NotConfigured):
