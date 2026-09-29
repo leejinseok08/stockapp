@@ -1,0 +1,140 @@
+{
+  "slot": "2026-09-29-pm",
+  "asOf": "2026-09-29",
+  "author": "claude",
+  "stance": "신중",
+  "headline": "美 10년물 5.28%로 또 올라 증시 장중 약세, 바 이사도 추가 인상 시사",
+  "reason": "09:00 이후 미 국채금리는 한 번 더 올라 10년물이 5.28%(AP, 9/29 오전)로 2002년 이후 최고치에 닿았고, 뉴욕 증시는 장중 S&P500 -0.3%, 다우 -0.6%로 밀렸다. 9월 소비자신뢰지수는 12년 만의 최저로 떨어졌고 8월 구인건수도 708만 건으로 줄어 경기 둔화 신호가 더해졌다. 연준 바 이사는 연설에서 기본 시나리오로 추가 정책 조정이 필요할 것이라며 인상 기조를 이어갔다. 브렌트유가 96.95달러로 내려 한숨 돌렸지만, 금리와 긴축 우려가 여전히 주식에 부담이어서 신중을 유지한다.",
+  "points": [
+    "美 10년물 5.28%로 추가 상승, 2002년 이후 최고치에 닿음(AP)",
+    "뉴욕 증시 장중 약세: S&P500 -0.3%·다우 -0.6%·나스닥 -0.1%",
+    "9월 소비자신뢰 12년 만의 최저, 8월 구인건수 708만 건으로 감소",
+    "바 연준 이사, 기본 시나리오로 추가 금리 조정 필요하다고 언급",
+    "금통위 의사록: 주요국 국채금리 상승을 국내 금융·외환 위험으로 지목"
+  ],
+  "isa": "미 장기금리 상승과 원/달러 1,357원대가 겹친 구간이라, 9/30 PCE·10/2 고용 결과 전후로 환헤지·환노출 상품의 성과 차이를 확인해 둘 때다.",
+  "houses": [
+    {
+      "id": "fed",
+      "tone": "신중",
+      "new": true,
+      "summary": "바 이사, 기본 시나리오로 추가 인상 필요 시사",
+      "detail": "9월 29일 마이클 바 이사는 '경제 여건과 통화정책' 연설에서 물가가 5년 반째 2% 목표를 웃돌고 있고 최근 20개월 중 목표에 맞는 근원 PCE는 두 달뿐이었다고 짚었다. 중동 분쟁으로 에너지 가격과 물가가 더 올랐다며, 기본 시나리오에서 물가를 제때 목표로 되돌리려면 추가 정책 조정이 필요할 가능성이 크다고 말했다. 실업률 4.1%로 노동시장은 수급이 대체로 균형이라고 평가해, 인상을 이어갈 여력이 있다는 매파적 메시지로 읽힌다. 전날 쿡 이사의 인플레 경고와 같은 방향이다.",
+      "sources": [
+        {
+          "title": "Economic Conditions and Monetary Policy (Governor Barr)",
+          "url": "https://www.federalreserve.gov/newsevents/speech/barr20260929a.htm",
+          "date": "2026-09-29",
+          "access": "원문"
+        },
+        {
+          "title": "An Update on AI and the Economy (Governor Cook)",
+          "url": "https://www.federalreserve.gov/newsevents/speech/cook20260928a.htm",
+          "date": "2026-09-28",
+          "access": "원문"
+        }
+      ]
+    },
+    {
+      "id": "bok",
+      "tone": "중립",
+      "new": true,
+      "summary": "금통위 의사록, 해외 금리 상승을 금융·외환 위험으로 지목",
+      "detail": "9월 29일 공개된 9월 10일 금통위 의사록(통화신용정책보고서 심의)에서 위원들은 최근 주요국 국채금리 상승이 국내 금융시장에 영향을 줄 수 있어 금융·외환시장의 주요 위험 요인으로 적어야 한다고 했다. 7·8월 두 차례 연속 인상의 배경을 충분히 설명해야 한다는 의견과, 성장세는 확대되지만 청년 고용 감소가 이어진다는 지적도 나왔다. 새 금리 신호라기보다 대외 금리·환율 경계를 확인한 내용이라 중립으로 본다. 한은 원문 파일은 열지 못해 보도로 확인했다.",
+      "sources": [
+        {
+          "title": "금통위 \"기준금리 연속 인상 배경 충분한 설명 필요…청년 고용 감소 등도 짚어야\"",
+          "url": "https://www.asiae.co.kr/article/2026092917261516812",
+          "date": "2026-09-29",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "jpm",
+      "tone": "긍정",
+      "new": false,
+      "summary": "트레이딩데스크, 반도체·빅테크 중심 비중확대로 전환",
+      "detail": "9월 28일 블룸버그 보도에 따르면 JPM 트레이딩데스크(앤드루 타일러 총괄)가 그동안의 '전술적 중립'에서 '비중확대'로 전환했다. 근거로 예상보다 강한 경기지표, 소비 회복력, 견조한 기업이익, 채권금리가 레벨을 찾아가는 조짐을 들었다. 반도체와 매그니피센트 7 등 기술주를 선호 업종으로 꼽았고, 10/2 비농업고용(컨센서스 9만명, 실업률 4.1%)을 다음 확인 지표로 지켜본다고 밝혔다. 연준·국채금리 경계가 큰 다른 기관들과 달리 위험자산에 낙관적인 소수 의견이다.",
+      "sources": [
+        {
+          "title": "JPMorgan Traders Flip to Bullish View on US Stocks (SPY) Ahead of Jobs Report",
+          "url": "https://www.bloomberg.com/news/articles/2026-09-28/jpmorgan-traders-flip-to-bullish-view-on-us-stocks-spy-ahead-of-jobs-report",
+          "date": "2026-09-28",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bofa",
+      "tone": "중립",
+      "new": false,
+      "summary": "자금흐름의 과열 경고와 CIO의 중기 낙관이 공존",
+      "detail": "9월 25일 Newsquawk 보도상 Flow Show의 불앤베어 지표는 9.5에서 9.3으로 낮아졌지만 높은 수준이며, 주식에서 102억 달러가 빠져나갔다. 반면 9월 21일 공식 CIO 전망은 유가·채권금리·정책금리 부담을 인정하면서 중간선거 이후의 역사적 성과를 들어 중기 기회를 강조했다. 서로 다른 부문의 관점이므로 기관 전체를 일괄 비관으로 보지 않는다. Reuters의 별도 Lipper 집계는 주식 순유입을 보여, 집계 범위·기준을 맞추지 않은 자금흐름 비교에도 주의가 필요하다.",
+      "sources": [
+        {
+          "title": "Capital Market Outlook — September 21, 2026",
+          "url": "https://www.privatebank.bankofamerica.com/articles/capital-market-outlook-sep-21-2026.html",
+          "date": "2026-09-21",
+          "access": "원문"
+        },
+        {
+          "title": "BofA Flow Show: Bull & Bear indicator 9.3 (prev. 9.5)",
+          "url": "https://www.newsquawk.com/headlines/bofa-flow-show-bull--bear-indicator-93-prev-95",
+          "date": "2026-09-25",
+          "access": "보도"
+        },
+        {
+          "title": "Reuters: Global equity funds snap two-week outflow as AI optimism returns",
+          "url": "https://www.marketscreener.com/news/global-equity-funds-snap-two-week-outflow-as-ai-optimism-returns-ce785adfdc8fff20",
+          "date": "2026-09-25",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "gs",
+      "tone": "긍정",
+      "new": false,
+      "summary": "AI 투자가 S&P500 이익 성장의 큰 몫을 뒷받침",
+      "detail": "9월 25일 Reuters는 골드만삭스 전략가들이 이번 주 AI 투자가 올해 S&P500 주당순이익 성장의 거의 절반을 이끈다고 평가했다고 보도했다. 실적 기반에 대한 긍정적 근거로 해석한다. 다만 유료 리서치 원문은 확인하지 못했고, 이 보도만으로 골드만의 시장 전체 전망이나 금리 위험에 대한 판단까지 확대하지 않는다.",
+      "sources": [
+        {
+          "title": "Reuters: Global equity funds snap two-week outflow as AI optimism returns",
+          "url": "https://www.marketscreener.com/news/global-equity-funds-snap-two-week-outflow-as-ai-optimism-returns-ce785adfdc8fff20",
+          "date": "2026-09-25",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "citi",
+      "tone": "긍정",
+      "new": false,
+      "summary": "고금리에도 폭넓은 실적 증가가 주식을 지지",
+      "detail": "9월 22일 공식 주간 전망은 세계 성장세가 중앙은행의 물가 대응 여력을 제공한다고 평가했다. 은행 대출 의지와 신용 공급이 개선되고 대형 기술기업의 레버리지는 낮다고 설명했다. 여러 업종의 실적 증가가 이어지는 만큼 주식에 대한 긍정적 시각을 유지했다. 실질금리 상승에 따른 가치평가 하락도 공포보다는 합리적 조정으로 해석해, 긴축 부담을 강조한 연준 발언과 시장 해석의 무게가 다르다.",
+      "sources": [
+        {
+          "title": "Higher Rates Are Here to Stay, and Earnings Keep Pace",
+          "url": "https://marketinsights.citi.com/Market-Commentary/Weekly-Market-Update/Higher-Rates-Are-Here-to-Stay-and-Earnings-Keep-Pace.html",
+          "date": "2026-09-22",
+          "access": "원문"
+        }
+      ]
+    }
+  ],
+  "watch": [
+    {
+      "date": "2026-09-30",
+      "event": "미국 8월 PCE 물가·개인소득·소비"
+    },
+    {
+      "date": "2026-10-01",
+      "event": "미국 9월 ISM 제조업 PMI"
+    },
+    {
+      "date": "2026-10-02",
+      "event": "미국 9월 고용보고서: 비농업고용·실업률·임금"
+    }
+  ]
+}
