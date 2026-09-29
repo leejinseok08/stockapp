@@ -48,6 +48,28 @@
     <noscript>JavaScript를 켜야 앱이 실행돼요.</noscript>
     <div id="root"></div>
     <script>
+      // Installed iPhone app: iOS reports a viewport one status bar (62pt) shorter than the screen even
+      // though the app draws over the whole screen, so #root, 100% and 100dvh all stop short and leave a
+      // band under the tab bar. The app is portrait-only and fills the screen, so size it to the screen.
+      (function () {
+        var standalone = navigator.standalone || matchMedia("(display-mode: standalone)").matches;
+        if (!standalone) return;
+        var root = document.getElementById("root");
+        function fit() {
+          var h = Math.max(screen.width, screen.height);
+          if (innerHeight > innerWidth && h > innerHeight) {
+            root.style.bottom = "auto";
+            root.style.height = h + "px";
+          } else {
+            root.style.bottom = "";
+            root.style.height = "";
+          }
+        }
+        fit();
+        addEventListener("resize", fit);
+      })();
+    </script>
+    <script>
       if ("serviceWorker" in navigator && location.hostname !== "localhost") {
         window.addEventListener("load", function () {
           navigator.serviceWorker.register("/sw.js").catch(function () {});

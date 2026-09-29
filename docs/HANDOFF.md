@@ -20,7 +20,10 @@ None.
   `tools/outlook/CODEX_AUTOMATION.md`; not registered yet.
 - After the first 09:00 / 22:30 runs: check they carried forward unchanged houses, marked `new` only on
   houses with fresh material, and used originals for fed/bok.
-- Owner: confirm on the iPhone that the band under the tab bar is gone (status bar now black-translucent).
+- Owner: confirm on the iPhone (installed app) that the band under the tab bar is gone. 2026-09-29: black-translucent
+  alone didn't fix it even after reinstalling (band = 62pt, iOS viewport short by the status bar); now #root is sized
+  to screen.height in standalone portrait (inline script in mobile/public/index.html), deployed. If it still shows,
+  next try html/body height 100vh.
 
 ## Recently done
 - 2026-09-28 Swipes: tabs sideways, back from the left edge (gestures.tsx, DOM touch events, data-noswipe on
