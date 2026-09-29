@@ -45,13 +45,25 @@ const navTheme = {
   },
 };
 
+// Installed iPhone web app whose page ends well above the bottom of the (portrait) screen.
+function viewCutShort(): boolean {
+  if (typeof window === "undefined" || typeof screen === "undefined") return false;
+  const standalone =
+    (navigator as { standalone?: boolean }).standalone === true ||
+    window.matchMedia?.("(display-mode: standalone)").matches === true;
+  const screenH = Math.max(screen.width, screen.height);
+  return standalone && window.innerHeight > window.innerWidth && screenH - window.innerHeight >= 40;
+}
+
 function Tabs() {
   // Tab screens draw their own titles (no navigation header), so keep them below the status bar /
   // notch here once instead of in every screen.
   const insets = useSafeAreaInsets();
   // On Face ID iPhones the home-indicator inset is 34pt; the full amount under the labels reads as an
-  // empty band. 20pt still keeps the labels clear of the indicator.
-  const tabPad = insets.bottom > 0 ? Math.max(insets.bottom - 14, 12) : 8;
+  // empty band. 20pt still keeps the labels clear of the indicator. In the installed app on iOS 26 the
+  // page itself stops a status bar short of the screen (WebKit bug 301108; the band below can't be drawn
+  // on), so the indicator already sits in that band and the tab bar needs no room for it.
+  const tabPad = viewCutShort() ? 6 : insets.bottom > 0 ? Math.max(insets.bottom - 14, 12) : 8;
   return (
     <Tab.Navigator
       sceneContainerStyle={{ paddingTop: insets.top, backgroundColor: colors.background }}

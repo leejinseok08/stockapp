@@ -20,10 +20,10 @@ None.
   `tools/outlook/CODEX_AUTOMATION.md`; not registered yet.
 - After the first 09:00 / 22:30 runs: check they carried forward unchanged houses, marked `new` only on
   houses with fresh material, and used originals for fed/bok.
-- Owner: confirm on the iPhone (installed app) that the band under the tab bar is gone. 2026-09-29: black-translucent
-  alone didn't fix it even after reinstalling (band = 62pt, iOS viewport short by the status bar); now #root is sized
-  to screen.height in standalone portrait (inline script in mobile/public/index.html), deployed. If it still shows,
-  next try html/body height 100vh.
+- Owner: check the installed iPhone app's tab bar. The band under it is WebKit bug 301108 (iOS 26: standalone
+  page is a status bar, 62pt, short; the strip below can't be painted — sizing #root to screen.height hid the tab
+  bar, reverted). Now the tab bar drops its home-indicator padding when the page is cut short (RootNavigator
+  `viewCutShort`), deployed 2026-09-29. The 62pt strip itself stays until Apple fixes it.
 
 ## Recently done
 - 2026-09-28 Swipes: tabs sideways, back from the left edge (gestures.tsx, DOM touch events, data-noswipe on
