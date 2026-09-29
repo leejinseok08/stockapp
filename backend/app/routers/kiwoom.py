@@ -36,6 +36,40 @@ def account(x_account_token: str | None = Header(default=None)):
     return {"configured": True, **_cached("kiwoom:real", 60, lambda: kiwoom.balance("real"))}
 
 
+def _owner(token: str | None) -> None:
+    want = os.getenv("ACCOUNT_TOKEN")
+    if not want or not token or not hmac.compare_digest(token, want):
+        raise HTTPException(status_code=401, detail="계좌 토큰이 맞지 않아요")
+
+
+@router.post("/raw")
+def raw(mode: str, api_id: str, body: dict | None = None, x_account_token: str | None = Header(default=None)):
+    """Diagnostics: one read-only call as Kiwoom answers it (never an order, on either account)."""
+    _owner(x_account_token)
+    if mode not in ("real", "mock") or api_id not in kiwoom.READ_ONLY:
+        raise HTTPException(status_code=400, detail="조회 전용 api-id만")
+    try:
+        return {"pages": kiwoom.client(mode).call(api_id, body or {})}
+    except kiwoom.KiwoomError as e:
+        return {"error": str(e)}
+
+
+@router.get("/egress")
+def egress(x_account_token: str | None = Header(default=None)):
+    """The addresses this server reaches the internet from (to register in the Kiwoom portal)."""
+    import urllib.request
+
+    _owner(x_account_token)
+    seen = {}
+    for _ in range(8):
+        try:
+            ip = urllib.request.urlopen("https://api.ipify.org", timeout=10).read().decode().strip()
+            seen[ip] = seen.get(ip, 0) + 1
+        except OSError as e:
+            seen[f"error: {e}"] = 1
+    return seen
+
+
 @router.get("/mock")
 def mock():
     """The mock account that trades the swing signals, with its recent orders."""

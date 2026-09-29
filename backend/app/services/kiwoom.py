@@ -6,7 +6,8 @@ account (KIWOOM_MOCK_APP_KEY / KIWOOM_MOCK_APP_SECRET) takes the swing signals' 
 
 Kiwoom answers business errors with HTTP 200 and a non-zero return_code; a token only works from the IP that
 issued it (8010) and expires (8005), so either code re-issues the token once and retries. Limits: 5 queries
-per second per token (3 during 09:00-10:00 KST for US stocks); calls are spaced by GAP seconds.
+per second per token (3 during 09:00-10:00 KST for US stocks), the mock server 1 per second per TR; calls
+are spaced by GAP seconds.
 """
 
 import json
@@ -25,7 +26,7 @@ log = logging.getLogger("stockapp.kiwoom")
 
 HOSTS = {"real": "https://api.kiwoom.com", "mock": "https://mockapi.kiwoom.com"}
 ENV = {"real": ("KIWOOM_APP_KEY", "KIWOOM_APP_SECRET"), "mock": ("KIWOOM_MOCK_APP_KEY", "KIWOOM_MOCK_APP_SECRET")}
-GAP = 0.35  # seconds between calls on one token (under 3 per second)
+GAP = {"real": 0.35, "mock": 1.05}  # seconds between calls on one token: real 3/s at most, mock 1/s per TR
 AUTH_RETRY = {8005, 8010, 8031, 8103}  # expired / other IP / wrong server / token check failed
 
 # The only api-ids the real account may call: balances, deposits, exchange lookup, daily bars.
@@ -37,6 +38,9 @@ READ_ONLY = {
     "usa10098",  # 미국주식 거래소구분 조회
     "ka10081",  # 국내 주식일봉차트
     "usa06012",  # 미국주식 일 차트
+    "ka00001",  # 계좌번호조회
+    "ust31300",  # 환전 예상 금액 조회
+    "ust31301",  # 환율 조회
 }
 ORDERS = {"kt10000", "kt10001", "ust20000", "ust20001"}  # mock only
 
@@ -45,6 +49,7 @@ PATHS = {
     "kt10000": "/api/dostk/ordr", "kt10001": "/api/dostk/ordr",
     "ust21070": "/api/us/acnt", "ust21110": "/api/us/acnt", "usa10098": "/api/us/stkinfo", "usa06012": "/api/us/chart",
     "ust20000": "/api/us/ordr", "ust20001": "/api/us/ordr",
+    "ka00001": "/api/dostk/acnt", "ust31300": "/api/us/exchange", "ust31301": "/api/us/exchange",
 }
 
 
@@ -149,7 +154,7 @@ class Client:
     def _one(self, api_id: str, body: dict, extra: dict, retry: bool = True) -> tuple[dict, dict]:
         if not self.token or not self.expires or datetime.now(KST) > self.expires - timedelta(minutes=5):
             self._issue()
-        wait = self.last + GAP - time.monotonic()
+        wait = self.last + GAP[self.mode] - time.monotonic()
         if wait > 0:
             time.sleep(wait)
         self.last = time.monotonic()

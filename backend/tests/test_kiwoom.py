@@ -13,7 +13,7 @@ from app.services.macro import KST
 def keys(monkeypatch):
     for k in ("KIWOOM_APP_KEY", "KIWOOM_APP_SECRET", "KIWOOM_MOCK_APP_KEY", "KIWOOM_MOCK_APP_SECRET"):
         monkeypatch.setenv(k, "x")
-    monkeypatch.setattr(kiwoom, "GAP", 0)
+    monkeypatch.setattr(kiwoom, "GAP", {"real": 0, "mock": 0})
     for c in kiwoom._clients.values():
         c.token, c.expires = None, None
 
