@@ -10,17 +10,14 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 - Durable facts (rules, layout, recurring checks) go in `CLAUDE.md`, not here.
 
 ## Current task
-Kiwoom REST API (owner, 2026-09-29). Keys not issued yet: build the code, verify against the spec with mocked
-HTTP; live checks wait for the keys. Spec: github.com/Kiwoom-Securities/Kiwoom-REST-API (`kiwoom/_data/kiwoom_api_spec.json`).
-1. Real account, read-only (KR kt00018/kt00001 + US ust21070/ust21110) on the 계좌 tab, behind an ACCOUNT_TOKEN header.
-   Real client refuses every api-id outside a read-only allowlist.
-2. Swing signals auto-ordered on the Kiwoom MOCK account: plan after each scan (entries = paper pending picks,
-   exits = the technique's next-session orders), execute right after the open (worker cron). Size = mock
-   account equity / screener.SLOTS (owner: not the paper account's fixed amounts).
-3. Quotes from Kiwoom: probe only (latency, failures, match vs yfinance/pykrx); switch only if stable.
-Owner to do: issue real + mock App Key/Secret, register Render outbound IPs (Oregon) in the Kiwoom portal,
-put keys in Render env (KIWOOM_APP_KEY/SECRET, KIWOOM_MOCK_APP_KEY/SECRET) + ACCOUNT_TOKEN.
-Done so far: DART corp list streamed (OOM fix, 866954f).
+Kiwoom (owner, 2026-09-29): code done and deployed (backend 2a50719 + app + worker crons), inert until keys exist.
+Next, once the owner has the keys in Render:
+1. `GET /kiwoom/status` -> real/mock/accountToken all true; open 계좌 tab, enter the token, check KR + US balances.
+   If 8010/8040/8050 errors: Render's outbound IPs aren't registered (or token IP changed) in the Kiwoom portal.
+2. After the next scan: `/kiwoom/mock` shows planned orders; after the open, `sent` (or `failed` + message).
+   Unverified against the live API: field names come from the spec json only (tests use them). Check
+   kt00018/ust21070 parsing, US exchange lookup (usa10098), order codes (KR trde_tp 3/0, US 03/00).
+3. Probe: `/kiwoom/probe` after a few days (failRate, sec, maxDiff vs yfinance) -> decide on the price source.
 
 ## Uncommitted
 None.
@@ -36,6 +33,8 @@ None.
   `viewCutShort`), deployed 2026-09-29. The 62pt strip itself stays until Apple fixes it.
 
 ## Recently done
+- 2026-09-29 Memory: OOM at 15:14 UTC 9/28 came from opening a report (DART corp list parsed as a full tree,
+  ~130MB). Streamed now (~13MB), 866954f. Baseline 250-360MB of 512MB; watch Render events.
 - 2026-09-29 Swipe back moves the stack header with the page (`SwipeHeader` in gestures.tsx, stack `header`
   option; shared per-route offset). Checked in headless Edge with touch emulation.
 - 2026-09-28 Swipes: tabs sideways, back from the left edge (gestures.tsx, DOM touch events, data-noswipe on

@@ -2,6 +2,8 @@ import axios from "axios";
 import type {
   Analysis,
   IsaPlan,
+  KiwoomAccount,
+  KiwoomMock,
   Disclosure,
   Dividends,
   Performance,
@@ -122,6 +124,13 @@ export const api = {
     client.get<Dividends>(`/stocks/${encodeURIComponent(symbol)}/dividends`, { timeout: 45000 }).then((r) => r.data),
 
   performance: () => client.get<Performance>("/watchlist/performance", { timeout: 90000 }).then((r) => r.data),
+
+  // The real account answers only with the token saved on this device (계좌 tab).
+  kiwoomAccount: (token: string) =>
+    client
+      .get<KiwoomAccount>("/kiwoom/account", { headers: { "X-Account-Token": token }, timeout: 45000 })
+      .then((r) => r.data),
+  kiwoomMock: () => client.get<KiwoomMock>("/kiwoom/mock", { timeout: 45000 }).then((r) => r.data),
 
   vapidKey: () => client.get<{ key: string }>("/push/vapid-public-key").then((r) => r.data.key),
   pushSubscribe: (sub: unknown) => client.post("/push/subscribe", sub),

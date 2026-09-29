@@ -509,3 +509,49 @@ export type Outlook =
       watch: { date: string; event: string }[];
       past: { slot: string; stance: OutlookTone }[];
     };
+
+// Kiwoom (backend services/kiwoom.py): the owner's real account, read-only, and the mock account that
+// trades the swing signals. Fractions for returns (0.05 = 5%); money in each market's currency.
+export type KiwoomHolding = {
+  symbol: string;
+  name: string;
+  qty: number;
+  avgPrice: number | null;
+  price: number | null;
+  value: number | null;
+  pnl: number | null;
+  ret: number | null;
+  valueKrw?: number | null;
+};
+export type KiwoomMarketBalance = {
+  currency: "KRW" | "USD";
+  holdings: KiwoomHolding[];
+  value: number;
+  pnl: number | null;
+  ret: number | null;
+  cash: number;
+  equity: number;
+  valueKrw?: number | null;
+  error?: undefined;
+};
+export type KiwoomBalance = KiwoomMarketBalance | { error: string };
+export type KiwoomAccount =
+  | { configured: false }
+  | { configured: true; mode: "real"; asOf: string; KR: KiwoomBalance; US: KiwoomBalance };
+export type KiwoomOrder = {
+  id: number;
+  symbol: string;
+  name: string | null;
+  side: "buy" | "sell";
+  qty: number;
+  price: number | null;
+  session: string;
+  status: "planned" | "sent" | "failed";
+  msg: string | null;
+  sent: string | null;
+};
+export type KiwoomMock = {
+  configured: boolean;
+  KR?: { balance: KiwoomBalance; since: string | null; ret: number | null; orders: KiwoomOrder[] };
+  US?: { balance: KiwoomBalance; since: string | null; ret: number | null; orders: KiwoomOrder[] };
+};

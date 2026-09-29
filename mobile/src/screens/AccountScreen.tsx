@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { api } from "../api";
 import { readCache, writeCache } from "../cache";
 import { IsaSection } from "../components/IsaSection";
+import { KiwoomAccountSection, KiwoomMockSection } from "../components/KiwoomSection";
 import { FadeIn, Flash, Press, ScreenSkeleton } from "../components/motion";
 import { Avatar, Band, Section } from "../components/ui";
 import { fmtMoney, fmtNum, fmtPrice, fmtTrendPct } from "../format";
@@ -139,6 +140,9 @@ export default function AccountScreen() {
             )}
           </Section>
         )}
+
+        <KiwoomAccountSection />
+        <KiwoomMockSection />
 
         <Band />
         <View style={styles.isa}>
