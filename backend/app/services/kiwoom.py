@@ -87,7 +87,8 @@ def _code(v) -> int | None:
 
 def _post(url: str, body: dict, headers: dict, timeout: int = 20) -> tuple[dict, dict]:
     req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST",
-                                 headers={"Content-Type": "application/json;charset=UTF-8", **headers})
+                                 headers={"Content-Type": "application/json;charset=UTF-8", "Accept": "application/json",
+                                          "User-Agent": "python-requests/2.32.3", **headers})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read() or b"{}"), {k.lower(): v for k, v in r.headers.items()}
