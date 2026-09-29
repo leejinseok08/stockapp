@@ -18,10 +18,11 @@ def db(monkeypatch):
 
 def test_settle_pending_open_and_closed():
     b = _bars([100.0] * 300 + [89.0])
-    assert paper.settle(b, BY_KEY["bnf"], 300, ("mkt",), (0, 0)) == {"status": "pending"}
+    assert paper.settle(b, BY_KEY["bnf"], 300, ("mkt",), (0, 0)) == {"status": "pending", "next": [("buy", 1.0, None, False)]}
     b = _bars([100.0] * 300 + [89.0, 88.0])
     t = paper.settle(b, BY_KEY["bnf"], 300, ("mkt",), (0, 0))
     assert t["status"] == "open" and t["entry_px"] == b["o"][301]
+    assert t["next"] == []  # still far below the 25-day line, day 1 of 3: nothing to sell tomorrow
     b = _bars([100.0] * 300 + [89.0] + [88.0] * 5)  # BNF sells after 3 bars at the next open
     t = paper.settle(b, BY_KEY["bnf"], 300, ("mkt",), (0, 0))
     assert t["status"] == "closed" and t["exit_date"] == b.index[305].strftime("%Y-%m-%d")

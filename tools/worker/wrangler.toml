@@ -1,5 +1,6 @@
 # Keeps the Render free instance awake (it sleeps after 15 idle minutes, then takes 30-60 s to wake)
-# and, after each market's close, starts the swing scan and the push check. Free Workers plan.
+# and, after each market's close, starts the swing scan and the push check; right after each open,
+# sends the Kiwoom mock orders. Free Workers plan.
 # Deploy: cd tools/worker; npx wrangler@3 deploy; npx wrangler@3 secret put CRON_SECRET (same as Render)
 name = "stockapp-cron"
 main = "worker.js"
@@ -9,5 +10,7 @@ compatibility_date = "2026-09-01"
 API = "https://stockapp-ghmx.onrender.com"
 
 [triggers]
-# UTC. Every 10 minutes; 22:10 = 07:10 KST (after US close), 07:40 = 16:40 KST (after KR close).
-crons = ["*/10 * * * *", "10 22 * * *", "40 7 * * *"]
+# UTC. Every 10 minutes; 22:10 = 07:10 KST (after US close), 07:40 = 16:40 KST (after KR close);
+# 00:01 = 09:01 KST (KR open) and 13:31/14:31 (US open, summer/winter) for the Kiwoom mock orders.
+# The free plan allows 5 cron triggers per Worker: this is all of them.
+crons = ["*/10 * * * *", "10 22 * * *", "40 7 * * *", "1 0 * * 1-5", "31 13,14 * * 1-5"]

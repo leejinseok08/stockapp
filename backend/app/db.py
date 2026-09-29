@@ -46,6 +46,25 @@ class PushSubscription(SQLModel, table=True):
     auth: str
 
 
+class KiwoomOrder(SQLModel, table=True):
+    """An order for the Kiwoom mock account (services/kiwoom_mock.py): planned after a scan, sent at the open."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    market: str = Field(index=True)
+    trade_id: int | None = Field(default=None, index=True)  # the PaperTrade it follows
+    symbol: str = Field(index=True)
+    name: str | None = None
+    side: str  # buy · sell
+    qty: int
+    price: float | None = None  # limit; None = at the open (market order)
+    session: str = Field(index=True)  # the scan's last bar; the order is for the session after it
+    status: str = Field(index=True)  # planned · sent · failed · expired
+    ord_no: str | None = None
+    msg: str | None = None
+    created: str
+    sent: str | None = None
+
+
 class AppState(SQLModel, table=True):
     """Small JSON documents the app computes in batches (e.g. the daily swing scan per market)."""
 

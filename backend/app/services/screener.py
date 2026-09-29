@@ -22,7 +22,7 @@ import yfinance as yf
 
 from .market import _CACHE, _cached
 from ..db import get_state, put_state
-from . import paper
+from . import kiwoom_mock, paper
 from .macro import KST
 from .swing import BY_KEY, TECHNIQUES, Bars, Pos, features
 from .universe import KR_MIN_VALUE, US_MIN_VALUE, get_universe
@@ -177,6 +177,11 @@ def _finish(market, rec, active, found, idx, as_of, scanned, followed, updates) 
         log.info("swing paper %s: %d replayed, %d new", market, len(updates), paper.save(market, updates, signals))
     except Exception as e:  # the scan result matters more than the log
         log.exception("swing paper %s failed: %s", market, e)
+    if as_of is not None:
+        try:  # the next session's orders for the Kiwoom mock account, when its keys are set
+            kiwoom_mock.plan(market, updates, {r["symbol"]: r["close"] for r in buys}, as_of.strftime("%Y-%m-%d"))
+        except Exception as e:
+            log.exception("kiwoom mock plan %s failed: %s", market, e)
     return {"market": market, "asOf": as_of.strftime("%Y-%m-%d") if as_of is not None else None,
             "scanned": scanned, "marketOk": market_ok, "paused": paused, "slots": SLOTS[market],
             "buyCount": 0 if paused else len(buys), "buys": [] if paused else buys[:BUYS_KEPT],

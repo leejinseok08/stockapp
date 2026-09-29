@@ -33,7 +33,7 @@ def settle(b: Bars, tech, sig: int, order: tuple, cost: tuple) -> dict:
     o, h, low, c = b["o"], b["h"], b["l"], b["c"]
     fill = sig + 1
     if fill >= b.n:
-        return {"status": "pending"}
+        return {"status": "pending", "next": [("buy", 1.0, order[1] if order[0] == "lmt" else None, False)]}
     px = o[fill] if order[0] == "mkt" else (min(o[fill], order[1]) if low[fill] <= order[1] else None)
     if px is None:
         return {"status": "void", "exit_date": b.index[fill].strftime("%Y-%m-%d")}  # limit never traded
@@ -59,7 +59,22 @@ def settle(b: Bars, tech, sig: int, order: tuple, cost: tuple) -> dict:
         if pos.left <= 1e-9:
             return {**entry, "status": "closed", "exit_date": b.index[i + 1].strftime("%Y-%m-%d"), "ret": float(proceeds - 1)}
     mark = proceeds + shares * c[b.n - 1] * (1 - sell_c)
-    return {**entry, "status": "open", "ret": float(mark - 1), "mark_date": b.index[b.n - 1].strftime("%Y-%m-%d")}
+    return {**entry, "status": "open", "ret": float(mark - 1), "mark_date": b.index[b.n - 1].strftime("%Y-%m-%d"),
+            "next": next_exits(tech, b, pos)}
+
+
+def next_exits(tech, b: Bars, pos: Pos) -> list[tuple]:
+    """The exit orders the technique places for the session after the last bar, as ("sell", fraction of the
+    initial position, limit or None for the open, whether it sells all that is left). What the replay will
+    do tomorrow, placed today."""
+    out, left = [], pos.left
+    for kind, frac, *lvl in tech.exit(b, b.n - 1, pos):
+        frac = min(frac, left)
+        if frac <= 1e-9:
+            break
+        left -= frac
+        out.append(("sell", frac, None if kind == "mkt" else float(lvl[0]), left <= 1e-9))
+    return out
 
 
 def unsettled(market: str) -> dict[str, list[dict]]:
@@ -91,7 +106,7 @@ def save(market: str, updates: list[dict], signals: list[dict]) -> int:
             row = s.get(PaperTrade, u["id"])
             if row:
                 for k, v in u.items():
-                    if k != "id":
+                    if k not in ("id", "next"):
                         setattr(row, k, v)
                 s.add(row)
         s.flush()
