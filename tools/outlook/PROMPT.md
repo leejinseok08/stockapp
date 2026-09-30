@@ -54,7 +54,12 @@ Rules:
 - `stance` = the overall tone for risk assets (stocks) now, across the six houses and what markets did in
   the window, weighted by how recent and how direct the evidence is: `긍정` (mostly constructive), `중립`
   (mixed or wait-and-see), `신중` (mostly cautious: growth, inflation, valuation or credit worries
-  dominate). Each house gets the same scale in `tone`. Don't flip the stance on one day's price move alone.
+  dominate). Each house gets the same scale in `tone`. Don't flip the stance on one day's price move alone;
+  this holds back price moves only — when a house's `tone` changed, judge the stance afresh, not by inertia.
+- When the stance leans further than every house (`신중` with no house 신중, or `긍정` with no house 긍정),
+  the market evidence is carrying it, so the first sentence of `reason` says both sides in one line, e.g.
+  "기관은 긍정 3·중립 3이지만 30년물 5.6%(24년來 최고)로 신중". Without such named evidence, the stance
+  stays within the houses' range. (Owner, 2026-10-01: a 신중 stance over 긍정/중립 houses read as a mistake.)
 - This is context, not advice. Never write 매수/매도/비중 확대/축소 or a price target of your own. The
   owner buys the same amount every month in an ISA (S&P500 40 : 나스닥100 30 : 미국반도체 30); the backtests
   found no timing rule that beats that, so the `isa` line only notes what matters for that plan now
