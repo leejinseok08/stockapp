@@ -22,7 +22,7 @@ import yfinance as yf
 
 from .market import _CACHE, _cached
 from ..db import get_state, put_state
-from . import kiwoom_mock, paper
+from . import kiwoom_mock, paper, verify
 from .macro import KST
 from .swing import BY_KEY, TECHNIQUES, Bars, Pos, features
 from .universe import KR_MIN_VALUE, US_MIN_VALUE, get_universe
@@ -182,6 +182,10 @@ def _finish(market, rec, active, found, idx, as_of, scanned, followed, updates) 
             kiwoom_mock.plan(market, updates, {r["symbol"]: r["close"] for r in buys}, as_of.strftime("%Y-%m-%d"))
         except Exception as e:
             log.exception("kiwoom mock plan %s failed: %s", market, e)
+        try:  # the live check of the strategy from verify.START on
+            verify.snapshot(market, as_of.strftime("%Y-%m-%d"), float(idx.iloc[-1]) if idx is not None and len(idx) else None)
+        except Exception as e:
+            log.exception("swing verify %s failed: %s", market, e)
     return {"market": market, "asOf": as_of.strftime("%Y-%m-%d") if as_of is not None else None,
             "scanned": scanned, "marketOk": market_ok, "paused": paused, "slots": SLOTS[market],
             "buyCount": 0 if paused else len(buys), "buys": [] if paused else buys[:BUYS_KEPT],

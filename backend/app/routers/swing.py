@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlmodel import Session, select
 
 from ..db import WatchlistItem, get_session
-from ..services import paper, screener
+from ..services import paper, screener, verify
 from ..services.market import _cached
 
 router = APIRouter(prefix="/swing", tags=["swing"])
@@ -37,6 +37,12 @@ def sells(session: Session = Depends(get_session)):
 def paper_summary():
     """Paper trading of the live signals since the first logged scan: model account and per technique."""
     return paper.summary()
+
+
+@router.get("/verify")
+def verify_summary():
+    """The live check from verify.START: paper vs mock vs index, live vs backtest per technique, verdict."""
+    return verify.summary()
 
 
 @router.get("/records")

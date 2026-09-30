@@ -10,6 +10,9 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 - Durable facts (rules, layout, recurring checks) go in `CLAUDE.md`, not here.
 
 ## Current task
+Swing live check (owner, 2026-09-30): `verify.py` + `GET /swing/verify` deployed; snapshots start with the
+2026-09-30 scans. Check after a few sessions that `verify:KR:*` rows have paper, mock and index, and that `fillGap`
+fills in (mock avgPrice vs paper entry). Verdict comes after 30 closed trades per market.
 Kiwoom (owner, 2026-09-29): code done and deployed (backend 2a50719 + app + worker crons), inert until keys exist.
 2026-09-29: keys + ACCOUNT_TOKEN set in Render. Kiwoom's firewall blocked urllib's User-Agent ("Request Blocked",
 fixed 7bb46d9). Mock works (KR ₩1,000만). US mock: no funds and exchange isn't offered on mock (docs/kiwoom.md) - owner
