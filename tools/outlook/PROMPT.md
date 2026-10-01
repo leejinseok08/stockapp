@@ -32,6 +32,27 @@ reachable through press coverage.
 
 Press coverage: Reuters, Bloomberg, CNBC, FT, WSJ, MarketWatch, 연합뉴스, 한국경제, 매일경제.
 
+How to reach them (checked 2026-10-01 from the owner's PC; a cloud environment must also allow these
+domains, see `docs/HANDOFF.md`). Don't retry a page listed as closed; go straight to its route.
+
+| Site | Page (WebFetch) | Route that works |
+|---|---|---|
+| federalreserve.gov, newyorkfed.org, bok.or.kr | opens | — |
+| am.jpmorgan.com, business.bofa.com, citigroup.com | opens | — |
+| finance.yahoo.com, investing.com, tradingeconomics.com | opens | — |
+| hankyung.com, newspim.com | opens | — |
+| goldmansachs.com | 403 | WebSearch with `allowed_domains: ["goldmansachs.com"]` (titles + summaries) |
+| bloomberg.com | 403 | feed `https://www.bloomberg.com/feeds/markets/news.rss`, or WebSearch on the domain |
+| cnbc.com | 403 | feed `https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114` |
+| reuters.com, yna.co.kr, mk.co.kr | closed to WebFetch and WebSearch | Google News feed `https://news.google.com/rss/search?q=site:<domain>+<words>` (add `&hl=ko&gl=KR&ceid=KR:ko` for the Korean ones) |
+
+- A feed or a search result gives a headline and a link, not the article. Use it to learn what was
+  reported, then confirm the fact in an outlet that opens (한국경제, 뉴스핌, Yahoo Finance, Investing.com)
+  and cite that page. If only the headline is available, write no more than the headline says and cite
+  it as `"보도"`.
+- `goldmansachs.com/insights` found through WebSearch but not opened is `"보도"`, not `"원문"`.
+- benzinga.com's feed opens but is mostly coin price posts; skip it.
+
 Rules:
 - **Carry forward.** A house with nothing new keeps its previous `tone`, `summary`, `detail` and
   `sources` unchanged, with `"new": false`. A house with new material gets rewritten with `"new": true`

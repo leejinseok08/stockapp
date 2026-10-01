@@ -34,6 +34,9 @@ None.
   not Render) blocks most sites (EGRESS_BLOCKED: federalreserve.gov, bok.or.kr, yahoo, cnbc, bloomberg, ...), so
   BofA/GS/Citi carried forward unchanged since 09-27. Needs those domains allowed. Checker now refuses a stance
   beyond every house without a "기관 …" first sentence (2026-10-01).
+  2026-10-01 check from the owner's PC (not the cloud env): 12 of 18 source pages open; routes for the other six
+  are in `tools/outlook/PROMPT.md` §1 (feeds, Google News feed, WebSearch). For those routes the cloud env also
+  needs `news.google.com` and `search.cnbc.com` allowed, next to the source domains themselves.
 - Owner: register the two Codex fallback automations (daily 10:00 and 23:30 KST) from
   `tools/outlook/CODEX_AUTOMATION.md`; not registered yet.
 - After the first 09:00 / 22:30 runs: check they carried forward unchanged houses, marked `new` only on
