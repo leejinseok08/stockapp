@@ -8,6 +8,7 @@ import type {
   Dividends,
   Performance,
   SearchResult,
+  StockComment,
   SwingScan,
   SwingPaper,
   SwingSell,
@@ -116,6 +117,10 @@ export const api = {
   // Six years of filings (DART / SEC) on a cold cache.
   snowflake: (symbol: string) =>
     client.get<Snowflake>(`/stocks/${encodeURIComponent(symbol)}/snowflake`, { timeout: 90000 }).then((r) => r.data),
+
+  // Filings + the research note on a cold cache, like the snowflake.
+  comment: (symbol: string) =>
+    client.get<StockComment>(`/stocks/${encodeURIComponent(symbol)}/comment`, { timeout: 90000 }).then((r) => r.data),
 
   disclosures: (symbol: string) =>
     client.get<Disclosure[]>(`/stocks/${encodeURIComponent(symbol)}/disclosures`, { timeout: 45000 }).then((r) => r.data),

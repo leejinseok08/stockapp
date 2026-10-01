@@ -5,6 +5,7 @@ from ..db import WatchlistItem, get_session
 
 from ..services.market import HISTORY_RANGES, get_compare_rows, get_fundamentals, get_history, get_name, get_news, get_quote, get_quotes
 from ..services.analysis import get_analysis
+from ..services.comment import get_comment
 from ..services.extras import get_dividends, search
 from ..services.filings import dart_disclosures, get_snowflake
 from ..services.stockscan import get_list, get_relative, get_scan, get_trend, get_trend_chart
@@ -72,6 +73,13 @@ def scan(symbols: str | None = None):
 def analysis(symbol: str):
     """Research-note style call: rating, bear/base/bull targets, thesis, catalysts, risks, trend signal."""
     return get_analysis(symbol.upper())
+
+
+@router.get("/{symbol}/comment")
+def comment(symbol: str):
+    """종목 코멘트: AI Berkshire checks (quality screen + checklist gates) from filings, plus a written
+    note when one exists (app/data/comments)."""
+    return get_comment(symbol.upper())
 
 
 @router.get("/{symbol}/trend")

@@ -1,4 +1,4 @@
-// Horizontal swipes (owner, 2026-09-28): between the four tabs, and back from a stack screen by
+// Horizontal swipes (owner, 2026-09-28): between the tabs, and back from a stack screen by
 // dragging from the left edge (like iOS). An installed iOS web app has neither by itself.
 //
 // Built on the browser's own touch events rather than the React Native responder system: after a
@@ -13,7 +13,7 @@ import React, { useEffect, useRef } from "react";
 import { Animated, Dimensions, StyleSheet, View } from "react-native";
 import { colors } from "../theme";
 
-export const TAB_ORDER = ["Today", "Stocks", "Market", "Account"] as const;
+export const TAB_ORDER = ["Today", "Stocks", "Comment", "Market", "Account"] as const;
 type Tab = (typeof TAB_ORDER)[number];
 
 const JS = false; // react-native-web runs animations on the JS driver

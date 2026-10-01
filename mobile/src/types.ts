@@ -86,6 +86,7 @@ export type RootStackParamList = {
 export type TabParamList = {
   Today: undefined;
   Stocks: undefined;
+  Comment: undefined;
   Market: undefined;
   Account: undefined;
 };
@@ -555,3 +556,57 @@ export type KiwoomMock = {
   KR?: { balance: KiwoomBalance; since: string | null; ret: number | null; orders: KiwoomOrder[] };
   US?: { balance: KiwoomBalance; since: string | null; ret: number | null; orders: KiwoomOrder[] };
 };
+
+// 종목 코멘트 (backend comment.py): AI Berkshire checks from filings + an optional written note.
+export type CommentVerdict = "통과" | "회색지대" | "미통과";
+export type CommentMetric = {
+  key: string;
+  label: string;
+  rule: string;
+  value: number | null;
+  pass: boolean | null; // null = 데이터 부족 (neither pass nor fail)
+  detail: string;
+  exempt: string | null;
+};
+export type CommentCheck = { label: string; pass: boolean | null; detail: string };
+export type CommentMaster = { id: "dyp" | "buffett" | "munger" | "lilu"; name: string; focus: string; text: string };
+export type WrittenComment = {
+  symbol: string;
+  asOf: string;
+  author: "claude" | "codex";
+  verdict: CommentVerdict;
+  oneLine: string;
+  gates: Record<"competence" | "moat" | "management", { stars: number; text: string }>;
+  masters: Record<"dyp" | "buffett" | "munger" | "lilu", string>;
+  risks: string[];
+  mirror: string[];
+  mirrorPass: boolean;
+  sources: { title: string; url: string; date: string }[];
+};
+export type StockComment = {
+  symbol: string;
+  name: string | null;
+  quote: Quote | null;
+  rating: string | null;
+  written: WrittenComment | null;
+} & (
+  | { available: false; reason?: string }
+  | {
+      available: true;
+      source: string;
+      sourceUrl: string;
+      currency: string;
+      fiscalYears: number[];
+      verdict: CommentVerdict;
+      verdictReason: string;
+      richness: { grade: "A" | "B" | "C"; text: string };
+      quality: { result: "통과" | "예외 통과" | "탈락" | "판단 보류"; metrics: CommentMetric[]; years: number; failed: string[]; missing: string[] };
+      gates: {
+        business: { stars: number | null; checks: CommentCheck[] };
+        safety: { stars: number | null; detail: string; base: { price: number; upside: number } | null };
+        discipline: { flags: string[]; ret1y: number | null; fromHigh: number | null };
+      };
+      veto: string[];
+      masters: CommentMaster[];
+    }
+);

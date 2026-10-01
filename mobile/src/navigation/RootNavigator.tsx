@@ -5,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AccountScreen from "../screens/AccountScreen";
+import CommentScreen from "../screens/CommentScreen";
 import MarketScreen from "../screens/MarketScreen";
 import OutlookScreen from "../screens/OutlookScreen";
 import StockDetailScreen from "../screens/StockDetailScreen";
@@ -14,10 +15,11 @@ import { SwipeHeader, withSwipeBack, withTabSwipe } from "../components/gestures
 import { colors, fonts } from "../theme";
 import type { RootStackParamList, TabParamList } from "../types";
 
-// Tabs per docs/app-design.md: 오늘 · 종목 · 시장 · 계좌. The stock report opens on top of them.
+// Tabs per docs/app-design.md: 오늘 · 종목 · 코멘트 · 시장 · 계좌. The stock report opens on top of them.
 const TAB_ICONS: Record<keyof TabParamList, React.ComponentProps<typeof Feather>["name"]> = {
   Today: "sun",
   Stocks: "list",
+  Comment: "message-square",
   Market: "activity",
   Account: "briefcase",
 };
@@ -25,6 +27,7 @@ const TAB_ICONS: Record<keyof TabParamList, React.ComponentProps<typeof Feather>
 // Swipe between tabs and swipe back from the left edge (components/gestures.tsx).
 const TodayTab = withTabSwipe(TodayScreen, "Today");
 const StocksTab = withTabSwipe(StocksScreen, "Stocks");
+const CommentTab = withTabSwipe(CommentScreen, "Comment");
 const MarketTab = withTabSwipe(MarketScreen, "Market");
 const AccountTab = withTabSwipe(AccountScreen, "Account");
 const StockDetail = withSwipeBack(StockDetailScreen);
@@ -84,6 +87,7 @@ function Tabs() {
     >
       <Tab.Screen name="Today" component={TodayTab} options={{ title: "오늘" }} />
       <Tab.Screen name="Stocks" component={StocksTab} options={{ title: "종목" }} />
+      <Tab.Screen name="Comment" component={CommentTab} options={{ title: "코멘트" }} />
       <Tab.Screen name="Market" component={MarketTab} options={{ title: "시장" }} />
       <Tab.Screen name="Account" component={AccountTab} options={{ title: "계좌" }} />
     </Tab.Navigator>

@@ -26,7 +26,7 @@ from .market import _cached, _num, get_quote
 
 log = logging.getLogger("stockapp.filings")
 
-FIELDS = ["revenue", "operatingIncome", "netIncome", "eps", "ocf", "capex", "equity", "liabilities",
+FIELDS = ["revenue", "grossProfit", "operatingIncome", "netIncome", "eps", "ocf", "capex", "equity", "liabilities",
           "currentAssets", "currentLiabilities", "cash", "debt", "interest", "dps", "dividendsPaid", "shares"]
 
 
@@ -51,6 +51,7 @@ def _get(url: str, headers: dict | None = None, timeout: int = 30) -> bytes:
 
 SEC_TAGS = {
     "revenue": ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet"],
+    "grossProfit": ["GrossProfit"],
     "operatingIncome": ["OperatingIncomeLoss"],
     "netIncome": ["NetIncomeLoss"],
     "eps": ["EarningsPerShareDiluted", "EarningsPerShareBasic"],
@@ -137,6 +138,7 @@ def sec_financials(symbol: str) -> dict:
 DART = "https://opendart.fss.or.kr/api"
 DART_ACCOUNTS = {
     "revenue": ["ifrs-full_Revenue"],
+    "grossProfit": ["ifrs-full_GrossProfit"],
     "operatingIncome": ["dart_OperatingIncomeLoss"],
     "netIncome": ["ifrs-full_ProfitLossAttributableToOwnersOfParent", "ifrs-full_ProfitLoss"],
     "eps": ["ifrs-full_DilutedEarningsLossPerShare", "ifrs-full_BasicEarningsLossPerShare"],

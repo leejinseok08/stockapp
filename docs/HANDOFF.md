@@ -10,6 +10,15 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 - Durable facts (rules, layout, recurring checks) go in `CLAUDE.md`, not here.
 
 ## Current task
+코멘트 tab (owner, 2026-10-01): AI Berkshire (github.com/xbtlin/ai-berkshire) quality screen + checklist on any
+searched stock. Backend `comment.py` + `GET /stocks/{symbol}/comment`, tab `CommentScreen.tsx`, written notes via
+`tools/comment/PROMPT.md` -> `backend/app/data/comments/<SYMBOL>.json`. Built in a cloud session that couldn't reach
+Yahoo/SEC/DART/Render, so it was checked with unit tests and a stub server render only.
+Next: (1) after Render deploys, open `/stocks/AAPL/comment` and `/stocks/005930.KS/comment` and check the 7 metrics
+look right against the snowflake's filed years (grossProfit is a new filings field: DART ifrs-full_GrossProfit, SEC
+GrossProfit; companies without it show 데이터 부족). (2) Owner: `cd mobile; npm run deploy:web` from the PC
+(wrangler login is only there). (3) Write the first notes on request (e.g. the big-tech 9).
+
 Swing live check (owner, 2026-09-30): `verify.py` + `GET /swing/verify` deployed; snapshots start with the
 2026-09-30 scans. Check after a few sessions that `verify:KR:*` rows have paper, mock and index, and that `fillGap`
 fills in (mock avgPrice vs paper entry). Verdict comes after 30 closed trades per market.
