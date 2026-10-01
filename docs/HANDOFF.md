@@ -30,6 +30,10 @@ Next:
 None.
 
 ## Next up
+- Owner: the 시황 routines' cloud environment (env_01QUymjfSNck6Safoq24rGYU, claude.ai/code environment settings,
+  not Render) blocks most sites (EGRESS_BLOCKED: federalreserve.gov, bok.or.kr, yahoo, cnbc, bloomberg, ...), so
+  BofA/GS/Citi carried forward unchanged since 09-27. Needs those domains allowed. Checker now refuses a stance
+  beyond every house without a "기관 …" first sentence (2026-10-01).
 - Owner: register the two Codex fallback automations (daily 10:00 and 23:30 KST) from
   `tools/outlook/CODEX_AUTOMATION.md`; not registered yet.
 - After the first 09:00 / 22:30 runs: check they carried forward unchanged houses, marked `new` only on

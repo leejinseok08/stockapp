@@ -96,6 +96,16 @@ def validate(doc: dict) -> list[str]:
             if s.get("access") not in ACCESS:
                 errs.append(f"{sw}.access: one of {ACCESS}")
 
+    # A stance further out than every house is carried by market evidence; the first sentence says so
+    # (PROMPT.md step 2, owner 2026-10-01).
+    tones = {h.get("tone") for h in houses if isinstance(h, dict) and h.get("tone") in TONES}
+    stance = doc.get("stance")
+    if tones and stance in ("긍정", "신중") and stance not in tones and isinstance(doc.get("reason"), str):
+        first = re.split(r"(?<=[.다])\s", doc["reason"].strip(), maxsplit=1)[0]
+        if "기관" not in first:
+            errs.append(f"reason: stance {stance} but no house is {stance}; start reason with one sentence naming both, "
+                        f"e.g. \"기관은 긍정 3·중립 3이지만 <market evidence with number and date>로 {stance}\", "
+                        "or keep the stance within the houses' range")
     watch = doc.get("watch", [])
     if not isinstance(watch, list) or len(watch) > 8:
         errs.append("watch: up to 8 events")

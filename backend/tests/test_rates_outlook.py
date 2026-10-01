@@ -76,6 +76,18 @@ def test_validate_allows_quiet_house():
     assert outlook.validate(doc) == []
 
 
+def test_validate_stance_beyond_every_house_names_both_sides():
+    doc = copy.deepcopy(GOOD)  # every house 중립
+    doc["stance"] = "신중"
+    doc["reason"] = "30년물이 5.6%로 올랐다. 그래서 신중."
+    assert any(e.startswith("reason: stance 신중") for e in outlook.validate(doc))
+    doc["reason"] = "기관은 모두 중립이지만 30년물 5.6%(9/30)로 신중. 자세한 근거."
+    assert outlook.validate(doc) == []
+    doc["houses"][0]["tone"] = "신중"  # within the houses' range: no extra sentence needed
+    doc["reason"] = "30년물이 5.6%로 올랐다."
+    assert outlook.validate(doc) == []
+
+
 @pytest.fixture(autouse=True)
 def no_github(monkeypatch):
     """Tests read local files unless they stand in for GitHub themselves."""
