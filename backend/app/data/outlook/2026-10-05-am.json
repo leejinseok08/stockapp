@@ -1,0 +1,132 @@
+{
+  "slot": "2026-10-05-am",
+  "asOf": "2026-10-05",
+  "author": "claude",
+  "stance": "중립",
+  "headline": "6개 기관 새 자료 없어 중립 유지, 미 선물 강세로 월요일 개장 앞둬",
+  "reason": "직전 업데이트(10월4일 22:30) 이후 일요일 하루 동안 연준·한은·JPM·BofA·골드만삭스·씨티 6개 기관 모두 새 원문·보도가 확인되지 않아 톤을 그대로 유지한다(긍정 3·중립 3, 변화 없음). 10월2일(금) 마감 기준 S&P500 7722.72(+0.73%, 사상최고)·美10년물 5.28%·원달러 1,350.60원에서 추가 변동 신호는 없었다. 다만 10월5일(월) 개장을 앞둔 미 증시선물은 S&P500 +0.77%·나스닥 +1.07%로 강세를 보이고 있어, VIX 하락과 반도체 업종 강세가 그 배경으로 거론된다. 아직 아시아·미국 정규장이 열리기 전이라 이 선물 움직임이 실제 개장 흐름으로 이어질지는 확인되지 않았다. 기관 의견이 갈리지 않고 시장 근거도 한쪽으로 쏠리지 않아 중립을 유지한다.",
+  "points": [
+    "일요일 휴장 속 연준·한은 포함 6개 기관 모두 새 자료 없음, 톤 유지",
+    "10월5일(월) 개장 앞둔 미 증시선물 강세: S&P500 +0.77%·나스닥 +1.07%",
+    "반도체 업종 강세·VIX 하락이 선물 강세 배경으로 거론",
+    "직전 마감 유지: S&P500 7722.72(사상최고)·美10년물 5.28%·원달러 1,350.60원",
+    "오늘 미 9월 ISM 서비스업 PMI 발표"
+  ],
+  "isa": "휴장 뒤 첫 개장일, 선물 강세가 실제 개장가로 이어지는지와 원/달러·금리 흐름을 지켜보면 된다.",
+  "houses": [
+    {
+      "id": "fed",
+      "tone": "중립",
+      "new": false,
+      "summary": "제퍼슨 \"인플레 여전히 높아\", 지난달 0.25%p 인상 지지",
+      "detail": "10월 1일 버지니아 샬러츠빌 연설에서 필립 제퍼슨 부의장은 인플레이션이 여전히 너무 높고 2% 목표를 5년 넘게 웃돌고 있다고 말했다. 8월 PCE 물가지수는 전년대비 3.4%, 근원 PCE는 3.0%로 발표됐으며, 최근 반등은 지정학적 긴장에 따른 유가·휘발유 등 에너지 가격 상승이 주된 요인이라고 짚었다. 그는 지난달 FOMC가 기준금리를 0.25%p 올려 3.75~4.00%로 인상한 결정을 지지했다며, 장기 기대인플레이션을 잘 고정하기 위한 조치였다고 설명했다. 경제는 6년 반째 확장을 이어가는 등 여전히 견조하다고 평가했다. 카시카리·쿡·윌리엄스에 이어 또 한 명의 이사가 같은 매파적 기조를 재확인한 것이다. 연준 원문 페이지가 이 환경에서 열리지 않아 검색 요약으로 확인했다.",
+      "sources": [
+        {
+          "title": "Speech by Vice Chair Jefferson on the U.S. economy and monetary policy",
+          "url": "https://www.federalreserve.gov/newsevents/speech/jefferson20261001a.htm",
+          "date": "2026-10-01",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bok",
+      "tone": "중립",
+      "new": false,
+      "summary": "부총재보, 10월 물가 3% 내외 높은 수준 지속 전망",
+      "detail": "이지호 한은 부총재보는 10월 2일 물가상황점검회의에서 10월 소비자물가 상승률이 근원 품목 오름세 지속으로 3% 내외의 높은 수준을 이어갈 것으로 내다봤다. 9월엔 소비자·근원·생활물가 상승률이 모두 전월보다 낮아졌지만 전월의 일시적 기저효과가 사라진 점을 감안하면 물가 오름세는 오히려 다소 확대됐다고 짚었다. 비용압력 전이로 항공료·여행비 등 개인서비스 가격과, 반도체 가격 상승에 따른 전자제품 등 내구재 가격 오름폭이 확대됐다고 설명했다. 새로운 금리 신호라기보다 물가 경계를 재확인한 수준이라 중립으로 유지한다. 한은 원문 페이지는 열지 못해 보도로 확인했다.",
+      "sources": [
+        {
+          "title": "한은 부총재보 \"10월 물가상승률 3% 내외 높은 수준 예상\"",
+          "url": "https://biz.heraldcorp.com/article/10891737",
+          "date": "2026-10-02",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "jpm",
+      "tone": "긍정",
+      "new": false,
+      "summary": "트레이딩데스크, 반도체·빅테크 중심 비중확대로 전환",
+      "detail": "9월 28일 블룸버그 보도에 따르면 JPM 트레이딩데스크(앤드루 타일러 총괄)가 그동안의 '전술적 중립'에서 '비중확대'로 전환했다. 근거로 예상보다 강한 경기지표, 소비 회복력, 견조한 기업이익, 채권금리가 레벨을 찾아가는 조짐을 들었다. 반도체와 매그니피센트 7 등 기술주를 선호 업종으로 꼽았고, 10/2 비농업고용(컨센서스 9만명, 실업률 4.1%)을 다음 확인 지표로 지켜본다고 밝혔다. 연준·국채금리 경계가 큰 다른 기관들과 달리 위험자산에 낙관적인 소수 의견이다.",
+      "sources": [
+        {
+          "title": "JPMorgan Traders Flip to Bullish View on US Stocks (SPY) Ahead of Jobs Report",
+          "url": "https://www.bloomberg.com/news/articles/2026-09-28/jpmorgan-traders-flip-to-bullish-view-on-us-stocks-spy-ahead-of-jobs-report",
+          "date": "2026-09-28",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bofa",
+      "tone": "중립",
+      "new": false,
+      "summary": "최신 Flow Show, 위험회피 지속 경고…CIO는 중기 낙관 유지",
+      "detail": "10월 2일 보도된 최신 Flow Show에서 마이클 하트넷은 달러 강세가 꺾이는 신호가 나오기 전까지 위험자산 회피 분위기가 이어질 것으로 봤다. 9월30일까지 한 주간 채권펀드에 188억달러, 주식펀드에 158억달러가 유입돼 자금이 채권 쪽으로 더 쏠렸고, S&P500 중 400개 종목이 50일 이동평균선을, 300개가 200일선을 밑돌아 지수 상승 대비 체력(breadth)이 약해졌다고 짚었다. 반면 9월21일 공식 CIO 전망은 유가·채권금리·정책금리 부담을 인정하면서도 중간선거 이후의 역사적 성과를 들어 중기 기회를 강조했다. 자금흐름 경고와 CIO의 중기 낙관이 같은 하우스 안에 공존해 중립으로 유지한다.",
+      "sources": [
+        {
+          "title": "Capital Market Outlook — September 21, 2026",
+          "url": "https://www.privatebank.bankofamerica.com/articles/capital-market-outlook-sep-21-2026.html",
+          "date": "2026-09-21",
+          "access": "원문"
+        },
+        {
+          "title": "BofA's Hartnett Sees Risk-Off Mood Lasting Until Dollar Peaks",
+          "url": "https://www.bloomberg.com/news/articles/2026-10-02/bofa-s-hartnett-sees-risk-off-mood-lasting-until-dollar-peaks",
+          "date": "2026-10-02",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "gs",
+      "tone": "긍정",
+      "new": false,
+      "summary": "AI 투자가 S&P500 이익 성장의 큰 몫을 뒷받침",
+      "detail": "9월 25일 Reuters는 골드만삭스 전략가들이 이번 주 AI 투자가 올해 S&P500 주당순이익 성장의 거의 절반을 이끈다고 평가했다고 보도했다. 실적 기반에 대한 긍정적 근거로 해석한다. 다만 유료 리서치 원문은 확인하지 못했고, 이 보도만으로 골드만의 시장 전체 전망이나 금리 위험에 대한 판단까지 확대하지 않는다. 이날 유출된 앤스로픽 IPO 서류의 손실·리스크 공개는 AI 밸류에이션에 대한 반대 근거로, 같은 테마를 다른 각도에서 보여준다.",
+      "sources": [
+        {
+          "title": "Reuters: Global equity funds snap two-week outflow as AI optimism returns",
+          "url": "https://www.marketscreener.com/news/global-equity-funds-snap-two-week-outflow-as-ai-optimism-returns-ce785adfdc8fff20",
+          "date": "2026-09-25",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "citi",
+      "tone": "긍정",
+      "new": false,
+      "summary": "고금리에도 폭넓은 실적 증가가 주식을 지지",
+      "detail": "9월 22일 공식 주간 전망은 세계 성장세가 중앙은행의 물가 대응 여력을 제공한다고 평가했다. 은행 대출 의지와 신용 공급이 개선되고 대형 기술기업의 레버리지는 낮다고 설명했다. 여러 업종의 실적 증가가 이어지는 만큼 주식에 대한 긍정적 시각을 유지했다. 실질금리 상승에 따른 가치평가 하락도 공포보다는 합리적 조정으로 해석해, 긴축 부담을 강조한 연준 발언과 시장 해석의 무게가 다르다.",
+      "sources": [
+        {
+          "title": "Higher Rates Are Here to Stay, and Earnings Keep Pace",
+          "url": "https://marketinsights.citi.com/Market-Commentary/Weekly-Market-Update/Higher-Rates-Are-Here-to-Stay-and-Earnings-Keep-Pace.html",
+          "date": "2026-09-22",
+          "access": "원문"
+        }
+      ]
+    }
+  ],
+  "watch": [
+    {
+      "date": "2026-10-05",
+      "event": "미국 9월 ISM 서비스업 PMI"
+    },
+    {
+      "date": "2026-10-07",
+      "event": "9월 FOMC 의사록 공개"
+    },
+    {
+      "date": "2026-10-08",
+      "event": "삼성전자 3분기 잠정실적 발표"
+    },
+    {
+      "date": "2026-10-09",
+      "event": "한글날, 국내 증시 휴장"
+    }
+  ]
+}
