@@ -14,10 +14,16 @@ Shared state between Claude Code and Codex. Whichever agent is working keeps thi
 searched stock. Backend `comment.py` + `GET /stocks/{symbol}/comment`, tab `CommentScreen.tsx`, written notes via
 `tools/comment/PROMPT.md` -> `backend/app/data/comments/<SYMBOL>.json`. Built in a cloud session that couldn't reach
 Yahoo/SEC/DART/Render, so it was checked with unit tests and a stub server render only.
-Next: (1) after Render deploys, open `/stocks/AAPL/comment` and `/stocks/005930.KS/comment` and check the 7 metrics
-look right against the snowflake's filed years (grossProfit is a new filings field: DART ifrs-full_GrossProfit, SEC
-GrossProfit; companies without it show 데이터 부족). (2) Owner: `cd mobile; npm run deploy:web` from the PC
-(wrangler login is only there). (3) Write the first notes on request (e.g. the big-tech 9).
+2026-10-05 check on Render: `/stocks/005930.KS/comment` is right against the snowflake (ROE 10.3-10.4%, interest
+cover 92.8, gross margin 37.4%, DART 2020-2025). Tab rendered from the PC build against the live backend (headless
+Edge): 삼성전자 full page and the US "unavailable" state both look right; `tsc` clean.
+BLOCKED for every US stock (snowflake too, not only 코멘트): SEC answers 403, so `/stocks/AAPL|MSFT|NVDA/snowflake`
+and `/comment` return "SEC가 연락처 이메일을 거부함". Cause not confirmed: either Render's `SEC_CONTACT` value
+(naver.com is refused) or SEC throttling Render's shared IP; the 403 page reads the same for both. No app logs for it.
+Next: (1) Owner: check `SEC_CONTACT` in Render (non-naver address), then reopen `/stocks/AAPL/comment` and check
+the 7 metrics (grossProfit = SEC GrossProfit; companies without it show 데이터 부족). (2) Owner: `cd mobile; npm run
+deploy:web` from the PC - the live web app still has no 코멘트 tab (the agent's deploy was refused by the permission
+rule on 2026-10-05). (3) Write the first notes on request (e.g. the big-tech 9).
 
 Swing live check (owner, 2026-09-30): `verify.py` + `GET /swing/verify` deployed; snapshots start with the
 2026-09-30 scans. Check after a few sessions that `verify:KR:*` rows have paper, mock and index, and that `fillGap`
