@@ -1,0 +1,129 @@
+{
+  "slot": "2026-10-08-pm",
+  "asOf": "2026-10-08",
+  "author": "claude",
+  "stance": "중립",
+  "headline": "코스피 2.62%↓, 삼성전자 최대실적에도 셀온…월러 \"인상 추가 필요\"에 美 선물 약세",
+  "reason": "기관 판단은 변화 없이 긍정 3(JPM·GS·씨티)·중립 3(연준·한은·BofA)을 유지한다. 코스피는 삼성전자가 3분기 영업이익 107조4000억원(전년 대비 782.5% 증가, 국내 기업 최초 분기 100조원 돌파)을 발표했음에도 '셀온' 심리와 옵션만기일 수급 부담이 겹쳐 전일 대비 177.97포인트(2.62%) 내린 6625.93에 마감했고, 외국인과 기관은 전기전자 업종에서만 각각 1조5038억원, 1조3013억원을 순매도했다. 같은 날 연준 월러 이사는 이스탄불 연설에서 인플레이션을 더 빠르게 낮추기 위해 추가 인상이 필요할 것이라면서도, 인상이 연속 회의마다 이뤄질 필요는 없다며 시점에는 유연성이 있다고 밝혔다. 시장은 10월 27~28일 동결, 12월 추가 인상을 가격에 반영했고 미 국채금리가 다시 오르며 다우(-0.6%)·나스닥(-0.5%)·S&P500(-0.3%) 선물이 약세를 보였다. 한국의 실적 호재와 미국의 긴축 경계가 다시 상충돼 톤은 중립을 유지한다.",
+  "points": [
+    "코스피, 삼성전자 최대실적에도 외인·기관 매도에 2.62%↓ 6625.93 마감",
+    "삼성전자 -2.42%·SK하이닉스 -2.44%, 전기전자 업종서 외국인·기관 동반 순매도",
+    "연준 월러 이사 \"추가 인상 필요하나 시점엔 유연성\"…시장은 12월 인상 반영",
+    "美 국채금리 재상승에 다우·나스닥·S&P500 선물 약세(유가 급등 동반)"
+  ],
+  "isa": "美 연준의 추가 인상 경계와 코스피 반도체주 '셀온'이 겹치는 구간이라, 이번 달 원화 환율과 반도체 ETF 쪽 변동성을 같이 살펴볼 때다.",
+  "houses": [
+    {
+      "id": "fed",
+      "tone": "중립",
+      "new": true,
+      "summary": "월러 \"인플레 추가 인상 필요하나 시점은 유연\"",
+      "detail": "연준 월러 이사는 8일(현지시간) 이스탄불 연설에서 경제지표가 예상대로 나온다면 인플레이션을 2% 목표로 더 빠르게 되돌리기 위해 추가 기준금리 인상이 필요할 것이라고 밝혔다. 다만 인상이 연속 회의마다 이뤄질 필요는 없다며 시점에는 유연성이 있다고 덧붙였고, 긴축이 경기를 심하게 둔화시킬 가능성보다는 최근 물가 상승이 기대인플레이션을 자극할 가능성을 더 우려한다고 말했다. 다른 연준 인사들의 발언을 종합하면 시장은 10월 27~28일 회의 동결, 12월 9일 회의 추가 인상을 가격에 반영하고 있다. 이 발언 이후 미 국채금리가 다시 올랐고 다우·나스닥·S&P500 선물이 약세로 돌아섰다. 연준 홈페이지가 이번 환경에서 접속되지 않아(도구 접속 오류) 원문 대신 보도로 확인했다.",
+      "sources": [
+        {
+          "title": "Fed's Waller: More hikes needed, but there is 'flexibility' about the pace",
+          "url": "https://www.investing.com/news/economy-news/feds-waller-more-hikes-needed-but-there-is-flexibility-about-the-pace-4938165",
+          "date": "2026-10-08",
+          "access": "보도"
+        },
+        {
+          "title": "Fed's Waller Says There Is Some Flexibility on Rate-Hike Timing",
+          "url": "https://www.bloomberg.com/news/articles/2026-10-08/fed-s-waller-says-there-is-some-flexibility-on-rate-hike-timing",
+          "date": "2026-10-08",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bok",
+      "tone": "중립",
+      "new": false,
+      "summary": "IMF 모형의 한국 경상수지 과소평가 가능성 지적",
+      "detail": "10월 6일 BOK 이슈노트는 IMF의 EBA 모형 개편이 한국의 인구구조 특수성을 충분히 반영하지 못했을 가능성을 제기했다. 동일 조건 비교에서 모형 개편은 적정 경상수지를 1.10%p 낮췄고, 이에 따른 경상수지갭 확대분의 94%는 설명되지 않는 잔차였다. 한은은 흑자 규모만으로 판단하기보다 요인을 분해하고 추가 분석해야 한다고 봤다. 대외불균형 평가에 관한 연구이므로 금리나 주식시장 방향의 변화로 단정하지 않고 중립으로 분류한다.",
+      "sources": [
+        {
+          "title": "[제2026-26호] IMF EBA 모형 개편이 우리나라 경상수지 평가에 미치는 영향",
+          "url": "https://www.bok.or.kr/portal/bbs/P0002353/view.do?depth=200433&menuNo=200433&nttId=11065326&programType=newsData&relate=Y",
+          "date": "2026-10-06",
+          "access": "원문"
+        }
+      ]
+    },
+    {
+      "id": "jpm",
+      "tone": "긍정",
+      "new": false,
+      "summary": "트레이딩데스크, 반도체·빅테크 중심 비중확대로 전환",
+      "detail": "9월 28일 블룸버그 보도에 따르면 JPM 트레이딩데스크(앤드루 타일러 총괄)가 그동안의 '전술적 중립'에서 '비중확대'로 전환했다. 근거로 예상보다 강한 경기지표, 소비 회복력, 견조한 기업이익, 채권금리가 레벨을 찾아가는 조짐을 들었다. 반도체와 매그니피센트 7 등 기술주를 선호 업종으로 꼽았고, 10/2 비농업고용(컨센서스 9만명, 실업률 4.1%)을 다음 확인 지표로 지켜본다고 밝혔다. 연준·국채금리 경계가 큰 다른 기관들과 달리 위험자산에 낙관적인 소수 의견이다.",
+      "sources": [
+        {
+          "title": "JPMorgan Traders Flip to Bullish View on US Stocks (SPY) Ahead of Jobs Report",
+          "url": "https://www.bloomberg.com/news/articles/2026-09-28/jpmorgan-traders-flip-to-bullish-view-on-us-stocks-spy-ahead-of-jobs-report",
+          "date": "2026-09-28",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bofa",
+      "tone": "중립",
+      "new": false,
+      "summary": "최신 Flow Show, 위험회피 지속 경고…CIO는 중기 낙관 유지",
+      "detail": "10월 2일 보도된 최신 Flow Show에서 마이클 하트넷은 달러 강세가 꺾이는 신호가 나오기 전까지 위험자산 회피 분위기가 이어질 것으로 봤다. 9월30일까지 한 주간 채권펀드에 188억달러, 주식펀드에 158억달러가 유입돼 자금이 채권 쪽으로 더 쏠렸고, S&P500 중 400개 종목이 50일 이동평균선을, 300개가 200일선을 밑돌아 지수 상승 대비 체력(breadth)이 약해졌다고 짚었다. 반면 9월21일 공식 CIO 전망은 유가·채권금리·정책금리 부담을 인정하면서도 중간선거 이후의 역사적 성과를 들어 중기 기회를 강조했다. 자금흐름 경고와 CIO의 중기 낙관이 같은 하우스 안에 공존해 중립으로 유지한다.",
+      "sources": [
+        {
+          "title": "Capital Market Outlook — September 21, 2026",
+          "url": "https://www.privatebank.bankofamerica.com/articles/capital-market-outlook-sep-21-2026.html",
+          "date": "2026-09-21",
+          "access": "원문"
+        },
+        {
+          "title": "BofA's Hartnett Sees Risk-Off Mood Lasting Until Dollar Peaks",
+          "url": "https://www.bloomberg.com/news/articles/2026-10-02/bofa-s-hartnett-sees-risk-off-mood-lasting-until-dollar-peaks",
+          "date": "2026-10-02",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "gs",
+      "tone": "긍정",
+      "new": false,
+      "summary": "AI 투자가 S&P500 이익 성장의 큰 몫을 뒷받침",
+      "detail": "9월 25일 Reuters는 골드만삭스 전략가들이 이번 주 AI 투자가 올해 S&P500 주당순이익 성장의 거의 절반을 이끈다고 평가했다고 보도했다. 실적 기반에 대한 긍정적 근거로 해석한다. 다만 유료 리서치 원문은 확인하지 못했고, 이 보도만으로 골드만의 시장 전체 전망이나 금리 위험에 대한 판단까지 확대하지 않는다. 이날 유출된 앤스로픽 IPO 서류의 손실·리스크 공개는 AI 밸류에이션에 대한 반대 근거로, 같은 테마를 다른 각도에서 보여준다.",
+      "sources": [
+        {
+          "title": "Reuters: Global equity funds snap two-week outflow as AI optimism returns",
+          "url": "https://www.marketscreener.com/news/global-equity-funds-snap-two-week-outflow-as-ai-optimism-returns-ce785adfdc8fff20",
+          "date": "2026-09-25",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "citi",
+      "tone": "긍정",
+      "new": false,
+      "summary": "고금리에도 폭넓은 실적 증가가 주식을 지지",
+      "detail": "9월 22일 공식 주간 전망은 세계 성장세가 중앙은행의 물가 대응 여력을 제공한다고 평가했다. 은행 대출 의지와 신용 공급이 개선되고 대형 기술기업의 레버리지는 낮다고 설명했다. 여러 업종의 실적 증가가 이어지는 만큼 주식에 대한 긍정적 시각을 유지했다. 실질금리 상승에 따른 가치평가 하락도 공포보다는 합리적 조정으로 해석해, 긴축 부담을 강조한 연준 발언과 시장 해석의 무게가 다르다.",
+      "sources": [
+        {
+          "title": "Higher Rates Are Here to Stay, and Earnings Keep Pace",
+          "url": "https://marketinsights.citi.com/Market-Commentary/Weekly-Market-Update/Higher-Rates-Are-Here-to-Stay-and-Earnings-Keep-Pace.html",
+          "date": "2026-09-22",
+          "access": "원문"
+        }
+      ]
+    }
+  ],
+  "watch": [
+    {
+      "date": "2026-10-09",
+      "event": "한글날, 국내 증시 휴장"
+    },
+    {
+      "date": "2026-10-14",
+      "event": "미국 9월 CPI 발표"
+    }
+  ]
+}
