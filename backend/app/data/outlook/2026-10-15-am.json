@@ -1,0 +1,120 @@
+{
+  "slot": "2026-10-15-am",
+  "asOf": "2026-10-15",
+  "author": "codex",
+  "stance": "중립",
+  "headline": "美 물가 재가속과 기관별 엇갈린 전망, 실적 낙관과 금리 부담이 공존",
+  "reason": "기관 판단은 긍정 2·중립 4로, 실적 낙관과 물가·시장 과열 경계가 공존해 중립으로 평가한다.\n14일 발표된 미국 9월 CPI는 전월 대비 0.6%, 전년 대비 3.7% 상승해 금리 부담을 다시 부각했다.\n골드만의 단기 주식 전망 개선과 달리 씨티는 전술적 위험을 줄였으며, BofA도 단기 경계와 중기 낙관이 엇갈린다.\n데일리는 추가 인상 가능성을 인정하면서도 서두를 필요는 없다고 밝혀 인상 시점은 불확실하다.\n이번 회차는 15일 오후 2시 50분까지 확인한 자료를 직전 게시물인 8일 밤 시황에 이어 반영했다.",
+  "points": [
+    "미국 9월 CPI는 전월 대비 0.6%, 전년 대비 3.7% 상승했다.",
+    "골드만은 실적을 근거로 단기 전망을 높였지만 씨티는 시장 과열을 경계했다.",
+    "데일리는 추가 금리 인상 가능성을 인정하면서도 시점을 서두르지 않겠다고 밝혔다.",
+    "BofA의 중기 실적 낙관과 단기 자금흐름 경고가 엇갈린다."
+  ],
+  "isa": "정기 적립 관점에서는 물가 재가속에 따른 미국 금리와 원달러 환율 변화가 해외 주식 ETF의 원화 수익률에 미칠 영향을 확인할 시점이다.",
+  "houses": [
+    {
+      "id": "fed",
+      "tone": "중립",
+      "new": true,
+      "summary": "데일리, 추가 인상 가능성 인정하되 시점은 신중",
+      "detail": "10월 14일 데일리 샌프란시스코 연은 총재는 Reuters 인터뷰에서 물가를 억제하려면 추가 인상이 필요할 가능성이 크지만 10월 회의에서 서둘러 결정할 필요는 없다는 뜻을 밝혔다. 물가 위험은 높아졌으나 안정적인 고용과 추가 정보를 확인할 시간이 있다는 설명이다. 추가 긴축 부담과 속도 조절이 공존해 중립으로 평가한다. 연준·샌프란시스코 연은 홈페이지를 먼저 확인했지만 이 인터뷰의 공식 전문을 확보하지 못해 Reuters 직접 인터뷰 보도를 사용했다.",
+      "sources": [
+        {
+          "title": "Fed's Daly says rate hikes likely needed, but not urgently",
+          "url": "https://www.marketscreener.com/news/fed-s-daly-says-rate-hikes-likely-needed-but-not-urgently-ce785dd2d08df221",
+          "date": "2026-10-14",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bok",
+      "tone": "중립",
+      "new": true,
+      "summary": "8월 광의통화 증가, 통계만으로 정책 전환 판단은 유보",
+      "detail": "10월 15일 한국은행이 발표한 8월 통화 및 유동성에서 광의통화 M2의 계절조정 평잔은 전월 대비 0.9% 증가했다. 원계열 기준 전년 동월 대비 증가율은 5.6%다. 유동성 규모가 늘었다는 통계이며, 이를 금리 인하 신호나 주식시장 전망 개선으로 직접 해석할 근거는 없어 중립으로 평가한다.",
+      "sources": [
+        {
+          "title": "2026년 8월 통화 및 유동성",
+          "url": "https://www.bok.or.kr/portal/bbs/B0000501/view.do?depth=201264&menuNo=201264&nttId=11065575&programType=newsData&relate=Y",
+          "date": "2026-10-15",
+          "access": "원문"
+        }
+      ]
+    },
+    {
+      "id": "jpm",
+      "tone": "긍정",
+      "new": false,
+      "summary": "트레이딩데스크, 반도체·빅테크 중심 비중확대로 전환",
+      "detail": "9월 28일 블룸버그 보도에 따르면 JPM 트레이딩데스크(앤드루 타일러 총괄)가 그동안의 '전술적 중립'에서 '비중확대'로 전환했다. 근거로 예상보다 강한 경기지표, 소비 회복력, 견조한 기업이익, 채권금리가 레벨을 찾아가는 조짐을 들었다. 반도체와 매그니피센트 7 등 기술주를 선호 업종으로 꼽았고, 10/2 비농업고용(컨센서스 9만명, 실업률 4.1%)을 다음 확인 지표로 지켜본다고 밝혔다. 연준·국채금리 경계가 큰 다른 기관들과 달리 위험자산에 낙관적인 소수 의견이다.",
+      "sources": [
+        {
+          "title": "JPMorgan Traders Flip to Bullish View on US Stocks (SPY) Ahead of Jobs Report",
+          "url": "https://www.bloomberg.com/news/articles/2026-09-28/jpmorgan-traders-flip-to-bullish-view-on-us-stocks-spy-ahead-of-jobs-report",
+          "date": "2026-09-28",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bofa",
+      "tone": "중립",
+      "new": true,
+      "summary": "CIO는 실적·AI 낙관, 하트넷은 단기 위험회피 경고",
+      "detail": "10월 13일 CIO 원문은 조심스러운 소비심리에도 지출이 유지되고, 견조한 실적과 AI 생산성 향상이 2027년까지 주식을 지지할 수 있다고 봤다. 반면 9일 보도된 하트넷의 Flow Show는 지속적인 금리 인하가 있어야 대기 현금이 움직일 것으로 봤고, 7일까지 한 주간 머니마켓펀드에 1,664억 달러가 유입됐다고 밝혔다. 중기 실적 낙관과 단기 위험회피 경고가 같은 기관 안에 공존해 중립으로 평가한다. Flow Show 전문은 확보하지 못해 해당 부분은 보도로 확인했다.",
+      "sources": [
+        {
+          "title": "Capital Market Outlook — October 13, 2026",
+          "url": "https://www.privatebank.bankofamerica.com/articles/capital-market-outlook-oct-13-2026.html",
+          "date": "2026-10-13",
+          "access": "원문"
+        },
+        {
+          "title": "Investors need sustained Fed cuts to move cash off sidelines: BofA's Hartnett",
+          "url": "https://au.investing.com/news/stock-market-news/investors-need-sustained-fed-cuts-to-move-cash-off-sidelines-bofas-hartnett-4681493",
+          "date": "2026-10-09",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "gs",
+      "tone": "긍정",
+      "new": true,
+      "summary": "실적 성장과 조정 후 평가매력으로 단기 전망 개선",
+      "detail": "10월 12일 Reuters에 따르면 골드만은 글로벌 주식의 3개월 전망을 기존 중립에서 낙관 쪽으로 높였다. 실적 성장이 이어지고 최근 조정으로 가격 매력이 개선됐다는 근거이며, 기존 12개월 낙관 전망과 방향을 맞췄다. 다만 높은 금리·에너지 가격과 미국 중간선거 불확실성을 단기 위험으로 지적했다. 위험을 인정하면서도 이익 증가에 무게를 두므로 긍정으로 평가하며, 유료 리서치는 보도를 통해 확인했다.",
+      "sources": [
+        {
+          "title": "Goldman upgrades global equities on earnings optimism",
+          "url": "https://www.marketscreener.com/news/goldman-upgrades-global-equities-on-earnings-optimism-ce785ddcd08ff625",
+          "date": "2026-10-12",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "citi",
+      "tone": "중립",
+      "new": true,
+      "summary": "실적 낙관 속 시장 과열 경계, 전술적 위험 축소",
+      "detail": "10월 13일 Citi 공식 팟캐스트 요약은 견조한 거시 여건과 실적 증가가 글로벌 주식의 추가 상승을 지지한다고 설명했다. 같은 날 Reuters는 씨티가 투자심리·포지셔닝·유동성 등을 보는 POLLS 지표의 과열을 근거로 미국 주식에 대한 기존 선호를 거두고 동일가중 S&P500 포지션을 종료했다고 보도했다. 전면적인 약세 전환은 아니라는 설명도 함께 실렸다. 중기 실적 낙관과 전술적 경계가 엇갈려 기존 긍정에서 중립으로 바꾸며, 유료 전략 변경은 보도로 확인했다.",
+      "sources": [
+        {
+          "title": "Markets Edition: Global Equities: Resilience or Complacence?",
+          "url": "https://www.citigroup.com/global/insights/markets-edition-global-equities-resilience-or-complacence",
+          "date": "2026-10-13",
+          "access": "원문"
+        },
+        {
+          "title": "Citigroup turns cautious on US stocks as market exuberance flashes warning signs",
+          "url": "https://www.investing.com/news/stock-market-news/citigroup-turns-cautious-on-us-stocks-as-market-exuberance-flashes-warning-signs-4947242",
+          "date": "2026-10-13",
+          "access": "보도"
+        }
+      ]
+    }
+  ],
+  "watch": []
+}
