@@ -1,0 +1,149 @@
+{
+  "slot": "2026-11-14-pm",
+  "asOf": "2026-11-14",
+  "author": "claude",
+  "stance": "신중",
+  "headline": "주말 휴장으로 새 자료 없어 신중 유지, 다음 분수령은 11/17 엔비디아 실적",
+  "reason": "직전 업데이트(11/14 09:00) 이후 11/14(토)은 한국·미국 증시 모두 휴장이라 새로 반영할 가격 움직임이 없고, 기관 6곳에서도 이 창 안에 새로 나온 자료가 확인되지 않아 직전 평가(연준·BofA·씨티 신중, GS·한은 중립, JPM 긍정)를 그대로 유지한다. 전날까지의 상황은 10월 PPI 전년 6.5%(2022년 11월 이후 최고)로 12월 인상 확률이 88%로 올라간 점과 HSBC의 엔비디아 매도의견 하향(목표가 365→170달러)에 따른 반도체주 약세였고, 이 기조가 주말에도 바뀌지 않았다. S&P500·나스닥은 반도체 리더십 공백 속에서도 주간 기준 8월 이후 최대 상승을 기록해 약세가 반도체에 쏠려 있다는 직전 판단 역시 유효하다. 다음 평가는 11/17 엔비디아 실적·미 소매판매, 11/18 FOMC 의사록으로 갈릴 전망이다.",
+  "points": [
+    "11/14(토) 한국·미국 증시 모두 휴장, 기관 6곳 신규 자료 없음",
+    "직전 평가(신중3·중립2·긍정1) 그대로 유지",
+    "다음 분수령은 11/17(화) 엔비디아 3분기 실적과 미 10월 소매판매",
+    "11/18 FOMC 의사록 공개, 황젠슨 전 CEO 하원 비공개 브리핑 수락 여부도 주시"
+  ],
+  "isa": "주말 동안 ISA 플랜에 바뀐 것은 없음. 11/17 엔비디아 실적·소매판매와 원/달러 흐름을 다음 매수일 전에 확인하세요.",
+  "houses": [
+    {
+      "id": "fed",
+      "tone": "신중",
+      "new": false,
+      "summary": "월러·로건, 10월 근원CPI 3개월째 0.3%에 12월 빅컷 가능성 언급",
+      "detail": "11월10일 월러 연준이사와 로건 댈러스 연은총재가 10월 근원CPI가 전월대비 0.3%로 3개월 연속 나오자 12월8~9일 FOMC에서 더 큰 폭(50bp) 인상 가능성을 열어뒀다고 보도됐다. 월러는 근원CPI 0.3%가 자신이 밝힌 빅컷 기준을 충족한다고 언급했고, 로건도 이번 겨울 더 빠른 속도의 인상을 지지한다고 밝혔다. 보먼 이사는 물가 압력이 일부 품목에서 전반으로 확산되고 있다고 경고했다. 10월28일 FOMC 동결(10-2, 쿡·해맥 인상 소수의견) 이후 이어지는 긴축 신호로, 신중을 유지한다. 이번 환경에서는 연방준비제도 홈페이지에 접속할 수 없어 원문 대신 보도로 확인했다.",
+      "sources": [
+        {
+          "title": "Fed's Waller Backs December Rate Hike, Says Open to Larger Move",
+          "url": "https://www.bloomberg.com/news/articles/2026-11-10/fed-s-waller-backs-december-rate-hike-says-open-to-larger-move",
+          "date": "2026-11-10",
+          "access": "보도"
+        },
+        {
+          "title": "Fed Governor Waller sees December hike likely, opens door to possible half-point increase",
+          "url": "https://www.cnbc.com/2026/11/10/fed-governor-waller-sees-december-hike-likely.html",
+          "date": "2026-11-10",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bok",
+      "tone": "중립",
+      "new": false,
+      "summary": "10/22 3.00% 동결, 7·8월 인상 뒤 첫 숨고르기",
+      "detail": "한국은행 금융통화위원회는 10월22일 기준금리를 연 3.00%로 동결했다. 7월과 8월 두 차례 0.25%p씩 올린 뒤 처음 멈춘 결정으로, 물가와 집값 불안을 함께 보며 긴축 속도를 조절한 것으로 보도됐다. 다음 결정회의는 11월26일이며 한은은 추가 인상의 시기와 속도를 계속 점검하겠다고 밝힌 것으로 전해졌다. 인상도 인하도 아닌 관망이라 중립으로 평가한다. 이번 환경에서는 한국은행 홈페이지에 접속할 수 없어 원문 대신 보도로 확인했다.",
+      "sources": [
+        {
+          "title": "한은, 기준금리 연 3.00% 동결…물가·집값 불안에 긴축 속도 조절",
+          "url": "https://www.blockmedia.co.kr/archives/1154754",
+          "date": "2026-10-22",
+          "access": "보도"
+        },
+        {
+          "title": "기준금리 3.00% 동결 확정, 11월 추가 인상 전망",
+          "url": "https://kbmaeil.com/article/20261022500138",
+          "date": "2026-10-22",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "jpm",
+      "tone": "긍정",
+      "new": false,
+      "summary": "마테이카, 'AI 매도 과도'…매수 유지(11/9)",
+      "detail": "CNBC 보도에 따르면 JPM의 미슬라브 마테이카는 11월9일 이번 AI 매도세가 추세로 이어지지는 않을 것이며 매도가 과도했을 수 있다고 밝혔다. 같은 기사는 S&P500이 한 주간 2.7%, 나스닥종합이 3.4% 내려 4주 연속 하락했고 나스닥이 지난달 고점에서 10% 넘게 빠져 교정 국면에 들어갔다고 전했다. 모건스탠리의 마이클 윌슨도 교정이 마지막 국면에 들어섰다고 봤다는 내용이 함께 실렸다. 구조적 AI 투자 사이클이 꺾이지 않았다는 기존 긍정론을 유지해 긍정으로 평가한다.",
+      "sources": [
+        {
+          "title": "The AI sell-off rocked Wall Street last week. Why it sets up the market for a big year-end rally",
+          "url": "https://www.cnbc.com/2026/11/09/ai-selloff-stock-market-year-end-rally.html",
+          "date": "2026-11-09",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bofa",
+      "tone": "신중",
+      "new": false,
+      "summary": "하트넷, 11월 중순까지 위험회피 유지 권고",
+      "detail": "하트넷 전략팀은 10월23일 고객 노트에서 11월 중순까지 전술적으로 위험회피를 유지한다고 밝힌 것으로 보도됐다. AI 하이퍼스케일러의 자금조달(채권발행) 부담이 커지는 점과 성장·AI 밸류에이션 경계감을 근거로 들었다. 이후 11월 첫째 주 실제로 AI 주도 급락이 나타나며 이 경고가 선행 신호로 읽혔다. 직전(10/13) CIO의 중기 실적 낙관은 남아 있지만 더 최근의 단기 위험 경고를 중시해 신중을 유지한다.",
+      "sources": [
+        {
+          "title": "BofA's Hartnett Sees Risk-Off Mood Lasting Until Mid-November",
+          "url": "https://www.fa-mag.com/news/bofa-s-hartnett-sees-risk-off-mood-lasting-until-mid-november-88928.html",
+          "date": "2026-10-23",
+          "access": "보도"
+        },
+        {
+          "title": "BofA's Hartnett Sees Risk-Off Mood Lasting Until Mid-November",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/bofa-hartnett-sees-risk-off-094854981.html",
+          "date": "2026-10-23",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "gs",
+      "tone": "중립",
+      "new": false,
+      "summary": "트레이딩데스크 '과매도'…전략가는 'AI 캐펙스 정점' 경계",
+      "detail": "블룸버그에 따르면 11월5일 골드만 트레이딩데스크에는 매도가 어디까지 갈지 묻는 전화가 쏟아졌지만 매수자는 드물었고, 나스닥100은 장중 한때 5.9%까지 빠지며 2조달러 넘는 시가총액이 사라졌다. 골드만의 AI 메모리 바스켓은 6월 고점 대비 51% 빠졌고 한 전략가는 AI 자본지출이 정점을 지났을 수 있다고 언급한 것으로 전해졌다. 다만 11월9일 월요일 메모에서는 주식이 명백한 과매도 구간이라고 진단했고, 솔로몬 CEO는 AI 인프라 금융 수요가 여전히 강하다고 반박했다. 경계와 반등 진단이 함께 나와 중립으로 평가한다.",
+      "sources": [
+        {
+          "title": "Goldman Sachs Traders See Surge in Calls as AI Stock Selloff Deepens",
+          "url": "https://www.bloomberg.com/news/articles/2026-11-05/goldman-traders-say-phones-are-exploding-as-ai-selloff-worsens",
+          "date": "2026-11-05",
+          "access": "보도"
+        },
+        {
+          "title": "AI stocks bounce back — with one notable exception",
+          "url": "https://www.axios.com/2026/11/10/ai-stocks-nvidia-broadcom",
+          "date": "2026-11-10",
+          "access": "보도"
+        },
+        {
+          "title": "AI financing demand remains strong despite Wall Street selloff, Goldman Sachs CEO says",
+          "url": "https://techstartups.com/2026/11/09/ai-financing-demand-remains-strong-despite-wall-street-selloff-goldman-sachs-ceo-says/",
+          "date": "2026-11-09",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "citi",
+      "tone": "신중",
+      "new": false,
+      "summary": "미국 주식·테크 비중 확대→중립 하향(11/9)",
+      "detail": "보도에 따르면 씨티의 베아타 만티 전략팀은 11월9일 노트에서 미국 주식과 글로벌 테크 비중을 비중확대에서 중립으로 낮췄다. AI 주도 급락이 진정돼야 한다는 이유를 들었고, 나스닥 등 주요 지수의 포지셔닝이 순매도 영역까지 밀릴 수 있다고 경계했다. 이번 급락으로 S&P500 구성종목의 시가총액 약 3조달러가 증발한 것으로 전해졌다. 대신 유럽(영국 제외) 주식과 헬스케어·식음료 비중은 확대로 올렸다. 전면적인 비관은 아니지만 비중을 실제로 낮춘 첫 조치라 신중으로 평가한다.",
+      "sources": [
+        {
+          "title": "Citigroup downgrades U.S. equities to 'neutral' on AI concerns",
+          "url": "https://www.theglobeandmail.com/investing/article-citigroup-downgrades-us-equities-to-neutral-on-ai-concerns/",
+          "date": "2026-11-09",
+          "access": "보도"
+        },
+        {
+          "title": "Citi Dialed Back Its US Stock Call After The AI Selloff",
+          "url": "https://finimize.com/content/citi-dialed-back-its-us-stock-call-after-the-ai-selloff",
+          "date": "2026-11-09",
+          "access": "보도"
+        }
+      ]
+    }
+  ],
+  "watch": [
+    {"date": "2026-11-17", "event": "엔비디아 3분기 실적 발표(장마감 후, 새 경영진 첫 실적)"},
+    {"date": "2026-11-17", "event": "미국 10월 소매판매 발표"},
+    {"date": "2026-11-18", "event": "10월 FOMC 의사록 공개"},
+    {"date": "2026-11-18", "event": "황젠슨 전 CEO, 하원 3개 위원회 비공개 브리핑 요청(수락 여부 미확인)"}
+  ]
+}
