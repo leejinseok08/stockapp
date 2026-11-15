@@ -22,6 +22,9 @@ export default function OutlookScreen({ route }: NativeStackScreenProps<RootStac
   const counts = (["긍정", "중립", "신중"] as OutlookTone[])
     .map((t) => [t, o.houses.filter((h) => h.tone === t).length] as const)
     .filter(([, n]) => n > 0);
+  const recentUpdates = [...o.past, { slot: o.slot, stance: o.stance }]
+    .sort((a, b) => b.slot.localeCompare(a.slot))
+    .slice(0, 10);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: space.xxl * 2 }}>
@@ -47,8 +50,8 @@ export default function OutlookScreen({ route }: NativeStackScreenProps<RootStac
         </View>
         <Text style={styles.counts}>{counts.map(([t, n]) => `${t} ${n}`).join(" · ")}</Text>
         {o.past.length > 0 && (
-          <View style={styles.trail} accessibilityLabel={`최근 판단 ${o.past.map((p) => p.stance).join(", ")}, 지금 ${o.stance}`}>
-            {[...o.past, { slot: o.slot, stance: o.stance }].map((p) => (
+          <View style={styles.trail} accessibilityLabel={`최근 판단 ${recentUpdates.map((p) => p.stance).join(", ")}`}>
+            {recentUpdates.map((p) => (
               <View key={p.slot} style={styles.trailItem}>
                 <View style={[styles.trailDot, { backgroundColor: tones[outlookTone(p.stance)].fg }]} />
                 <Text style={styles.trailText}>{md(p.slot)}</Text>
