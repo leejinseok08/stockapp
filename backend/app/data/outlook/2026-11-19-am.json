@@ -1,0 +1,152 @@
+{
+  "slot": "2026-11-19-am",
+  "asOf": "2026-11-19",
+  "author": "claude",
+  "stance": "신중",
+  "headline": "FOMC 의사록 매파 신호에 S&P500 5일째 하락, 앤트로픽 나스닥 상장 대기",
+  "reason": "직전 업데이트(11/18 22:30) 이후 미국 정규장에서 10월28~29일 FOMC 의사록이 공개돼 추가 금리 인상 가능성을 시사했다는 평가가 나오면서 S&P500이 주요 지지선을 내주고 0.23% 내린 7323.63으로 5거래일 연속 하락(6월 이후 최장 하락세)했다. 다우는 1.11% 내린 50198.17로 마감했지만 나스닥은 0.42% 오른 24429.88을 기록해 지수별로 엇갈렸다. 11월10일 월러 이사·로건 댈러스 연은총재의 12월8~9일 FOMC 50bp 인상 가능성 발언이 의사록으로 재확인된 모습이라 기관 평가(신중 3·중립 2·긍정 1)를 유지한다. 앤트로픽은 주당 70~78달러, 기업가치 약 1조2600억~1조4100억달러로 19일 나스닥 데뷔(티커 ANT)를 앞두고 있어 테크주 수급에 추가 변수가 될 수 있다.",
+  "points": [
+    "S&P500 0.23%↓ 7323.63, 5거래일 연속 하락(6월來 최장 하락세).",
+    "다우 1.11%↓ 50198.17, 나스닥은 0.42%↑ 24429.88로 혼조 마감.",
+    "10월 FOMC 의사록 공개, 추가 인상 가능성 시사에 S&P 지지선 붕괴.",
+    "앤트로픽, 주당 70~78달러·기업가치 최대 1조4100억달러로 19일 나스닥 데뷔(ANT) 예정.",
+    "월러·로건의 12월 50bp 인상 가능성 발언이 의사록으로 재확인."
+  ],
+  "isa": "반도체·나스닥 ETF는 FOMC 매파 신호와 앤트로픽 상장 변수로 변동성이 클 수 있다. 원/달러·금리 흐름을 함께 보되 매수일은 그대로 진행.",
+  "houses": [
+    {
+      "id": "fed",
+      "tone": "신중",
+      "new": true,
+      "summary": "FOMC 의사록 '추가 인상 신호'에 S&P 지지선 붕괴",
+      "detail": "11월18일 오후 2시(현지시간) 공개된 10월28~29일 FOMC 의사록이 추가 금리 인상 가능성을 시사했다는 평가가 나오면서 S&P500이 주요 지지선을 내줬다고 보도됐다. 이는 11월10일 월러 이사와 로건 댈러스 연은총재가 10월 근원CPI 3개월 연속 0.3%를 근거로 12월8~9일 FOMC에서 50bp 인상 가능성을 연 것과 같은 맥락이다. 10월28일 FOMC 동결(10-2, 쿡·해맥 인상 소수의견) 이후 매파 기조가 의사록으로 재확인된 셈이라 신중을 유지한다. 이번 환경에서는 연방준비제도 홈페이지에 접속할 수 없어 원문 대신 보도(헤드라인 수준)로 확인했다.",
+      "sources": [
+        {
+          "title": "Stock Market Today, Nov. 18: S&P 500 Breaks Key Support as Fed Minutes Signal More Rate Hikes Ahead",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/stock-market-today-nov-18-230002098.html",
+          "date": "2026-11-18",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bok",
+      "tone": "중립",
+      "new": false,
+      "summary": "10/22 3.00% 동결, 7·8월 인상 뒤 첫 숨고르기",
+      "detail": "한국은행 금융통화위원회는 10월22일 기준금리를 연 3.00%로 동결했다. 7월과 8월 두 차례 0.25%p씩 올린 뒤 처음 멈춘 결정으로, 물가와 집값 불안을 함께 보며 긴축 속도를 조절한 것으로 보도됐다. 다음 결정회의는 11월26일이며 한은은 추가 인상의 시기와 속도를 계속 점검하겠다고 밝힌 것으로 전해졌다. 인상도 인하도 아닌 관망이라 중립으로 평가한다. 이번 환경에서는 한국은행 홈페이지에 접속할 수 없어 원문 대신 보도로 확인했다.",
+      "sources": [
+        {
+          "title": "한은, 기준금리 연 3.00% 동결…물가·집값 불안에 긴축 속도 조절",
+          "url": "https://www.blockmedia.co.kr/archives/1154754",
+          "date": "2026-10-22",
+          "access": "보도"
+        },
+        {
+          "title": "기준금리 3.00% 동결 확정, 11월 추가 인상 전망",
+          "url": "https://kbmaeil.com/article/20261022500138",
+          "date": "2026-10-22",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "jpm",
+      "tone": "긍정",
+      "new": false,
+      "summary": "마테이카, 'AI 매도 과도'…매수 유지(11/9)",
+      "detail": "CNBC 보도에 따르면 JPM의 미슬라브 마테이카는 11월9일 이번 AI 매도세가 추세로 이어지지는 않을 것이며 매도가 과도했을 수 있다고 밝혔다. 같은 기사는 S&P500이 한 주간 2.7%, 나스닥종합이 3.4% 내려 4주 연속 하락했고 나스닥이 지난달 고점에서 10% 넘게 빠져 교정 국면에 들어갔다고 전했다. 모건스탠리의 마이클 윌슨도 교정이 마지막 국면에 들어섰다고 봤다는 내용이 함께 실렸다. 구조적 AI 투자 사이클이 꺾이지 않았다는 기존 긍정론을 유지해 긍정으로 평가한다.",
+      "sources": [
+        {
+          "title": "The AI sell-off rocked Wall Street last week. Why it sets up the market for a big year-end rally",
+          "url": "https://www.cnbc.com/2026/11/09/ai-selloff-stock-market-year-end-rally.html",
+          "date": "2026-11-09",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bofa",
+      "tone": "신중",
+      "new": false,
+      "summary": "하트넷, 11월 중순까지 위험회피 유지 권고",
+      "detail": "하트넷 전략팀은 10월23일 고객 노트에서 11월 중순까지 전술적으로 위험회피를 유지한다고 밝힌 것으로 보도됐다. AI 하이퍼스케일러의 자금조달(채권발행) 부담이 커지는 점과 성장·AI 밸류에이션 경계감을 근거로 들었다. 이후 11월 첫째 주 실제로 AI 주도 급락이 나타나며 이 경고가 선행 신호로 읽혔다. 직전(10/13) CIO의 중기 실적 낙관은 남아 있지만 더 최근의 단기 위험 경고를 중시해 신중을 유지한다.",
+      "sources": [
+        {
+          "title": "BofA's Hartnett Sees Risk-Off Mood Lasting Until Mid-November",
+          "url": "https://www.fa-mag.com/news/bofa-s-hartnett-sees-risk-off-mood-lasting-until-mid-november-88928.html",
+          "date": "2026-10-23",
+          "access": "보도"
+        },
+        {
+          "title": "BofA's Hartnett Sees Risk-Off Mood Lasting Until Mid-November",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/bofa-hartnett-sees-risk-off-094854981.html",
+          "date": "2026-10-23",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "gs",
+      "tone": "중립",
+      "new": false,
+      "summary": "트레이딩데스크 '과매도'…전략가는 'AI 캐펙스 정점' 경계",
+      "detail": "블룸버그에 따르면 11월5일 골드만 트레이딩데스크에는 매도가 어디까지 갈지 묻는 전화가 쏟아졌지만 매수자는 드물었고, 나스닥100은 장중 한때 5.9%까지 빠지며 2조달러 넘는 시가총액이 사라졌다. 골드만의 AI 메모리 바스켓은 6월 고점 대비 51% 빠졌고 한 전략가는 AI 자본지출이 정점을 지났을 수 있다고 언급한 것으로 전해졌다. 다만 11월9일 월요일 메모에서는 주식이 명백한 과매도 구간이라고 진단했고, 솔로몬 CEO는 AI 인프라 금융 수요가 여전히 강하다고 반박했다. 경계와 반등 진단이 함께 나와 중립으로 평가한다.",
+      "sources": [
+        {
+          "title": "Goldman Sachs Traders See Surge in Calls as AI Stock Selloff Deepens",
+          "url": "https://www.bloomberg.com/news/articles/2026-11-05/goldman-traders-say-phones-are-exploding-as-ai-selloff-worsens",
+          "date": "2026-11-05",
+          "access": "보도"
+        },
+        {
+          "title": "AI stocks bounce back — with one notable exception",
+          "url": "https://www.axios.com/2026/11/10/ai-stocks-nvidia-broadcom",
+          "date": "2026-11-10",
+          "access": "보도"
+        },
+        {
+          "title": "AI financing demand remains strong despite Wall Street selloff, Goldman Sachs CEO says",
+          "url": "https://techstartups.com/2026/11/09/ai-financing-demand-remains-strong-despite-wall-street-selloff-goldman-sachs-ceo-says/",
+          "date": "2026-11-09",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "citi",
+      "tone": "신중",
+      "new": false,
+      "summary": "미국 주식·테크 비중 확대→중립 하향(11/9)",
+      "detail": "보도에 따르면 씨티의 베아타 만티 전략팀은 11월9일 노트에서 미국 주식과 글로벌 테크 비중을 비중확대에서 중립으로 낮췄다. AI 주도 급락이 진정돼야 한다는 이유를 들었고, 나스닥 등 주요 지수의 포지셔닝이 순매도 영역까지 밀릴 수 있다고 경계했다. 이번 급락으로 S&P500 구성종목의 시가총액 약 3조달러가 증발한 것으로 전해졌다. 대신 유럽(영국 제외) 주식과 헬스케어·식음료 비중은 확대로 올렸다. 전면적인 비관은 아니지만 비중을 실제로 낮춘 첫 조치라 신중으로 평가한다.",
+      "sources": [
+        {
+          "title": "Citigroup downgrades U.S. equities to 'neutral' on AI concerns",
+          "url": "https://www.theglobeandmail.com/investing/article-citigroup-downgrades-us-equities-to-neutral-on-ai-concerns/",
+          "date": "2026-11-09",
+          "access": "보도"
+        },
+        {
+          "title": "Citi Dialed Back Its US Stock Call After The AI Selloff",
+          "url": "https://finimize.com/content/citi-dialed-back-its-us-stock-call-after-the-ai-selloff",
+          "date": "2026-11-09",
+          "access": "보도"
+        }
+      ]
+    }
+  ],
+  "watch": [
+    {
+      "date": "2026-11-19",
+      "event": "앤트로픽 나스닥 상장 거래 시작 예정(티커 ANT, 주당 70~78달러)"
+    },
+    {
+      "date": "2026-11-26",
+      "event": "한국은행 금통위 기준금리 결정"
+    },
+    {
+      "date": "2026-11-26",
+      "event": "젠슨 황 전 CEO, 추수감사절 전 하원 비공개 증언 예정"
+    }
+  ]
+}
