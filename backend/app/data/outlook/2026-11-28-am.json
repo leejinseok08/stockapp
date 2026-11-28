@@ -1,0 +1,154 @@
+{
+  "slot": "2026-11-28-am",
+  "asOf": "2026-11-28",
+  "author": "claude",
+  "stance": "신중",
+  "headline": "美 블랙프라이데이 랠리로 주간 최대 상승, 기관 구도는 신중4·긍정2 그대로",
+  "reason": "직전 업데이트(27일 22:30) 이후 가장 큰 변화는 미국 증시다. 블랙프라이데이 단축장에서 S&P500이 1.60% 오른 7297.49, 나스닥종합이 2.31% 오른 24129.50, 다우가 1.18% 오른 50774.94로 마감했고, 주간으로는 S&P500이 5.6% 올라 2025년 4월 이후 최대 주간 상승률을 기록했다. 필라델피아반도체지수가 4.69% 오르고 샌디스크가 15.96% 급등하는 등 반도체가 랠리를 주도했으며 S&P500 11개 섹터가 모두 올라, 전날 코스피·코스닥 급등과 이어지는 위험선호 회복 흐름을 보여준다. 다만 연준·한은·JPM·BofA·골드만·씨티 여섯 기관 중 이 구간에서 새로 확인된 자료는 없어 구도(신중4·긍정2)가 그대로이고, 이틀 연속 급등만으로 판단을 바꾸지 않아 신중을 유지한다. 오늘(28일)은 토요일로 국내 증시는 휴장이라 이 흐름에 대한 국내 반응은 다음 거래일(월요일)에 확인된다.",
+  "points": [
+    "美 블랙프라이데이 단축장 S&P500 +1.60%(7297.49)·나스닥 +2.31%·다우 +1.18%",
+    "주간 S&P500 +5.6%, 2025년4월來 최대…반도체(필라델피아반도체지수 +4.69%)가 주도",
+    "샌디스크 +15.96% 급등, S&P500 11개 섹터 전부 상승해 위험선호 강하게 회복",
+    "여섯 기관 모두 이 구간 새 자료 없어 신중4·긍정2 구도 그대로",
+    "오늘은 토요일, 국내 증시 휴장…다음 거래일(월요일) 반응 확인 필요"
+  ],
+  "isa": "미국 증시가 강하게 랠리했지만 기관 구도는 그대로이니 환율·금리차 큰 변화 없으면 계획대로 이달 적립을 이어간다.",
+  "houses": [
+    {
+      "id": "fed",
+      "tone": "신중",
+      "new": false,
+      "summary": "쿡 이사 '금융여건 여전히 완화적, 추가 큰 인상 필요'(11/20)",
+      "detail": "연준 쿡 이사는 11월20일 칠레 중앙은행 연례회의 연설에서 현재 금융여건이 여전히 완화적이며 지금 금리를 올리지 않으면 인플레이션 대응에서 뒤처질 위험이 있다고 경고했다고 전해졌다. 추가적이고 더 큰 폭의 금리 인상이 나중에 필요할 수 있다는 매파적 언급도 나왔다. 이는 11월18일 FOMC 의사록의 매파 해석, 11월10일 월러·로건의 50bp 인상 가능성 언급과 같은 흐름이며, 12월 FOMC 25bp 인상 확률이 선물시장에서 90%를 넘는 배경이 됐다. 이번 환경에서는 연방준비제도 홈페이지에 접속할 수 없어 원문 대신 보도로 확인했다.",
+      "sources": [
+        {
+          "title": "Fed's Lisa Cook Warns of Larger Rate Hikes Ahead",
+          "url": "https://247wallst.com/investing/2026/11/21/feds-lisa-cook-warns-of-larger-rate-hikes-ahead/",
+          "date": "2026-11-21",
+          "access": "보도"
+        },
+        {
+          "title": "US Fed Rate Hike Odds Rise Above 90% for December",
+          "url": "https://tradingeconomics.com/united-states/implied-rates/news/602003",
+          "date": "2026-11-17",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bok",
+      "tone": "신중",
+      "new": false,
+      "summary": "기준금리 3.00%→3.25% 인상(5대2), 점도표 3.50%로 상향",
+      "detail": "한국은행 금융통화위원회는 26일 올해 마지막 통화정책방향 회의에서 기준금리를 연 3.00%에서 3.25%로 0.25%p 올렸다. 위원 7명 중 5명이 인상에 찬성했고 황건일·이수형 위원은 3.00% 동결이 바람직하다는 소수의견을 냈다. 함께 공개된 점도표에서는 6개월 후 전망 중간값이 3.25%에서 3.50%로 올라, 반도체 중심 성장·물가 압력이 이어지는 한 추가 인상 가능성을 열어뒀다. 코스피는 인상 발표 후 장중 한때 4800선까지 올랐다가 상승분을 상당 부분 반납해 +0.29%(4711.21)로 마감, 인상이 예상 범위였던 만큼 충격은 크지 않았다는 평가가 나왔다. 이번 환경에서는 한국은행 홈페이지(bok.or.kr)에 접속할 수 없어 원문 대신 보도로 확인했다.",
+      "sources": [
+        {
+          "title": "올해 마지막 한은 금통위, 기준금리 3.25%로 인상…반도체 중심 성장·물가 압력 반영(종합)",
+          "url": "https://www.fntimes.com/html/view.php?ud=202611261110132637179ad43907_18",
+          "date": "2026-11-26",
+          "access": "보도"
+        },
+        {
+          "title": "금리 인상 날 코스피 상승폭 꺾여…점도표 상단 3.75%에 고점 신중론",
+          "url": "https://www.mt.co.kr/stock/2026/11/26/2026112615481951655",
+          "date": "2026-11-26",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "jpm",
+      "tone": "긍정",
+      "new": false,
+      "summary": "마테이카, 'AI 매도 과도'…매수 유지(11/9)",
+      "detail": "CNBC 보도에 따르면 JPM의 미슬라브 마테이카는 11월9일 이번 AI 매도세가 추세로 이어지지는 않을 것이며 매도가 과도했을 수 있다고 밝혔다. 같은 기사는 S&P500이 한 주간 2.7%, 나스닥종합이 3.4% 내려 4주 연속 하락했고 나스닥이 지난달 고점에서 10% 넘게 빠져 교정 국면에 들어갔다고 전했다. 모건스탠리의 마이클 윌슨도 교정이 마지막 국면에 들어섰다고 봤다는 내용이 함께 실렸다. 구조적 AI 투자 사이클이 꺾이지 않았다는 기존 긍정론을 유지해 긍정으로 평가한다.",
+      "sources": [
+        {
+          "title": "The AI sell-off rocked Wall Street last week. Why it sets up the market for a big year-end rally",
+          "url": "https://www.cnbc.com/2026/11/09/ai-selloff-stock-market-year-end-rally.html",
+          "date": "2026-11-09",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "bofa",
+      "tone": "신중",
+      "new": false,
+      "summary": "'복귀가 감시 종료 의미하지 않는다' 경계 재확인(11/23)",
+      "detail": "BofA는 23일 노트에서 황 CEO의 복귀를 감시(scrutiny)의 종료로 오해해서는 안 된다고 선을 그었다. 이는 11월17일 공개된 BofA 글로벌 펀드매니저서베이에서 기업의 AI 과잉투자 응답이 사상 최고인 38%로 집계되고 기술주 순비중이 전월 37%에서 12%로 급락한 데서 이어지는 경계론과 같은 맥락이다. 지배구조 불안이 CEO 복귀로 일부 완화됐더라도 밸류에이션·조사 불확실성에 대한 경계는 거두지 않아 신중을 유지한다.",
+      "sources": [
+        {
+          "title": "Wall Street analysts cheer Jensen Huang's return to Nvidia — but they still have concerns",
+          "url": "https://www.aol.com/articles/wall-street-analysts-cheer-jensen-164614000.html",
+          "date": "2026-11-23",
+          "access": "보도"
+        },
+        {
+          "title": "BofA Fund Manager Survey says just 3% of investors predict a recession, while cash levels are at 3.6%",
+          "url": "https://www.newsquawk.com/headlines/bofa-fund-manager-survey-says-just-3-of-investors-predict-a-recession-while-cash-levels-are-at-36",
+          "date": "2026-11-17",
+          "access": "보도"
+        },
+        {
+          "title": "Record 38% of Fund Managers Now Say Companies Overinvest",
+          "url": "https://fourweekmba.com/ai-record-38-of-fund-managers-now-say-companies-overinvest/",
+          "date": "2026-11-17",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "gs",
+      "tone": "긍정",
+      "new": false,
+      "summary": "황 복귀는 호재지만 '클리어링 이벤트는 아니다'(11/24)",
+      "detail": "골드만삭스 TMT 데스크는 24일 노트에서 황 CEO 복귀가 투자자 심리에는 긍정적이나 반도체 섹터의 불확실성을 해소하는 '클리어링 이벤트'는 아니며 투자자들에게 답보다 의문이 많다고 평가했다. 반도체 분석가 제임스 슈나이더는 황 CEO의 산업 영향력과 기업문화, 규제 대응력을 근거로 복귀가 엔비디아와 AI 생태계 전반에 긍정적이라고 봤다. 11월13일 S&P500 12개월 목표 8700 제시, 11월9일 솔로몬 CEO의 AI 금융수요 발언과 같은 구조적 긍정론을 유지하되, 지배구조 불안 해소를 성급히 낙관하지 않는 신중함이 더해져 긍정을 유지한다.",
+      "sources": [
+        {
+          "title": "Nvidia shares fall over 5% in premarket after Huang comeback rally",
+          "url": "https://www.cnbc.com/2026/11/24/nvidia-stock-jensen-huang-return.html",
+          "date": "2026-11-24",
+          "access": "보도"
+        },
+        {
+          "title": "Goldman Sachs sees SP 500 rising to 8700 next year despite slower earnings growth",
+          "url": "https://www.thestandard.com.hk/finance/article/348462/Goldman-Sachs-sees-SP-500-rising-to-8700-next-year-despite-slower-earnings-growth",
+          "date": "2026-11-13",
+          "access": "보도"
+        }
+      ]
+    },
+    {
+      "id": "citi",
+      "tone": "신중",
+      "new": false,
+      "summary": "엔비디아 목표가 240달러로 상향, 그러나 비중은 신중 유지(11/23)",
+      "detail": "씨티 반도체 분석가 아티프 말리크는 23일 노트에서 황 CEO 복귀가 CEO 교체로 인한 불확실성이라는 핵심 오버행을 해소한다며 매수 의견을 유지하고 목표가를 240달러로 상향했다. 다만 황 CEO를 둘러싼 개인 관계에 대한 조사 불확실성은 남아있다고 짚었다. 이는 11월9일 베아타 만티 전략팀이 미국 주식·글로벌 테크 비중을 비중확대에서 중립으로 낮춘 거시 판단과는 결이 다른 종목 차원의 선별적 낙관으로, 전체 미국 주식 비중 하향 조치는 그대로 유지돼 신중으로 평가한다.",
+      "sources": [
+        {
+          "title": "Wall Street analysts cheer Jensen Huang's return to Nvidia — but they still have concerns",
+          "url": "https://www.aol.com/articles/wall-street-analysts-cheer-jensen-164614000.html",
+          "date": "2026-11-23",
+          "access": "보도"
+        },
+        {
+          "title": "Citigroup downgrades U.S. equities to 'neutral' on AI concerns",
+          "url": "https://www.theglobeandmail.com/investing/article-citigroup-downgrades-us-equities-to-neutral-on-ai-concerns/",
+          "date": "2026-11-09",
+          "access": "보도"
+        }
+      ]
+    }
+  ],
+  "watch": [
+    {
+      "date": "2026-12-01",
+      "event": "한국 11월 수출입동향, 미국 10월 JOLTS·11월 ISM 제조업 PMI"
+    },
+    {
+      "date": "2026-12-04",
+      "event": "미국 11월 비농업고용지표(고용보고서)"
+    }
+  ]
+}
